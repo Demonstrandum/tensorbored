@@ -85,6 +85,8 @@ genrule(
         "LICENSE.tensorflow",
         "@npm//:node_modules/d3/LICENSE",
         "@com_google_fonts_roboto//:LICENSE",
+        "@com_google_fonts_inter//:OFL.txt",
+        "@com_google_fonts_ibm_plex_mono//:OFL.txt",
         "@org_mozilla_bleach//:LICENSE",
         "@org_pythonhosted_webencodings//:LICENSE",
         "//third_party:bh_tsne.LICENSE",

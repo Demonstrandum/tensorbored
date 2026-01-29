@@ -383,7 +383,7 @@ const measurerContext = canvas.getContext('2d');
  */
 export function measureTextWidth(text: string, fontSize: number): number {
   if (measurerContext)
-    measurerContext.font = `${fontSize}px Roboto, sans-serif`;
+    measurerContext.font = `${fontSize}px Inter, Roboto, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
   return measurerContext?.measureText(text).width!;
 }
 

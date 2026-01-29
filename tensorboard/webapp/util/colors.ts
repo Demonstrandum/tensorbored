@@ -60,9 +60,9 @@ export const DEFAULT_PALETTE: ColorPalette = {
       darkHex: '#7cb342', // Lt green 600
     },
     {
-      name: 'Orange',
-      lightHex: '#e8710a', // Orange 600
-      darkHex: '#e8710a', // Orange 600
+      name: 'Periwinkle',
+      lightHex: '#7678ed',
+      darkHex: '#6163ea',
     },
   ],
   inactive: {

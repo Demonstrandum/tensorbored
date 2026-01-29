@@ -54,14 +54,14 @@ export enum DarkModeOverride {
       </button>
       <button
         mat-menu-item
-        title="Force light TensorBoard theme."
+        title="Force light TensorBored theme."
         (click)="onOverrideChanged.emit(DarkModeOverride.DARK_MODE_OFF)"
       >
         <label>Light</label>
       </button>
       <button
         mat-menu-item
-        title="Force dark TensorBoard theme."
+        title="Force dark TensorBored theme."
         (click)="onOverrideChanged.emit(DarkModeOverride.DARK_MODE_ON)"
       >
         <label>Dark</label>

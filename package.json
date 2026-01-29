@@ -1,7 +1,7 @@
 {
-  "name": "tensorboard",
+  "name": "tensorbored",
   "version": "0.0.0-unused",
-  "description": "TensorFlow's visualization toolkit",
+  "description": "A PyTorch-first visualization toolkit (TensorBoard fork)",
   "private": true,
   "directories": {
     "doc": "docs"
@@ -15,18 +15,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tensorflow/tensorboard.git"
+    "url": "git+https://github.com/Demonstrandum/tensorbored.git"
   },
   "keywords": [
     "ml",
     "visualization"
   ],
-  "author": "TensorFlow authors",
+  "author": "TensorBored authors",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/tensorflow/tensorboard/issues"
+    "url": "https://github.com/Demonstrandum/tensorbored/issues"
   },
-  "homepage": "https://github.com/tensorflow/tensorboard#readme",
+  "homepage": "https://github.com/Demonstrandum/tensorbored#readme",
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.2.9",
     "@angular/build-tooling": "https://github.com/angular/dev-infra-private-build-tooling-builds.git#fb42478534df7d48ec23a6834fea94a776cb89a0",

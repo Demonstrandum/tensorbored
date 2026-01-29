@@ -19,7 +19,7 @@ import {Component} from '@angular/core';
   selector: 'app-header',
   template: `
     <mat-toolbar>
-      <span class="brand">TensorBoard</span>
+      <span class="brand">TensorBored</span>
       <plugin-selector class="plugins"></plugin-selector>
       <app-header-dark-mode-toggle></app-header-dark-mode-toggle>
       <app-header-reload></app-header-reload>
@@ -27,7 +27,7 @@ import {Component} from '@angular/core';
       <a
         class="readme"
         mat-icon-button
-        href="https://github.com/tensorflow/tensorboard/blob/master/README.md"
+        href="https://github.com/Demonstrandum/tensorbored/blob/master/README.md"
         rel="noopener noreferrer"
         target="_blank"
         aria-label="Help"

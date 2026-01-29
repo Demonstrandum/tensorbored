@@ -107,7 +107,8 @@ export const template = html`
     #projector-config-template {
       --paper-input-container-input: {
         line-height: 13px;
-        font-family: monospace;
+        font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco,
+          Consolas, 'Liberation Mono', 'Courier New', monospace;
         font-size: 12px;
       }
     }
@@ -175,7 +176,8 @@ export const template = html`
     .code {
       background-color: #f7f7f7;
       display: table;
-      font-family: monospace;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, 'Liberation Mono', 'Courier New', monospace;
       margin-top: 7px;
       padding: 15px;
     }

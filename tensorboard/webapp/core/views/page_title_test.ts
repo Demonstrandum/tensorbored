@@ -82,23 +82,23 @@ describe('page title test', () => {
     store.overrideSelector(
       getExperiment,
       buildExperiment({
-        name: 'All you need is TensorBoard',
+        name: 'All you need is TensorBored',
       })
     );
     const fixture = TestBed.createComponent(PageTitleContainer);
     fixture.detectChanges();
 
     expect(spy).toHaveBeenCalledWith(
-      'All you need is TensorBoard - TensorBoard'
+      'All you need is TensorBored - TensorBored'
     );
   });
 
-  it('uses `Tensorboard` as default page title', () => {
+  it('uses `TensorBored` as default page title', () => {
     const spy = spyOn(TEST_ONLY.utils, 'setDocumentTitle');
     const fixture = TestBed.createComponent(PageTitleContainer);
     fixture.detectChanges();
 
-    expect(spy).toHaveBeenCalledWith('TensorBoard');
+    expect(spy).toHaveBeenCalledWith('TensorBored');
   });
 
   it('uses default page title for comparison routes', () => {
@@ -107,7 +107,7 @@ describe('page title test', () => {
     const fixture = TestBed.createComponent(PageTitleContainer);
     fixture.detectChanges();
 
-    expect(spy).toHaveBeenCalledWith('TensorBoard');
+    expect(spy).toHaveBeenCalledWith('TensorBored');
   });
 });
 

@@ -77,7 +77,8 @@ limitations under the License.
 
 .output-slot-number {
   display: block;
-  font-family: 'Roboto Mono', monospace;
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
 .output-slot-debug-tensor-value {

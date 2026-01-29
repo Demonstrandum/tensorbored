@@ -37,7 +37,7 @@ import {State} from '../state';
 import {getEnvironment} from '../store';
 import {TB_BRAND_NAME} from '../types';
 
-const DEFAULT_BRAND_NAME = 'TensorBoard';
+const DEFAULT_BRAND_NAME = 'TensorBored';
 
 /**
  * Renders page title.

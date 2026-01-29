@@ -17,9 +17,10 @@ const style = document.createElement('style');
 style.setAttribute('is', 'custom-style');
 style.textContent = `
   :root {
-    --tb-orange-weak: #ffa726;
-    --tb-orange-strong: #f57c00;
-    --tb-orange-dark: #dc7320;
+    /* TensorBored brand colors (periwinkle). */
+    --tb-orange-weak: #8f90f1;
+    --tb-orange-strong: #7678ed;
+    --tb-orange-dark: #6163ea;
     --tb-grey-darker: #e2e2e2;
     --tb-grey-lighter: #f3f3f3;
     --tb-ui-dark-accent: #757575;

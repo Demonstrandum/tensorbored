@@ -33,16 +33,17 @@ REQUIRED_PACKAGES = get_required_packages()
 
 CONSOLE_SCRIPTS = [
     "tensorboard = tensorboard.main:run_main",
+    "tensorbored = tensorboard.main:run_main",
 ]
 
 setup(
     name="tensorboard",
     version=tensorboard.version.VERSION.replace("-", ""),
-    description="TensorBoard lets you watch Tensors Flow",
+    description="TensorBored: a PyTorch-first TensorBoard fork",
     long_description=get_readme(),
-    url="https://github.com/tensorflow/tensorboard",
-    author="Google Inc.",
-    author_email="packages@tensorflow.org",
+    url="https://github.com/Demonstrandum/tensorbored",
+    author="TensorBored authors",
+    author_email="",
     # Contained modules and scripts.
     packages=find_packages(),
     entry_points={
@@ -82,5 +83,5 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     license="Apache 2.0",
-    keywords="tensorflow tensorboard tensor machine learning visualizer",
+    keywords="pytorch tensorboard tensor machine learning visualizer",
 )

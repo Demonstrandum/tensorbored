@@ -27,7 +27,8 @@ import {
 } from './chart_view_utils';
 import {AxisUtils, MajorTick, MinorTick} from './line_chart_axis_utils';
 
-const AXIS_FONT = '11px Roboto, sans-serif';
+const AXIS_FONT =
+  "11px Inter, Roboto, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 @Component({
   standalone: false,

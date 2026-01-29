@@ -15,7 +15,8 @@ limitations under the License.
 
 body {
   margin: 40px;
-  font-family: Roboto, Helvetica, sans-serif;
+  font-family: Inter, Roboto, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
 }
 
 h1 {
