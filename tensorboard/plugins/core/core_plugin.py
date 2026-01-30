@@ -14,13 +14,15 @@
 # ==============================================================================
 """TensorBoard core plugin package."""
 
-
 import argparse
 import functools
 import gzip
 import io
+import json
 import mimetypes
+import os
 import posixpath
+import re
 import zipfile
 
 from werkzeug import utils
@@ -45,6 +47,8 @@ DEFAULT_PORT = 6006
 # transition to 'text/javascript'.
 JS_MIMETYPES = ["text/javascript", "application/javascript"]
 JS_CACHE_EXPIRATION_IN_SECS = 86400
+
+_RUN_COLOR_HEX_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
 class CorePlugin(base_plugin.TBPlugin):
@@ -85,6 +89,7 @@ class CorePlugin(base_plugin.TBPlugin):
             "/data/environment": self._serve_environment,
             "/data/logdir": self._serve_logdir,
             "/data/runs": self._serve_runs,
+            "/data/run_colors": self._serve_run_colors,
             "/data/experiments": self._serve_experiments,
             "/data/experiment_runs": self._serve_experiment_runs,
             "/data/notifications": self._serve_notifications,
@@ -109,9 +114,7 @@ class CorePlugin(base_plugin.TBPlugin):
                     content = zip_.read(path)
                     # Opt out of gzipping index.html
                     if path == "index.html":
-                        apps["/" + path] = functools.partial(
-                            self._serve_index, content
-                        )
+                        apps["/" + path] = functools.partial(self._serve_index, content)
                         continue
 
                     gzipped_asset_bytes = _gzip(content)
@@ -164,8 +167,7 @@ class CorePlugin(base_plugin.TBPlugin):
             else "."
         )
         meta_header = (
-            '<!doctype html><meta name="tb-relative-root" content="%s/">'
-            % relpath
+            '<!doctype html><meta name="tb-relative-root" content="%s/">' % relpath
         )
         content = meta_header.encode("utf-8") + index_asset_bytes
         # By passing content_encoding, disallow gzipping. Bloats the content
@@ -180,9 +182,7 @@ class CorePlugin(base_plugin.TBPlugin):
         """Serve a JSON object describing the TensorBoard parameters."""
         ctx = plugin_util.context(request.environ)
         experiment = plugin_util.experiment_id(request.environ)
-        md = self._data_provider.experiment_metadata(
-            ctx, experiment_id=experiment
-        )
+        md = self._data_provider.experiment_metadata(ctx, experiment_id=experiment)
 
         environment = {
             "version": version.VERSION,
@@ -229,9 +229,7 @@ class CorePlugin(base_plugin.TBPlugin):
         # TODO(chihuahua): Remove this method once the frontend instead uses the
         # /data/environment route (and no deps throughout Google use the
         # /data/logdir route).
-        return http_util.Respond(
-            request, {"logdir": self._logdir}, "application/json"
-        )
+        return http_util.Respond(request, {"logdir": self._logdir}, "application/json")
 
     @wrappers.Request.application
     def _serve_window_properties(self, request):
@@ -262,6 +260,110 @@ class CorePlugin(base_plugin.TBPlugin):
         )
         run_names = [run.run_name for run in runs]
         return http_util.Respond(request, run_names, "application/json")
+
+    def _run_colors_path(self):
+        """Returns a path to the run color overrides file, or None if unavailable.
+
+        We only support writing when `--logdir` points to a local filesystem
+        directory. For `--logdir_spec` or non-local data providers, this is not
+        guaranteed.
+        """
+        logdir = self._logdir or ""
+        # Basic guard against `--logdir_spec`/multi-logdir strings.
+        if not logdir or ("," in logdir) or (":" in logdir):
+            return None
+        if not os.path.isdir(logdir):
+            return None
+        return os.path.join(logdir, "runs", "run_colors.json")
+
+    def _read_run_colors(self):
+        path = self._run_colors_path()
+        if not path or not os.path.exists(path):
+            return {}
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+
+    def _write_run_colors(self, mapping):
+        path = self._run_colors_path()
+        if not path:
+            return False
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(mapping, f, indent=2, sort_keys=True)
+        return True
+
+    @wrappers.Request.application
+    def _serve_run_colors(self, request):
+        """Serve and update run color overrides.
+
+        GET returns a JSON object mapping run name -> hex color string (e.g. "#aabbcc").
+
+        POST accepts either:
+          - {"run": "<run_name>", "color": "#aabbcc"}
+          - {"overrides": {"run1": "#aabbcc", ...}}
+
+        The mapping is stored as JSON under `<logdir>/runs/run_colors.json` when possible.
+        """
+        if request.method == "GET":
+            return http_util.Respond(
+                request, self._read_run_colors(), "application/json"
+            )
+
+        if request.method != "POST":
+            return http_util.Respond(
+                request, "Method not allowed", "text/plain", code=405
+            )
+
+        try:
+            payload = json.loads(request.data or b"{}")
+        except Exception:
+            return http_util.Respond(request, "Invalid JSON", "text/plain", code=400)
+
+        if not isinstance(payload, dict):
+            return http_util.Respond(request, "Invalid request", "text/plain", code=400)
+
+        mapping = self._read_run_colors()
+        if not isinstance(mapping, dict):
+            mapping = {}
+
+        if "overrides" in payload:
+            overrides = payload.get("overrides")
+            if not isinstance(overrides, dict):
+                return http_util.Respond(
+                    request, "Invalid overrides", "text/plain", code=400
+                )
+            for run_name, color in overrides.items():
+                if not isinstance(run_name, str) or not isinstance(color, str):
+                    continue
+                if not _RUN_COLOR_HEX_RE.match(color):
+                    continue
+                mapping[run_name] = color
+        else:
+            run_name = payload.get("run")
+            color = payload.get("color")
+            if not isinstance(run_name, str) or not isinstance(color, str):
+                return http_util.Respond(
+                    request, "Invalid request", "text/plain", code=400
+                )
+            if not _RUN_COLOR_HEX_RE.match(color):
+                return http_util.Respond(
+                    request, "Invalid color", "text/plain", code=400
+                )
+            mapping[run_name] = color
+
+        if not self._write_run_colors(mapping):
+            return http_util.Respond(
+                request,
+                "Run color persistence is unavailable for this logdir",
+                "text/plain",
+                code=400,
+            )
+
+        return http_util.Respond(request, mapping, "application/json")
 
     @wrappers.Request.application
     def _serve_experiments(self, request):
@@ -680,17 +782,13 @@ disable fast-loading mode. (default: false)\
             pass
         elif flags.inspect:
             if flags.logdir_spec:
-                raise FlagsError(
-                    "--logdir_spec is not supported with --inspect."
-                )
+                raise FlagsError("--logdir_spec is not supported with --inspect.")
             if flags.logdir and flags.event_file:
                 raise FlagsError(
                     "Must specify either --logdir or --event_file, but not both."
                 )
             if not (flags.logdir or flags.event_file):
-                raise FlagsError(
-                    "Must specify either --logdir or --event_file."
-                )
+                raise FlagsError("Must specify either --logdir or --event_file.")
         elif flags.logdir and flags.logdir_spec:
             raise FlagsError("May not specify both --logdir and --logdir_spec")
         elif (
@@ -707,9 +805,7 @@ disable fast-loading mode. (default: false)\
             )
         elif flags.host is not None and flags.bind_all:
             raise FlagsError("Must not specify both --host and --bind_all.")
-        elif (
-            flags.load_fast == "true" and flags.detect_file_replacement is True
-        ):
+        elif flags.load_fast == "true" and flags.detect_file_replacement is True:
             raise FlagsError(
                 "Must not specify both --load_fast=true and"
                 "--detect_file_replacement=true"
@@ -718,8 +814,7 @@ disable fast-loading mode. (default: false)\
         flags.path_prefix = flags.path_prefix.rstrip("/")
         if flags.path_prefix and not flags.path_prefix.startswith("/"):
             raise FlagsError(
-                "Path prefix must start with slash, but got: %r."
-                % flags.path_prefix
+                "Path prefix must start with slash, but got: %r." % flags.path_prefix
             )
 
     def load(self, context):

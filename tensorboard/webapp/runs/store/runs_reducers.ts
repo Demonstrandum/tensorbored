@@ -25,8 +25,9 @@ import {createNamespaceContextedState} from '../../app_routing/namespaced_state_
 import {RouteKind} from '../../app_routing/types';
 import {DataLoadState} from '../../types/data';
 import {composeReducers} from '../../util/ngrx';
+import {DEFAULT_PALETTE} from '../../util/colors';
 import * as runsActions from '../actions';
-import {GroupByKey, URLDeserializedState} from '../types';
+import {GroupBy, GroupByKey, URLDeserializedState} from '../types';
 import {
   MAX_NUM_RUNS_TO_ENABLE_BY_DEFAULT,
   RunsDataNamespacedState,
@@ -39,6 +40,82 @@ import {
 } from './runs_types';
 import {createGroupBy, groupRuns} from './utils';
 import {ColumnHeaderType, SortingOrder} from '../../widgets/data_table/types';
+
+type Rgb = {r: number; g: number; b: number};
+
+const DEFAULT_RUN_COLORS = DEFAULT_PALETTE.colors.map((color) => color.lightHex);
+const DEFAULT_RUN_COLORS_RGB: Rgb[] = DEFAULT_RUN_COLORS.map((hex) => {
+  const normalized = hex.startsWith('#') ? hex.slice(1) : hex;
+  // Expected format: RRGGBB.
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  return {r, g, b};
+});
+
+function rgbDistSq(a: Rgb, b: Rgb): number {
+  const dr = a.r - b.r;
+  const dg = a.g - b.g;
+  const db = a.b - b.b;
+  return dr * dr + dg * dg + db * db;
+}
+
+function fnv1a32(input: string): number {
+  // 32-bit FNV-1a.
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+function getGroupByScopeKey(groupBy: GroupBy): string {
+  switch (groupBy.key) {
+    case GroupByKey.RUN:
+      return 'run';
+    case GroupByKey.EXPERIMENT:
+      return 'experiment';
+    case GroupByKey.REGEX:
+      return `regex:${groupBy.regexString}`;
+    case GroupByKey.REGEX_BY_EXP:
+      return `regex_by_exp:${groupBy.regexString}`;
+  }
+}
+
+function makeScopedGroupKey(scopeKey: string, groupId: string): string {
+  return `${scopeKey}|${groupId}`;
+}
+
+function pickColorIdForGroupKey(groupKey: string, used: Set<number>): number {
+  const paletteLen = DEFAULT_RUN_COLORS_RGB.length;
+  const preferred = fnv1a32(groupKey) % paletteLen;
+  if (!used.has(preferred)) return preferred;
+  if (used.size >= paletteLen) return preferred;
+
+  // Choose the unused color that maximizes minimum distance to all used colors.
+  let bestIdx = -1;
+  let bestMinDist = -1;
+  let bestTie = 0;
+  for (let idx = 0; idx < paletteLen; idx++) {
+    if (used.has(idx)) continue;
+    let minDist = Infinity;
+    for (const usedIdx of used) {
+      const dist = rgbDistSq(DEFAULT_RUN_COLORS_RGB[idx], DEFAULT_RUN_COLORS_RGB[usedIdx]);
+      if (dist < minDist) minDist = dist;
+    }
+    const tie = fnv1a32(`${groupKey}:${idx}`);
+    if (
+      minDist > bestMinDist ||
+      (minDist === bestMinDist && tie > bestTie)
+    ) {
+      bestIdx = idx;
+      bestMinDist = minDist;
+      bestTie = tie;
+    }
+  }
+  return bestIdx >= 0 ? bestIdx : preferred;
+}
 
 const {
   initialState: dataInitialState,
@@ -226,15 +303,29 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
         expNameByExpId
       );
 
-      Object.entries(groups.matches).forEach(([groupId, runs]) => {
-        const colorId =
-          groupKeyToColorId.get(groupId) ?? groupKeyToColorId.size;
-        groupKeyToColorId.set(groupId, colorId);
+      const scopeKey = getGroupByScopeKey(groupBy);
+      const scopePrefix = `${scopeKey}|`;
+      const usedColorIds = new Set<number>();
+      for (const [key, colorId] of groupKeyToColorId.entries()) {
+        if (key.startsWith(scopePrefix)) {
+          usedColorIds.add(colorId);
+        }
+      }
 
-        for (const run of runs) {
+      const groupIds = Object.keys(groups.matches).sort();
+      for (const groupId of groupIds) {
+        const scopedGroupKey = makeScopedGroupKey(scopeKey, groupId);
+        let colorId = groupKeyToColorId.get(scopedGroupKey);
+        if (colorId === undefined) {
+          colorId = pickColorIdForGroupKey(scopedGroupKey, usedColorIds);
+          groupKeyToColorId.set(scopedGroupKey, colorId);
+        }
+        usedColorIds.add(colorId);
+
+        for (const run of groups.matches[groupId]) {
           defaultRunColorIdForGroupBy.set(run.id, colorId);
         }
-      });
+      }
 
       // unassign color for nonmatched runs to apply default unassigned style
       for (const run of groups.nonMatches) {
@@ -254,8 +345,7 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
       state: RunsDataState,
       {experimentIds, groupBy, expNameByExpId}
     ): RunsDataState => {
-      // Reset the groupKeyToColorId
-      const groupKeyToColorId = new Map<string, number>();
+      const groupKeyToColorId = new Map(state.groupKeyToColorId);
       const defaultRunColorIdForGroupBy = new Map(
         state.defaultRunColorIdForGroupBy
       );
@@ -271,15 +361,29 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
         expNameByExpId
       );
 
-      Object.entries(groups.matches).forEach(([groupId, runs]) => {
-        const colorId =
-          groupKeyToColorId.get(groupId) ?? groupKeyToColorId.size;
-        groupKeyToColorId.set(groupId, colorId);
+      const scopeKey = getGroupByScopeKey(groupBy);
+      const scopePrefix = `${scopeKey}|`;
+      const usedColorIds = new Set<number>();
+      for (const [key, colorId] of groupKeyToColorId.entries()) {
+        if (key.startsWith(scopePrefix)) {
+          usedColorIds.add(colorId);
+        }
+      }
 
-        for (const run of runs) {
+      const groupIds = Object.keys(groups.matches).sort();
+      for (const groupId of groupIds) {
+        const scopedGroupKey = makeScopedGroupKey(scopeKey, groupId);
+        let colorId = groupKeyToColorId.get(scopedGroupKey);
+        if (colorId === undefined) {
+          colorId = pickColorIdForGroupKey(scopedGroupKey, usedColorIds);
+          groupKeyToColorId.set(scopedGroupKey, colorId);
+        }
+        usedColorIds.add(colorId);
+
+        for (const run of groups.matches[groupId]) {
           defaultRunColorIdForGroupBy.set(run.id, colorId);
         }
-      });
+      }
 
       // unassign color for nonmatched runs to apply default unassigned style
       for (const run of groups.nonMatches) {
@@ -298,8 +402,6 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
         userSetGroupByKey: groupBy.key,
         defaultRunColorIdForGroupBy,
         groupKeyToColorId,
-        // Resets the color override when the groupBy changes.
-        runColorOverrideForGroupBy: new Map(),
       };
     }
   ),
@@ -307,6 +409,35 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
     const nextRunColorOverride = new Map(state.runColorOverrideForGroupBy);
     nextRunColorOverride.set(runId, newColor);
 
+    return {...state, runColorOverrideForGroupBy: nextRunColorOverride};
+  }),
+  on(
+    runsActions.runColorSettingsLoaded,
+    (state, {runColorOverrides, groupKeyToColorId}) => {
+      const nextRunColorOverride = new Map(state.runColorOverrideForGroupBy);
+      for (const [runId, color] of runColorOverrides) {
+        nextRunColorOverride.set(runId, color);
+      }
+
+      const nextGroupKeyToColorId = new Map(state.groupKeyToColorId);
+      for (const [groupKey, colorId] of groupKeyToColorId) {
+        nextGroupKeyToColorId.set(groupKey, colorId);
+      }
+
+      return {
+        ...state,
+        runColorOverrideForGroupBy: nextRunColorOverride,
+        groupKeyToColorId: nextGroupKeyToColorId,
+      };
+    }
+  ),
+  on(runsActions.runColorOverridesFetchedFromApi, (state, {runColorOverrides}) => {
+    const nextRunColorOverride = new Map(state.runColorOverrideForGroupBy);
+    for (const [runId, color] of runColorOverrides) {
+      if (!nextRunColorOverride.has(runId)) {
+        nextRunColorOverride.set(runId, color);
+      }
+    }
     return {...state, runColorOverrideForGroupBy: nextRunColorOverride};
   }),
   on(runsActions.runSelectorRegexFilterChanged, (state, action) => {

@@ -18,7 +18,7 @@ versions.check(
     # Preemptively assume the next Bazel major version will break us, since historically they do,
     # and provide a clean error message in that case. Since the maximum version is inclusive rather
     # than exclusive, we set it to the 999th patch release of the current major version.
-    maximum_bazel_version = "6.999.0",
+    maximum_bazel_version = "8.999.0",
     # Keep this version in sync with:
     #  * The BAZEL environment variable defined in .github/workflows/ci.yml, which is used for CI and nightly builds.
     minimum_bazel_version = "6.5.0",
@@ -28,6 +28,8 @@ http_archive(
     name = "io_bazel_rules_webtesting",
     sha256 = "6e104e54c283c94ae3d5c6573cf3233ce478e89e0f541a869057521966a35b8f",
     strip_prefix = "rules_webtesting-b6fc79c5a37cd18a5433fd080c9d2cc59548222c",
+    patches = ["//third_party:rules_webtesting_browser_overrides.patch"],
+    patch_args = ["-p1"],
     urls = ["https://github.com/bazelbuild/rules_webtesting/archive/b6fc79c5a37cd18a5433fd080c9d2cc59548222c.tar.gz"],
 )
 

@@ -13,10 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import {NgModule} from '@angular/core';
+import {TBRunColorDataSource} from './run_color_data_source';
 import {TBRunsDataSource} from './runs_data_source';
 import {RunsDataSource} from './runs_data_source_types';
 
 @NgModule({
-  providers: [{provide: RunsDataSource, useClass: TBRunsDataSource}],
+  providers: [
+    {provide: RunsDataSource, useClass: TBRunsDataSource},
+    TBRunColorDataSource,
+  ],
 })
 export class RunsDataSourceModule {}

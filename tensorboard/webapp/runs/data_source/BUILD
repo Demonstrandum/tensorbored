@@ -7,6 +7,7 @@ licenses(["notice"])
 tf_ng_module(
     name = "data_source",
     srcs = [
+        "run_color_data_source.ts",
         "runs_data_source.ts",
         "runs_data_source_module.ts",
         "runs_data_source_types.ts",

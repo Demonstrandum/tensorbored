@@ -78,6 +78,33 @@ export const runColorChanged = createAction(
   props<{runId: string; newColor: string}>()
 );
 
+export const runColorSettingsLoaded = createAction(
+  '[Runs] Run Color Settings Loaded',
+  props<{
+    /**
+     * Serialized entries for `Map<RunId, hexColor>`.
+     */
+    runColorOverrides: Array<[runId: string, color: string]>;
+    /**
+     * Serialized entries for `Map<groupKey, colorId>`.
+     */
+    groupKeyToColorId: Array<[groupKey: string, colorId: number]>;
+  }>()
+);
+
+export const runColorOverridesFetchedFromApi = createAction(
+  '[Runs] Run Color Overrides Fetched From Api',
+  props<{
+    /**
+     * Serialized entries for `Map<RunId, hexColor>`.
+     *
+     * These come from the backend (or a file the backend reads), and should not
+     * override user-chosen colors.
+     */
+    runColorOverrides: Array<[runId: string, color: string]>;
+  }>()
+);
+
 export const runGroupByChanged = createAction(
   '[Runs] Run Group By Changed',
   props<{

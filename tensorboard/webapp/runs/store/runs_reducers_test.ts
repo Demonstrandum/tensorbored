@@ -189,7 +189,7 @@ describe('runs_reducers', () => {
       });
     });
 
-    it('assigns default color id to new runs by incrementing', () => {
+    it('assigns stable default color ids to runs', () => {
       const state = buildRunsState({
         initialGroupBy: {key: GroupByKey.RUN},
         defaultRunColorIdForGroupBy: new Map([
@@ -197,11 +197,8 @@ describe('runs_reducers', () => {
           ['bar', 1],
         ]),
         groupKeyToColorId: new Map([
-          ['foo', 0],
-          ['bar', 1],
-          ['1', 2],
-          ['2', 3],
-          ['3', 4],
+          ['run|foo', 0],
+          ['run|bar', 1],
         ]),
       });
       const action = actions.fetchRunsSucceeded({
@@ -232,34 +229,20 @@ describe('runs_reducers', () => {
 
       const nextState = runsReducers.reducers(state, action);
 
-      expect(nextState.data.defaultRunColorIdForGroupBy).toEqual(
-        new Map([
-          ['foo', 0],
-          ['bar', 1],
-          ['baz', 5],
-          ['qaz', 6],
-          ['alpha', 7],
-          ['beta', 8],
-          ['gamma', 9],
-          ['lambda', 10],
-        ])
-      );
+      // Existing mappings remain stable.
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('foo')).toBe(0);
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('bar')).toBe(1);
+      expect(nextState.data.groupKeyToColorId.get('run|foo')).toBe(0);
+      expect(nextState.data.groupKeyToColorId.get('run|bar')).toBe(1);
 
-      expect(nextState.data.groupKeyToColorId).toEqual(
-        new Map([
-          ['foo', 0],
-          ['bar', 1],
-          ['1', 2],
-          ['2', 3],
-          ['3', 4],
-          ['baz', 5],
-          ['qaz', 6],
-          ['alpha', 7],
-          ['beta', 8],
-          ['gamma', 9],
-          ['lambda', 10],
-        ])
-      );
+      const runIds = ['foo', 'bar', 'baz', 'qaz', 'alpha', 'beta', 'gamma', 'lambda'];
+      for (const runId of runIds) {
+        const colorId = nextState.data.defaultRunColorIdForGroupBy.get(runId);
+        expect(typeof colorId).toBe('number');
+        // Assigned runs should have a non-negative color id.
+        expect(colorId!).toBeGreaterThanOrEqual(0);
+        expect(nextState.data.groupKeyToColorId.has(`run|${runId}`)).toBeTrue();
+      }
     });
 
     describe('advanced grouping', () => {
@@ -308,17 +291,28 @@ describe('runs_reducers', () => {
 
         const nextState = runsReducers.reducers(state, action);
 
-        expect(nextState.data.defaultRunColorIdForGroupBy).toEqual(
-          new Map([
-            ['foo', 0],
-            ['bar', 0],
-            ['baz', 0],
-            ['qaz', 0],
-            ['alpha', 1],
-            ['beta', 1],
-            ['gamma', 1],
-            ['lambda', 1],
-          ])
+        const eid1Color = nextState.data.defaultRunColorIdForGroupBy.get('baz')!;
+        const eid2Color = nextState.data.defaultRunColorIdForGroupBy.get(
+          'alpha'
+        )!;
+        expect(eid1Color).toBeGreaterThanOrEqual(0);
+        expect(eid2Color).toBeGreaterThanOrEqual(0);
+
+        // Runs within an experiment share a color when grouping by experiment.
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('foo')).toBe(
+          eid1Color
+        );
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('qaz')).toBe(
+          eid1Color
+        );
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('beta')).toBe(
+          eid2Color
+        );
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('gamma')).toBe(
+          eid2Color
+        );
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('lambda')).toBe(
+          eid2Color
         );
       });
 
@@ -345,17 +339,25 @@ describe('runs_reducers', () => {
 
         const nextState = runsReducers.reducers(state, action);
 
-        expect(nextState.data.defaultRunColorIdForGroupBy).toEqual(
-          new Map([
-            ['foo', 0],
-            ['bar', 0],
-            ['eid1/alpha', 0],
-            ['eid1/beta', 1],
-            ['eid2/beta', 1],
-            ['eid2/gamma', 1],
-            ['eid2/alpha', -1],
-            ['eid2/delta', -1],
-          ])
+        const cFoo1 = nextState.data.defaultRunColorIdForGroupBy.get('eid1/alpha')!;
+        const cFoo2 = nextState.data.defaultRunColorIdForGroupBy.get('eid1/beta')!;
+        expect(cFoo1).toBeGreaterThanOrEqual(0);
+        expect(cFoo2).toBeGreaterThanOrEqual(0);
+
+        // Runs matching the same capture group share color.
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/beta')).toBe(
+          cFoo2
+        );
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/gamma')).toBe(
+          cFoo2
+        );
+
+        // Non-matching runs get the "unassigned" color.
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/alpha')).toBe(
+          -1
+        );
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/delta')).toBe(
+          -1
         );
       });
 
@@ -401,18 +403,31 @@ describe('runs_reducers', () => {
 
         const nextState = runsReducers.reducers(state, action);
 
-        expect(nextState.data.defaultRunColorIdForGroupBy).toEqual(
-          new Map([
-            ['foo', 0],
-            ['bar', 0],
-            ['eid1/alpha', 0],
-            ['eid1/beta', 0],
-            ['eid2/beta', 1],
-            ['eid2/gamma', 1],
-            ['eid2/alpha', 1],
-            ['eid3/delta', 0],
-            ['eid4/theta', -1],
-          ])
+        const cExp1 = nextState.data.defaultRunColorIdForGroupBy.get('eid1/alpha')!;
+        const cExp2 = nextState.data.defaultRunColorIdForGroupBy.get('eid2/alpha')!;
+
+        expect(cExp1).toBeGreaterThanOrEqual(0);
+        expect(cExp2).toBeGreaterThanOrEqual(0);
+
+        // eid1 and eid3 are both in capture group "1"
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid1/beta')).toBe(
+          cExp1
+        );
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid3/delta')).toBe(
+          cExp1
+        );
+
+        // eid2 is capture group "2"
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/beta')).toBe(
+          cExp2
+        );
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/gamma')).toBe(
+          cExp2
+        );
+
+        // Non-matching experiment name.
+        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid4/theta')).toBe(
+          -1
         );
       });
     });
@@ -809,10 +824,10 @@ describe('runs_reducers', () => {
           run4: buildRun({id: 'run4'}),
         },
         groupKeyToColorId: new Map([
-          ['run1', 0],
-          ['run2', 1],
-          ['run3', 2],
-          ['run4', 3],
+          ['run|run1', 0],
+          ['run|run2', 1],
+          ['run|run3', 2],
+          ['run|run4', 3],
         ]),
         defaultRunColorIdForGroupBy: new Map([
           ['run1', 0],
@@ -833,21 +848,23 @@ describe('runs_reducers', () => {
 
       expect(nextState.data.initialGroupBy).toEqual({key: GroupByKey.RUN});
       expect(nextState.data.userSetGroupByKey).toEqual(GroupByKey.EXPERIMENT);
-      expect(nextState.data.groupKeyToColorId).toEqual(
-        new Map([
-          ['eid1', 0],
-          ['eid2', 1],
-        ])
+
+      expect(nextState.data.groupKeyToColorId.has('experiment|eid1')).toBeTrue();
+      expect(nextState.data.groupKeyToColorId.has('experiment|eid2')).toBeTrue();
+
+      const eid1Color = nextState.data.defaultRunColorIdForGroupBy.get('run1')!;
+      const eid2Color = nextState.data.defaultRunColorIdForGroupBy.get('run3')!;
+      expect(eid1Color).toBeGreaterThanOrEqual(0);
+      expect(eid2Color).toBeGreaterThanOrEqual(0);
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run2')).toBe(
+        eid1Color
       );
-      expect(nextState.data.defaultRunColorIdForGroupBy).toEqual(
-        new Map([
-          ['run1', 0],
-          ['run2', 0],
-          ['run3', 1],
-          ['run4', 1],
-        ])
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run4')).toBe(
+        eid2Color
       );
-      expect(nextState.data.runColorOverrideForGroupBy).toEqual(new Map());
+
+      // User-picked overrides persist across groupBy changes.
+      expect(nextState.data.runColorOverrideForGroupBy.get('run1')).toBe('#aaa');
     });
 
     it('reassigns color to RUN from EXPERIMENT', () => {
@@ -871,8 +888,8 @@ describe('runs_reducers', () => {
           run4: buildRun({id: 'run4'}),
         },
         groupKeyToColorId: new Map([
-          ['eid1', 0],
-          ['eid2', 1],
+          ['experiment|eid1', 0],
+          ['experiment|eid2', 1],
         ]),
         defaultRunColorIdForGroupBy: new Map([
           ['run1', 0],
@@ -892,23 +909,20 @@ describe('runs_reducers', () => {
       );
 
       expect(nextState.data.userSetGroupByKey).toEqual(GroupByKey.RUN);
-      expect(nextState.data.groupKeyToColorId).toEqual(
-        new Map([
-          ['run1', 0],
-          ['run2', 1],
-          ['run3', 2],
-          ['run4', 3],
-        ])
-      );
-      expect(nextState.data.defaultRunColorIdForGroupBy).toEqual(
-        new Map([
-          ['run1', 0],
-          ['run2', 1],
-          ['run3', 2],
-          ['run4', 3],
-        ])
-      );
-      expect(nextState.data.runColorOverrideForGroupBy).toEqual(new Map());
+
+      expect(nextState.data.groupKeyToColorId.has('run|run1')).toBeTrue();
+      expect(nextState.data.groupKeyToColorId.has('run|run2')).toBeTrue();
+      expect(nextState.data.groupKeyToColorId.has('run|run3')).toBeTrue();
+      expect(nextState.data.groupKeyToColorId.has('run|run4')).toBeTrue();
+
+      for (const runId of ['run1', 'run2', 'run3', 'run4']) {
+        const colorId = nextState.data.defaultRunColorIdForGroupBy.get(runId);
+        expect(typeof colorId).toBe('number');
+        expect(colorId!).toBeGreaterThanOrEqual(0);
+      }
+
+      // User-picked overrides persist across groupBy changes.
+      expect(nextState.data.runColorOverrideForGroupBy.get('run1')).toBe('#ccc');
     });
 
     it('reassigns color to REGEX from RUN', () => {
@@ -953,23 +967,29 @@ describe('runs_reducers', () => {
       );
 
       expect(nextState.data.userSetGroupByKey).toEqual(GroupByKey.REGEX);
-      expect(nextState.data.groupKeyToColorId).toEqual(
-        new Map([
-          ['["1"]', 0],
-          ['["2"]', 1],
-        ])
+      expect(
+        nextState.data.groupKeyToColorId.has('regex:foo(\\d+)|["1"]')
+      ).toBeTrue();
+      expect(
+        nextState.data.groupKeyToColorId.has('regex:foo(\\d+)|["2"]')
+      ).toBeTrue();
+
+      const group1Color = nextState.data.defaultRunColorIdForGroupBy.get('run1')!;
+      const group2Color = nextState.data.defaultRunColorIdForGroupBy.get('run2')!;
+      expect(group1Color).toBeGreaterThanOrEqual(0);
+      expect(group2Color).toBeGreaterThanOrEqual(0);
+
+      // Capture group "2" contains run2, run3, run4.
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run3')).toBe(
+        group2Color
       );
-      expect(nextState.data.defaultRunColorIdForGroupBy).toEqual(
-        new Map([
-          ['run1', 0],
-          ['run2', 1],
-          ['run3', 1],
-          ['run4', 1],
-          ['run5', -1],
-          ['run6', -1],
-        ])
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run4')).toBe(
+        group2Color
       );
-      expect(nextState.data.runColorOverrideForGroupBy).toEqual(new Map());
+
+      // Non-matching runs get "unassigned".
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run5')).toBe(-1);
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run6')).toBe(-1);
       expect(nextState.data.colorGroupRegexString).toBe('foo(\\d+)');
     });
 
@@ -1029,25 +1049,39 @@ describe('runs_reducers', () => {
       );
 
       expect(nextState.data.userSetGroupByKey).toEqual(GroupByKey.REGEX_BY_EXP);
-      expect(nextState.data.groupKeyToColorId).toEqual(
-        new Map([
-          ['["1"]', 0],
-          ['["2"]', 1],
-        ])
+      expect(
+        nextState.data.groupKeyToColorId.has('regex_by_exp:foo(\\d+)|["1"]')
+      ).toBeTrue();
+      expect(
+        nextState.data.groupKeyToColorId.has('regex_by_exp:foo(\\d+)|["2"]')
+      ).toBeTrue();
+
+      const group1Color = nextState.data.defaultRunColorIdForGroupBy.get('run1')!;
+      const group2Color = nextState.data.defaultRunColorIdForGroupBy.get('run3')!;
+      expect(group1Color).toBeGreaterThanOrEqual(0);
+      expect(group2Color).toBeGreaterThanOrEqual(0);
+
+      // Group "1" contains eid1 and eid3 runs.
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run2')).toBe(
+        group1Color
       );
-      expect(nextState.data.defaultRunColorIdForGroupBy).toEqual(
-        new Map([
-          ['run1', 0],
-          ['run2', 0],
-          ['run3', 1],
-          ['run4', 1],
-          ['run5', 1],
-          ['run6', 1],
-          ['run7', 0],
-          ['run8', -1],
-        ])
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run7')).toBe(
+        group1Color
       );
-      expect(nextState.data.runColorOverrideForGroupBy).toEqual(new Map());
+
+      // Group "2" contains eid2 runs.
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run4')).toBe(
+        group2Color
+      );
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run5')).toBe(
+        group2Color
+      );
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run6')).toBe(
+        group2Color
+      );
+
+      // Non-matching experiment name.
+      expect(nextState.data.defaultRunColorIdForGroupBy.get('run8')).toBe(-1);
       expect(nextState.data.colorGroupRegexString).toBe('foo(\\d+)');
     });
 
@@ -1272,10 +1306,10 @@ describe('runs_reducers', () => {
           run4: buildRun({id: 'run4'}),
         },
         groupKeyToColorId: new Map([
-          ['run1', 0],
-          ['run2', 1],
-          ['run3', 2],
-          ['run4', 3],
+          ['run|run1', 0],
+          ['run|run2', 1],
+          ['run|run3', 2],
+          ['run|run4', 3],
         ]),
         defaultRunColorIdForGroupBy: new Map([
           ['run1', 0],
@@ -1310,10 +1344,10 @@ describe('runs_reducers', () => {
       );
       expect(nextState.data.groupKeyToColorId).toEqual(
         new Map([
-          ['run1', 0],
-          ['run2', 1],
-          ['run3', 2],
-          ['run4', 3],
+          ['run|run1', 0],
+          ['run|run2', 1],
+          ['run|run3', 2],
+          ['run|run4', 3],
         ])
       );
     });

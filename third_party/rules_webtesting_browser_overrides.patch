@@ -1,0 +1,45 @@
+diff --git a/web/web.bzl b/web/web.bzl
+--- a/web/web.bzl
++++ b/web/web.bzl
+@@ -101,19 +101,41 @@ def _get_kwargs(browser, in_kwargs):
+ def _get_kwargs(browser, in_kwargs):
+     """Returns the arguments that should be used for a particular browser."""
+     out_kwargs = {}
++
++    # Newer tooling (e.g. @bazel/concatjs karma_web_test_suite) passes a
++    # browser_overrides dict to web_test_suite. Older rules_webtesting versions
++    # don't recognize this key and would forward it to web_test, which doesn't
++    # define a browser_overrides attribute. Consume it here and merge overrides
++    # into the per-browser kwargs.
++    browser_overrides = None
++    if "browser_overrides" in in_kwargs and types.is_dict(in_kwargs["browser_overrides"]):
++        browser_overrides = in_kwargs["browser_overrides"]
+ 
+     for k, v in in_kwargs.items():
++        if k == "browser_overrides":
++            continue
+         if types.is_dict(v):
+             if browser in v:
+                 out_kwargs[k] = v[browser]
+             elif "default" in v:
+                 out_kwargs[k] = v["default"]
+         else:
+             out_kwargs[k] = v
++
++    if browser_overrides:
++        overrides = None
++        if browser in browser_overrides:
++            overrides = browser_overrides[browser]
++        elif "default" in browser_overrides:
++            overrides = browser_overrides["default"]
++        if overrides:
++            if not types.is_dict(overrides):
++                fail("expected dict values in browser_overrides but got '%s'" % type(overrides))
++            out_kwargs.update(overrides)
+ 
+     if not out_kwargs["tags"]:
+         out_kwargs["tags"] = ["browser:" + browser]
+     else:
+         out_kwargs["tags"] = ["browser:" + browser] + out_kwargs["tags"]
+ 
+     return out_kwargs

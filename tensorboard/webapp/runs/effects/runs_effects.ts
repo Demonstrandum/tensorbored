@@ -18,6 +18,7 @@ import {Store} from '@ngrx/store';
 import {forkJoin, merge, Observable, of, throwError} from 'rxjs';
 import {
   catchError,
+  debounceTime,
   distinctUntilChanged,
   filter,
   map,
@@ -42,8 +43,60 @@ import {
 import {DataLoadState, LoadState} from '../../types/data';
 import {ColumnHeaderType} from '../../widgets/data_table/types';
 import * as actions from '../actions';
+import {TBRunColorDataSource} from '../data_source/run_color_data_source';
 import {Run, RunsDataSource} from '../data_source/runs_data_source_types';
 import {ExperimentIdToRuns} from '../types';
+import {
+  getGroupKeyToColorIdMap,
+  getRunColorOverride,
+} from '../store/runs_selectors';
+
+const RUN_COLOR_STORAGE_KEY = '_tb_run_colors.v1';
+
+type StoredRunColorsV1 = {
+  version: 1;
+  runColorOverrides: Array<[runId: string, color: string]>;
+  groupKeyToColorId: Array<[groupKey: string, colorId: number]>;
+};
+
+function safeParseStoredRunColors(serialized: string | null): StoredRunColorsV1 {
+  if (!serialized) {
+    return {version: 1, runColorOverrides: [], groupKeyToColorId: []};
+  }
+  try {
+    const parsed = JSON.parse(serialized) as Partial<StoredRunColorsV1>;
+    if (parsed.version !== 1) {
+      return {version: 1, runColorOverrides: [], groupKeyToColorId: []};
+    }
+    return {
+      version: 1,
+      runColorOverrides: Array.isArray(parsed.runColorOverrides)
+        ? parsed.runColorOverrides
+        : [],
+      groupKeyToColorId: Array.isArray(parsed.groupKeyToColorId)
+        ? parsed.groupKeyToColorId
+        : [],
+    };
+  } catch {
+    return {version: 1, runColorOverrides: [], groupKeyToColorId: []};
+  }
+}
+
+function persistRunColorsToLocalStorage(
+  runColorOverrides: Map<string, string>,
+  groupKeyToColorId: Map<string, number>
+) {
+  const payload: StoredRunColorsV1 = {
+    version: 1,
+    runColorOverrides: Array.from(runColorOverrides.entries()),
+    groupKeyToColorId: Array.from(groupKeyToColorId.entries()),
+  };
+  window.localStorage.setItem(RUN_COLOR_STORAGE_KEY, JSON.stringify(payload));
+}
+
+function runToRunId(run: string, experimentId: string) {
+  return `${experimentId}/${run}`;
+}
 
 /**
  * Runs effect for fetching data from the backend.
@@ -53,7 +106,8 @@ export class RunsEffects {
   constructor(
     private readonly actions$: Actions,
     private readonly store: Store<State>,
-    private readonly runsDataSource: RunsDataSource
+    private readonly runsDataSource: RunsDataSource,
+    private readonly runColorDataSource: TBRunColorDataSource
   ) {
     this.experimentsWithStaleRunsOnRouteChange$ = this.actions$.pipe(
       ofType(navigated),
@@ -135,6 +189,44 @@ export class RunsEffects {
         ),
       {dispatch: false}
     );
+
+    this.loadRunColorSettingsFromStorage$ = createEffect(() => {
+      return this.actions$.pipe(
+        ofType(navigated),
+        map(() => {
+          const stored = safeParseStoredRunColors(
+            window.localStorage.getItem(RUN_COLOR_STORAGE_KEY)
+          );
+          return actions.runColorSettingsLoaded({
+            runColorOverrides: stored.runColorOverrides,
+            groupKeyToColorId: stored.groupKeyToColorId,
+          });
+        })
+      );
+    });
+
+    this.persistRunColorSettings$ = createEffect(
+      () => {
+        return this.actions$.pipe(
+          ofType(
+            actions.runColorChanged,
+            actions.runGroupByChanged,
+            actions.fetchRunsSucceeded,
+            actions.runColorSettingsLoaded,
+            actions.runColorOverridesFetchedFromApi
+          ),
+          debounceTime(200),
+          withLatestFrom(
+            this.store.select(getRunColorOverride),
+            this.store.select(getGroupKeyToColorIdMap)
+          ),
+          tap(([, runColorOverrides, groupKeyToColorId]) => {
+            persistRunColorsToLocalStorage(runColorOverrides, groupKeyToColorId);
+          })
+        );
+      },
+      {dispatch: false}
+    );
   }
 
   private getRunsListLoadState(experimentId: string): Observable<LoadState> {
@@ -176,6 +268,12 @@ export class RunsEffects {
    */
   removeHparamFilterWhenColumnIsRemoved$;
 
+  /** @export */
+  loadRunColorSettingsFromStorage$;
+
+  /** @export */
+  persistRunColorSettings$;
+
   /**
    * IMPORTANT: actions are dispatched even when there are no experiments to
    * fetch.
@@ -215,6 +313,7 @@ export class RunsEffects {
       map((runsAndMedataList) => {
         const newRuns: ExperimentIdToRuns = {};
         const runsForAllExperiments = [];
+        const runColorOverrideEntries: Array<[string, string]> = [];
 
         for (const runsAndMedata of runsAndMedataList) {
           runsForAllExperiments.push(...runsAndMedata.runs);
@@ -222,13 +321,29 @@ export class RunsEffects {
             newRuns[runsAndMedata.experimentId] = {
               runs: runsAndMedata.runs,
             };
+            for (const [runName, color] of Object.entries(
+              runsAndMedata.runColors
+            )) {
+              runColorOverrideEntries.push([
+                runToRunId(runName, runsAndMedata.experimentId),
+                color,
+              ]);
+            }
           }
         }
-        return {newRuns, runsForAllExperiments};
+        return {newRuns, runsForAllExperiments, runColorOverrideEntries};
       }),
       withLatestFrom(this.store.select(getDashboardExperimentNames)),
       tap(([runsData, expNameByExpId]) => {
-        const {newRuns, runsForAllExperiments} = runsData;
+        const {newRuns, runsForAllExperiments, runColorOverrideEntries} =
+          runsData;
+        if (runColorOverrideEntries.length) {
+          this.store.dispatch(
+            actions.runColorOverridesFetchedFromApi({
+              runColorOverrides: runColorOverrideEntries,
+            })
+          );
+        }
         this.store.dispatch(
           actions.fetchRunsSucceeded({
             experimentIds,
@@ -255,6 +370,7 @@ export class RunsEffects {
     fromRemote: false;
     experimentId: string;
     runs: Run[];
+    runColors: Record<string, string>;
   }> {
     return this.store.select(getRunsLoadState, {experimentId}).pipe(
       filter((loadState) => loadState.state !== DataLoadState.LOADING),
@@ -266,7 +382,12 @@ export class RunsEffects {
         return of(loadState);
       }),
       withLatestFrom(this.store.select(getRuns, {experimentId})),
-      map(([, runs]) => ({fromRemote: false, experimentId, runs}))
+      map(([, runs]) => ({
+        fromRemote: false,
+        experimentId,
+        runs,
+        runColors: {},
+      }))
     );
   }
 
@@ -274,13 +395,20 @@ export class RunsEffects {
     fromRemote: true;
     experimentId: string;
     runs: Run[];
+    runColors: Record<string, string>;
   }> {
-    return this.runsDataSource.fetchRuns(experimentId).pipe(
-      map((runs) => {
+    return forkJoin([
+      this.runsDataSource.fetchRuns(experimentId),
+      this.runColorDataSource.fetchRunColors(experimentId).pipe(
+        catchError(() => of({}))
+      ),
+    ]).pipe(
+      map(([runs, runColors]) => {
         return {
           fromRemote: true,
           experimentId,
           runs: runs as Run[],
+          runColors,
         };
       })
     );

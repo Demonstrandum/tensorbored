@@ -307,6 +307,13 @@ export const getDefaultRunColorIdMap = createSelector(
   }
 );
 
+export const getGroupKeyToColorIdMap = createSelector(
+  getDataState,
+  (state: RunsDataState): Map<string, number> => {
+    return state.groupKeyToColorId;
+  }
+);
+
 /**
  * Returns Observable that emits color grouping regex string.
  */
