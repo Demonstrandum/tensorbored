@@ -70,16 +70,16 @@ jobs:
         id: check_commits
         run: |
           upstream_branch="${{ github.event.inputs.sync_branch || env.UPSTREAM_BRANCH }}"
-          
+
           # Get commit counts
           behind_count=$(git rev-list --count HEAD..upstream/${upstream_branch})
           ahead_count=$(git rev-list --count upstream/${upstream_branch}..HEAD)
-          
+
           echo "Commits behind upstream: ${behind_count}"
           echo "Commits ahead of upstream: ${ahead_count}"
           echo "behind_count=${behind_count}" >> $GITHUB_OUTPUT
           echo "ahead_count=${ahead_count}" >> $GITHUB_OUTPUT
-          
+
           if [ "${behind_count}" -eq 0 ]; then
             echo "Already up to date with upstream."
             echo "needs_sync=false" >> $GITHUB_OUTPUT
@@ -93,16 +93,16 @@ jobs:
         id: merge
         run: |
           upstream_branch="${{ github.event.inputs.sync_branch || env.UPSTREAM_BRANCH }}"
-          
+
           echo "Merging upstream/${upstream_branch} into ${{ env.FORK_BRANCH }}..."
-          
+
           # Attempt to merge with a descriptive commit message
           if git merge upstream/${upstream_branch} \
             --no-edit \
             -m "Merge upstream tensorflow/tensorboard ${upstream_branch} into ${{ env.FORK_BRANCH }}
 
           Automated sync from https://github.com/${{ env.UPSTREAM_REPO }}
-          
+
           Upstream commits: ${{ steps.check_commits.outputs.behind_count }}
           Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"; then
             echo "merge_status=success" >> $GITHUB_OUTPUT
@@ -110,10 +110,10 @@ jobs:
           else
             echo "merge_status=conflict" >> $GITHUB_OUTPUT
             echo "::error::Merge conflict detected. Manual intervention required."
-            
+
             # Show conflict details
             git diff --name-only --diff-filter=U
-            
+
             # Abort the merge to leave the repo in a clean state
             git merge --abort
             exit 1
@@ -132,7 +132,7 @@ jobs:
           echo "**Upstream:** [${{ env.UPSTREAM_REPO }}](https://github.com/${{ env.UPSTREAM_REPO }})" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.event.inputs.sync_branch || env.UPSTREAM_BRANCH }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ steps.check_commits.outputs.needs_sync }}" == "true" ]; then
             if [ "${{ steps.merge.outputs.merge_status }}" == "success" ]; then
               echo "✅ **Status:** Successfully synced ${{ steps.check_commits.outputs.behind_count }} commits from upstream" >> $GITHUB_STEP_SUMMARY
@@ -142,7 +142,7 @@ jobs:
           else
             echo "✅ **Status:** Already up to date with upstream" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Fork ahead by:** ${{ steps.check_commits.outputs.ahead_count }} commits" >> $GITHUB_STEP_SUMMARY
           echo "**Fork behind by:** ${{ steps.check_commits.outputs.behind_count }} commits" >> $GITHUB_STEP_SUMMARY
@@ -158,16 +158,16 @@ jobs:
           script: |
             const title = `🔄 Upstream sync failed - ${new Date().toISOString().split('T')[0]}`;
             const body = `## Upstream Sync Failure
-            
+
             The automated upstream sync workflow has failed.
-            
+
             **Workflow run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
-            
+
             ### Possible causes:
             - Merge conflicts between fork and upstream
             - Network issues fetching from upstream
             - Permission issues pushing to fork
-            
+
             ### Next steps:
             1. Check the [workflow logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
             2. If there are merge conflicts, resolve them manually:
@@ -178,10 +178,10 @@ jobs:
                git push origin master
                \`\`\`
             3. Re-run the workflow after fixing issues
-            
+
             /cc @${context.repo.owner}
             `;
-            
+
             // Check if a similar issue already exists
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -189,11 +189,11 @@ jobs:
               state: 'open',
               labels: 'upstream-sync'
             });
-            
-            const existingIssue = issues.data.find(issue => 
+
+            const existingIssue = issues.data.find(issue =>
               issue.title.includes('Upstream sync failed')
             );
-            
+
             if (existingIssue) {
               // Comment on existing issue
               await github.rest.issues.createComment({
