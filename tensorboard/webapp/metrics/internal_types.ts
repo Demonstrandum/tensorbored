@@ -106,3 +106,33 @@ export interface HeaderToggleInfo {
 
 export const SCALARS_SMOOTHING_MIN = 0;
 export const SCALARS_SMOOTHING_MAX = 0.999;
+
+/**
+ * Identifier for a superimposed card that combines multiple tags.
+ */
+export type SuperimposedCardId = string;
+
+/**
+ * Metadata for a superimposed card containing multiple scalar tags on the same plot.
+ */
+export interface SuperimposedCardMetadata {
+  /**
+   * Unique identifier for the superimposed card.
+   */
+  id: SuperimposedCardId;
+
+  /**
+   * User-defined title for the superimposed card.
+   */
+  title: string;
+
+  /**
+   * List of tags to display together. All tags must be scalar tags.
+   */
+  tags: string[];
+
+  /**
+   * Optional runId filter. If null, all runs are shown.
+   */
+  runId: string | null;
+}

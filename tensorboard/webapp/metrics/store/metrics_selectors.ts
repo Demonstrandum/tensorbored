@@ -25,6 +25,8 @@ import {
   NonPinnedCardId,
   PinnedCardId,
   PluginType,
+  SuperimposedCardId,
+  SuperimposedCardMetadata,
   TimeSelection,
   TooltipSort,
   XAxisType,
@@ -45,6 +47,7 @@ import {
   MetricsState,
   METRICS_FEATURE_KEY,
   RunToSeries,
+  SuperimposedCardMetadataMap,
   TagMetadata,
 } from './metrics_types';
 import {ColumnHeader, DataTableMode} from '../../widgets/data_table/types';
@@ -676,4 +679,145 @@ export const getGroupedHeadersForCard = memoize((cardId: string) =>
     (standardColumns, hparamColumns) =>
       dataTableUtils.groupColumns([...standardColumns, ...hparamColumns])
   )
+);
+
+/**
+ * Superimposed Card Selectors
+ */
+
+/**
+ * Returns the list of superimposed card IDs.
+ */
+export const getSuperimposedCardList = createSelector(
+  selectMetricsState,
+  (state: MetricsState): SuperimposedCardId[] => {
+    return state.superimposedCardList;
+  }
+);
+
+/**
+ * Returns the superimposed card metadata map.
+ */
+export const getSuperimposedCardMetadataMap = createSelector(
+  selectMetricsState,
+  (state: MetricsState): SuperimposedCardMetadataMap => {
+    return state.superimposedCardMetadataMap;
+  }
+);
+
+/**
+ * Returns the metadata for a specific superimposed card.
+ */
+export const getSuperimposedCardMetadata = createSelector(
+  getSuperimposedCardMetadataMap,
+  (
+    metadataMap: SuperimposedCardMetadataMap,
+    superimposedCardId: SuperimposedCardId
+  ): SuperimposedCardMetadata | null => {
+    return metadataMap[superimposedCardId] ?? null;
+  }
+);
+
+/**
+ * Returns the list of superimposed cards with their metadata.
+ */
+export const getSuperimposedCardsWithMetadata = createSelector(
+  getSuperimposedCardList,
+  getSuperimposedCardMetadataMap,
+  (
+    cardList: SuperimposedCardId[],
+    metadataMap: SuperimposedCardMetadataMap
+  ): SuperimposedCardMetadata[] => {
+    return cardList
+      .filter((id) => metadataMap[id])
+      .map((id) => metadataMap[id]);
+  }
+);
+
+/**
+ * Returns the time series data for all tags in a superimposed card.
+ */
+export const getSuperimposedCardTimeSeries = memoize(
+  (superimposedCardId: SuperimposedCardId) =>
+    createSelector(
+      selectMetricsState,
+      getSuperimposedCardMetadataMap,
+      (
+        state: MetricsState,
+        metadataMap: SuperimposedCardMetadataMap
+      ): Record<string, DeepReadonly<RunToSeries> | null> => {
+        const metadata = metadataMap[superimposedCardId];
+        if (!metadata) {
+          return {};
+        }
+
+        const result: Record<string, DeepReadonly<RunToSeries> | null> = {};
+        for (const tag of metadata.tags) {
+          const loadable = storeUtils.getTimeSeriesLoadable(
+            state.timeSeriesData,
+            PluginType.SCALARS,
+            tag
+          );
+          result[tag] = loadable ? loadable.runToSeries : null;
+        }
+        return result;
+      }
+    )
+);
+
+/**
+ * Returns the load state for a superimposed card.
+ * A superimposed card is loaded if all its tags are loaded.
+ */
+export const getSuperimposedCardLoadState = memoize(
+  (superimposedCardId: SuperimposedCardId) =>
+    createSelector(
+      selectMetricsState,
+      getSuperimposedCardMetadataMap,
+      (
+        state: MetricsState,
+        metadataMap: SuperimposedCardMetadataMap
+      ): DataLoadState => {
+        const metadata = metadataMap[superimposedCardId];
+        if (!metadata || metadata.tags.length === 0) {
+          return DataLoadState.NOT_LOADED;
+        }
+
+        let hasLoading = false;
+        let hasLoaded = false;
+
+        for (const tag of metadata.tags) {
+          const loadable = storeUtils.getTimeSeriesLoadable(
+            state.timeSeriesData,
+            PluginType.SCALARS,
+            tag
+          );
+          if (!loadable) {
+            return DataLoadState.NOT_LOADED;
+          }
+
+          const runIds = storeUtils.getRunIds(
+            state.tagMetadata,
+            PluginType.SCALARS,
+            tag
+          );
+          for (const runId of runIds) {
+            const loadState = loadable.runToLoadState[runId];
+            if (loadState === DataLoadState.LOADING) {
+              hasLoading = true;
+            } else if (loadState === DataLoadState.LOADED) {
+              hasLoaded = true;
+            }
+          }
+        }
+
+        if (hasLoading) {
+          return DataLoadState.LOADING;
+        }
+        if (hasLoaded) {
+          return DataLoadState.LOADED;
+        }
+        return DataLoadState.NOT_LOADED;
+      }
+    )
 );

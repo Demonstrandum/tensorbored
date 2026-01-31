@@ -31,6 +31,7 @@ import {
   HeaderToggleInfo,
   HistogramMode,
   PluginType,
+  SuperimposedCardId,
   TooltipSort,
   XAxisType,
 } from '../types';
@@ -287,3 +288,72 @@ export const metricsEnableSavingPinsToggled = createAction(
 
 // TODO(jieweiwu): Delete after internal code is updated.
 export const stepSelectorTimeSelectionChanged = timeSelectionChanged;
+
+// Superimposed card actions
+
+/**
+ * Action to create a new superimposed card that combines multiple tags on a single plot.
+ */
+export const superimposedCardCreated = createAction(
+  '[Metrics] Superimposed Card Created',
+  props<{
+    title: string;
+    tags: string[];
+    runId?: string | null;
+  }>()
+);
+
+/**
+ * Action to add a tag to an existing superimposed card.
+ */
+export const superimposedCardTagAdded = createAction(
+  '[Metrics] Superimposed Card Tag Added',
+  props<{
+    superimposedCardId: SuperimposedCardId;
+    tag: string;
+  }>()
+);
+
+/**
+ * Action to remove a tag from an existing superimposed card.
+ */
+export const superimposedCardTagRemoved = createAction(
+  '[Metrics] Superimposed Card Tag Removed',
+  props<{
+    superimposedCardId: SuperimposedCardId;
+    tag: string;
+  }>()
+);
+
+/**
+ * Action to delete a superimposed card.
+ */
+export const superimposedCardDeleted = createAction(
+  '[Metrics] Superimposed Card Deleted',
+  props<{
+    superimposedCardId: SuperimposedCardId;
+  }>()
+);
+
+/**
+ * Action to update the title of a superimposed card.
+ */
+export const superimposedCardTitleChanged = createAction(
+  '[Metrics] Superimposed Card Title Changed',
+  props<{
+    superimposedCardId: SuperimposedCardId;
+    title: string;
+  }>()
+);
+
+/**
+ * Action to create a superimposed card from existing cards.
+ * Allows users to select multiple cards and combine them.
+ */
+export const superimposedCardCreatedFromCards = createAction(
+  '[Metrics] Superimposed Card Created From Cards',
+  props<{
+    cardIds: CardId[];
+    title?: string;
+  }>()
+);

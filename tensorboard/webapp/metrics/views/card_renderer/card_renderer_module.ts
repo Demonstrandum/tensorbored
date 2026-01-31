@@ -21,6 +21,7 @@ import {CardViewContainer} from './card_view_container';
 import {HistogramCardModule} from './histogram_card_module';
 import {ImageCardModule} from './image_card_module';
 import {ScalarCardModule} from './scalar_card_module';
+import {SuperimposedCardModule} from './superimposed_card_module';
 
 @NgModule({
   declarations: [CardLazyLoader, CardViewComponent, CardViewContainer],
@@ -30,6 +31,7 @@ import {ScalarCardModule} from './scalar_card_module';
     ImageCardModule,
     ScalarCardModule,
     HistogramCardModule,
+    SuperimposedCardModule,
     IntersectionObserverModule,
   ],
 })

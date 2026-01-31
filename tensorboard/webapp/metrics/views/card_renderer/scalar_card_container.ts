@@ -33,6 +33,7 @@ import {
   shareReplay,
   startWith,
   switchMap,
+  take,
   takeUntil,
 } from 'rxjs/operators';
 import {State} from '../../../app_state';
@@ -73,6 +74,7 @@ import {
 import {classicSmoothing} from '../../../widgets/line_chart_v2/data_transformer';
 import {Extent} from '../../../widgets/line_chart_v2/lib/public_types';
 import {ScaleType} from '../../../widgets/line_chart_v2/types';
+import * as actions from '../../actions';
 import {
   cardViewBoxChanged,
   metricsCardFullSizeToggled,
@@ -213,6 +215,7 @@ function areSeriesEqual(
       (removeColumn)="onRemoveColumn($event)"
       (addFilter)="addHparamFilter($event)"
       (loadAllColumns)="loadAllColumns()"
+      (onAddToSuperimposed)="onAddToSuperimposed()"
     ></scalar-card-component>
   `,
   styles: [
@@ -783,5 +786,25 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
 
   loadAllColumns() {
     this.store.dispatch(hparamsActions.loadAllDashboardHparams());
+  }
+
+  onAddToSuperimposed() {
+    // Get the tag from the card metadata and create a new superimposed card
+    // In a real implementation, this could open a dialog to select an existing
+    // superimposed card or create a new one
+    this.tag$
+      ?.pipe(
+        filter((tag): tag is string => !!tag),
+        take(1)
+      )
+      .subscribe((tag) => {
+        this.store.dispatch(
+          actions.superimposedCardCreated({
+            title: `Superimposed: ${tag}`,
+            tags: [tag],
+            runId: null,
+          })
+        );
+      });
   }
 }

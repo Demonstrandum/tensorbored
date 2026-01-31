@@ -42,6 +42,8 @@ import {MainViewComponent} from './main_view_component';
 import {MainViewContainer} from './main_view_container';
 import {PinnedViewComponent} from './pinned_view_component';
 import {PinnedViewContainer} from './pinned_view_container';
+import {SuperimposedCardsViewComponent} from './superimposed_cards_view_component';
+import {SuperimposedCardsViewContainer} from './superimposed_cards_view_container';
 
 @NgModule({
   declarations: [
@@ -61,6 +63,8 @@ import {PinnedViewContainer} from './pinned_view_container';
     MetricsFilterInputContainer,
     PinnedViewComponent,
     PinnedViewContainer,
+    SuperimposedCardsViewComponent,
+    SuperimposedCardsViewContainer,
   ],
   exports: [MainViewContainer],
   imports: [

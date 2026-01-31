@@ -34,6 +34,8 @@ import {
   MinMaxStep,
   NonPinnedCardId,
   PinnedCardId,
+  SuperimposedCardId,
+  SuperimposedCardMetadata,
   TimeSelection,
   TooltipSort,
   XAxisType,
@@ -177,6 +179,11 @@ export type CardToPinnedCard = Map<NonPinnedCardId, PinnedCardId>;
 
 export type PinnedCardToCard = Map<PinnedCardId, NonPinnedCardId>;
 
+export type SuperimposedCardMetadataMap = Record<
+  SuperimposedCardId,
+  SuperimposedCardMetadata
+>;
+
 export interface MetricsNamespacedState {
   tagMetadataLoadState: LoadState;
   tagMetadata: TagMetadata;
@@ -215,6 +222,17 @@ export interface MetricsNamespacedState {
     min: number;
     max: number;
   };
+
+  /**
+   * Superimposed cards that combine multiple tags on a single plot.
+   * Maps superimposed card ID to its metadata.
+   */
+  superimposedCardMetadataMap: SuperimposedCardMetadataMap;
+
+  /**
+   * Ordered list of superimposed card IDs.
+   */
+  superimposedCardList: SuperimposedCardId[];
 }
 
 export interface MetricsSettings {

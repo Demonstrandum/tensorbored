@@ -1,0 +1,156 @@
+<!--
+@license
+Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<div class="superimposed-card">
+  <div class="heading">
+    <span class="name">
+      <span
+        class="superimposed-badge"
+        title="Superimposed plot combining multiple tags"
+      >
+        <mat-icon svgIcon="group_work_24px"></mat-icon>
+      </span>
+      <span class="title" title="{{ title }}">{{ title }}</span>
+    </span>
+    <span class="controls">
+      <button
+        mat-icon-button
+        [disabled]="!lineChart || !(lineChart.getIsViewBoxOverridden() | async)"
+        (click)="resetDomain()"
+        title="Fit line chart domains to data"
+        aria-label="Fit line chart domains to data"
+      >
+        <mat-icon svgIcon="settings_overscan_24px"></mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="menu"
+        aria-label="More options"
+        title="More options"
+      >
+        <mat-icon svgIcon="more_vert_24px"></mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="toggleYScaleType()">
+          <mat-icon svgIcon="line_weight_24px"></mat-icon>
+          <span>Toggle Y-axis log scale</span>
+        </button>
+        <button mat-menu-item (click)="onDeleteCard.emit()">
+          <mat-icon svgIcon="clear_24px"></mat-icon>
+          <span>Delete superimposed card</span>
+        </button>
+      </mat-menu>
+    </span>
+  </div>
+
+  <div class="tags-list">
+    <span class="tags-label">Tags:</span>
+    <div class="tags-chips">
+      <span *ngFor="let tag of tags" class="tag-chip" [title]="tag">
+        <span class="tag-name">{{ tag }}</span>
+        <button
+          mat-icon-button
+          class="remove-tag-btn"
+          (click)="onRemoveTagClick(tag, $event)"
+          title="Remove tag from this card"
+          aria-label="Remove tag"
+        >
+          <mat-icon svgIcon="close_24px"></mat-icon>
+        </button>
+      </span>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <mat-spinner
+      diameter="18"
+      *ngIf="loadState === DataLoadState.LOADING"
+    ></mat-spinner>
+    <line-chart
+      [disableUpdate]="!isCardVisible"
+      [preferredRendererType]="forceSvg ? RendererType.SVG : RendererType.WEBGL"
+      [seriesData]="dataSeries"
+      [seriesMetadataMap]="chartMetadataMap"
+      [xScaleType]="xScaleType"
+      [yScaleType]="yScaleType"
+      [customXFormatter]="getCustomXFormatter()"
+      [ignoreYOutliers]="ignoreOutliers"
+      [tooltipTemplate]="tooltip"
+      [useDarkMode]="useDarkMode"
+      (onViewBoxOverridden)="isViewBoxOverridden = $event"
+    ></line-chart>
+    <ng-template
+      #tooltip
+      let-tooltipData="data"
+      let-cursorLocationInDataCoord="cursorLocationInDataCoord"
+      let-cursorLocation="cursorLocation"
+    >
+      <table class="tooltip">
+        <thead>
+          <tr>
+            <th class="circle-header"></th>
+            <th>Tag / Run</th>
+            <th *ngIf="smoothingEnabled">Smoothed</th>
+            <th>Value</th>
+            <th>Step</th>
+            <th>Time</th>
+            <th>Relative</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container
+            *ngFor="
+              let datum of getCursorAwareTooltipData(tooltipData,
+                cursorLocationInDataCoord, cursorLocation);
+              trackBy: trackByTooltipDatum
+            "
+          >
+            <tr class="tooltip-row" [class.closest]="datum.metadata.closest">
+              <td class="tooltip-row-circle">
+                <span [style.backgroundColor]="datum.metadata.color"></span>
+              </td>
+              <td class="name">
+                <ng-container *ngIf="datum.metadata.alias"
+                  ><tb-experiment-alias
+                    [alias]="datum.metadata.alias"
+                  ></tb-experiment-alias
+                  >/</ng-container
+                >{{ datum.metadata.displayName }}
+              </td>
+              <td *ngIf="smoothingEnabled">
+                {{ valueFormatter.formatShort(datum.dataPoint.y) }}
+              </td>
+              <td>{{ valueFormatter.formatShort(datum.dataPoint.value) }}</td>
+              <td>{{ stepFormatter.formatShort(datum.dataPoint.step) }}</td>
+              <td>{{ datum.dataPoint.wallTime | date: 'short' }}</td>
+              <td>
+                {{
+                relativeXFormatter.formatReadable(datum.dataPoint.relativeTimeInMs)
+                }}
+              </td>
+            </tr>
+          </ng-container>
+          <tr class="legend" *ngIf="additionalItemsCount > 0">
+            <td colspan="100">
+              {{ additionalItemsCount }} additional {{ additionalItemsCount ===
+              1 ? 'item' : 'items' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </ng-template>
+  </div>
+</div>
