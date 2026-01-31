@@ -22,6 +22,13 @@ py_library(
     ],
 )
 
+py_library(
+    name = "profile_writer",
+    srcs = ["profile_writer.py"],
+    srcs_version = "PY3",
+    visibility = ["//visibility:public"],
+)
+
 py_test(
     name = "core_plugin_test",
     size = "small",
@@ -37,5 +44,15 @@ py_test(
         "//tensorboard/plugins:base_plugin",
         "//tensorboard/util:test_util",
         "@org_pocoo_werkzeug",
+    ],
+)
+
+py_test(
+    name = "profile_writer_test",
+    size = "small",
+    srcs = ["profile_writer_test.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":profile_writer",
     ],
 )
