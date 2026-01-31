@@ -43,14 +43,13 @@ import {
   TimeSeriesRequest,
   TimeSeriesResponse,
   SavedPinsDataSource,
-  Tag,
 } from '../data_source/index';
 import {
   getCardLoadState,
   getCardMetadata,
   getMetricsTagMetadataLoadState,
 } from '../store';
-import {CardId, CardMetadata, PluginType} from '../types';
+import {CardId, CardMetadata, CardUniqueInfo, PluginType} from '../types';
 
 export type CardFetchInfo = CardMetadata & {
   id: CardId;
@@ -329,14 +328,26 @@ export class MetricsEffects implements OnInitEffects {
       ),
       tap(([{cardId, canCreateNewPins, wasPinned}, fetchInfos]) => {
         const card = fetchInfos.find((value) => value.id === cardId);
-        // Saving only scalar pinned cards.
-        if (!card || card.plugin !== PluginType.SCALARS) {
+        if (!card) {
           return;
         }
+
+        // Build CardUniqueInfo for this card (supports all plugin types)
+        const cardInfo: CardUniqueInfo = {
+          plugin: card.plugin,
+          tag: card.tag,
+        };
+        if (card.runId) {
+          cardInfo.runId = card.runId;
+        }
+        if (card.sample !== undefined) {
+          cardInfo.sample = card.sample;
+        }
+
         if (wasPinned) {
-          this.savedPinsDataSource.removeScalarPin(card.tag);
+          this.savedPinsDataSource.removePin(cardInfo);
         } else if (canCreateNewPins) {
-          this.savedPinsDataSource.saveScalarPin(card.tag);
+          this.savedPinsDataSource.savePin(cardInfo);
         }
       })
     );
@@ -361,14 +372,30 @@ export class MetricsEffects implements OnInitEffects {
           isMetricsSavingPinsEnabled
       ),
       tap(() => {
-        const tags = this.savedPinsDataSource.getSavedScalarPins();
-        if (!tags || tags.length === 0) {
+        // Migrate any legacy scalar-only pins to the new format
+        this.savedPinsDataSource.migrateLegacyPins();
+
+        // Load all saved pins (supports all plugin types)
+        const savedPins = this.savedPinsDataSource.getSavedPins();
+        if (!savedPins || savedPins.length === 0) {
           return;
         }
-        const unresolvedPinnedCards = tags.map((tag) => ({
-          plugin: PluginType.SCALARS,
-          tag: tag,
-        }));
+
+        // Convert CardUniqueInfo to the format expected by the action
+        const unresolvedPinnedCards = savedPins.map((pin) => {
+          const card: CardUniqueInfo = {
+            plugin: pin.plugin,
+            tag: pin.tag,
+          };
+          if (pin.runId !== undefined) {
+            card.runId = pin.runId;
+          }
+          if (pin.sample !== undefined) {
+            card.sample = pin.sample;
+          }
+          return card;
+        });
+
         this.store.dispatch(
           actions.metricsUnresolvedPinnedCardsFromLocalStorageAdded({
             cards: unresolvedPinnedCards,
@@ -396,6 +423,9 @@ export class MetricsEffects implements OnInitEffects {
           isMetricsSavingPinsEnabled
       ),
       tap(() => {
+        // Remove all pins from localStorage (new format)
+        this.savedPinsDataSource.removeAllPins();
+        // Also clear legacy pins for consistency
         this.savedPinsDataSource.removeAllScalarPins();
       })
     );
@@ -414,13 +444,23 @@ export class MetricsEffects implements OnInitEffects {
       ),
       tap(([, pinnedCards, , , getMetricsSavingPinsEnabled]) => {
         if (getMetricsSavingPinsEnabled) {
-          const tags: Tag[] = pinnedCards
-            .map((card) => {
-              return card.plugin === PluginType.SCALARS ? card.tag : null;
-            })
-            .filter((v): v is Tag => v !== null);
-          this.savedPinsDataSource.saveScalarPins(tags);
+          // Save all pinned cards (all plugin types, not just scalars)
+          const cardInfos: CardUniqueInfo[] = pinnedCards.map((card) => {
+            const info: CardUniqueInfo = {
+              plugin: card.plugin,
+              tag: card.tag,
+            };
+            if (card.runId) {
+              info.runId = card.runId;
+            }
+            if (card.sample !== undefined) {
+              info.sample = card.sample;
+            }
+            return info;
+          });
+          this.savedPinsDataSource.setSavedPins(cardInfos);
         } else {
+          this.savedPinsDataSource.removeAllPins();
           this.savedPinsDataSource.removeAllScalarPins();
         }
       })

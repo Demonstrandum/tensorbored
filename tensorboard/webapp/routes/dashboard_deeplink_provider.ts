@@ -29,6 +29,8 @@ import {
   isSingleRunPlugin,
 } from '../metrics/data_source/types';
 import {CardUniqueInfo} from '../metrics/types';
+// Note: isSampledPlugin, isSingleRunPlugin are used in extractPinnedCardsFromURLText
+// for backwards-compatibility parsing of old URLs that contain pinned cards.
 import {GroupBy, GroupByKey} from '../runs/types';
 import * as selectors from '../selectors';
 import {
@@ -46,49 +48,30 @@ const COLOR_GROUP_REGEX_BY_EXP_VALUE_PREFIX = 'regex_by_exp:';
 
 /**
  * Provides deeplinking for the core dashboards page.
+ *
+ * Note: Pinned cards are NO LONGER stored in the URL to avoid URL length
+ * limitations. Pins are now stored in localStorage via the profile system.
+ * See https://github.com/tensorflow/tensorboard/issues/4242 for context.
+ *
+ * The URL still supports:
+ * - tagFilter: for filtering displayed tags
+ * - smoothing: scalar smoothing setting
+ * - runColorGroup: run color grouping configuration
+ * - runFilter: run selector regex filter
+ * - Feature flags
+ *
+ * For sharing complete dashboard configurations including pins, use the
+ * profile export/import functionality.
  */
 @Injectable()
 export class DashboardDeepLinkProvider extends DeepLinkProvider {
-  private getMetricsPinnedCards(
-    store: Store<State>
-  ): Observable<SerializableQueryParams> {
-    return combineLatest([
-      store.select(selectors.getPinnedCardsWithMetadata),
-      store.select(selectors.getUnresolvedImportedPinnedCards),
-    ]).pipe(
-      map(([pinnedCards, unresolvedImportedPinnedCards]) => {
-        if (!pinnedCards.length && !unresolvedImportedPinnedCards.length) {
-          return [];
-        }
-
-        const pinnedCardsToStore = pinnedCards.map(
-          ({plugin, tag, sample, runId}) => {
-            const info = {plugin, tag} as CardUniqueInfo;
-            if (isSingleRunPlugin(plugin)) {
-              info.runId = runId!;
-            }
-            if (isSampledPlugin(plugin)) {
-              info.sample = sample!;
-            }
-            return info;
-          }
-        );
-        // Intentionally order unresolved cards last, so that cards pinned by
-        // the user in this session have priority.
-        const cardsToStore = [
-          ...pinnedCardsToStore,
-          ...unresolvedImportedPinnedCards,
-        ];
-        return [{key: 'pinnedCards', value: JSON.stringify(cardsToStore)}];
-      })
-    );
-  }
-
   serializeStateToQueryParams(
     store: Store<State>
   ): Observable<SerializableQueryParams> {
+    // Note: Pinned cards are intentionally NOT included in URL params.
+    // They are stored in localStorage to avoid URL length limitations.
+    // Users can share complete configurations via profile export/import.
     return combineLatest([
-      this.getMetricsPinnedCards(store),
       store.select(selectors.getMetricsTagFilter).pipe(
         map((filterText) => {
           if (!filterText) {
