@@ -1,4 +1,4 @@
-load("//tensorboard/defs:defs.bzl", "tf_ts_library")
+load("//tensorboard/defs:defs.bzl", "tf_ts_library", "tf_ng_web_test_suite")
 
 package(default_visibility = ["//tensorboard:internal"])
 
@@ -17,5 +17,26 @@ tf_ts_library(
         "//tensorboard/webapp/profile/actions",
         "//tensorboard/webapp/types",
         "@npm//@ngrx/store",
+    ],
+)
+
+tf_ng_web_test_suite(
+    name = "store_test",
+    deps = [
+        ":store_test_lib",
+    ],
+)
+
+tf_ts_library(
+    name = "store_test_lib",
+    testonly = True,
+    srcs = [
+        "profile_reducers_test.ts",
+    ],
+    deps = [
+        ":store",
+        "//tensorboard/webapp/profile:types",
+        "//tensorboard/webapp/profile/actions",
+        "//tensorboard/webapp/types",
     ],
 )

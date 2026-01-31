@@ -1,4 +1,4 @@
-load("//tensorboard/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
+load("//tensorboard/defs:defs.bzl", "tf_ng_module", "tf_ts_library", "tf_ng_web_test_suite")
 
 package(default_visibility = ["//tensorboard:internal"])
 
@@ -30,5 +30,23 @@ tf_ng_module(
         "@npm//@angular/core",
         "@npm//@ngrx/effects",
         "@npm//@ngrx/store",
+    ],
+)
+
+tf_ng_web_test_suite(
+    name = "types_test",
+    deps = [
+        ":types_test_lib",
+    ],
+)
+
+tf_ts_library(
+    name = "types_test_lib",
+    testonly = True,
+    srcs = [
+        "types_test.ts",
+    ],
+    deps = [
+        ":types",
     ],
 )

@@ -1,4 +1,4 @@
-load("//tensorboard/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
+load("//tensorboard/defs:defs.bzl", "tf_ng_module", "tf_ts_library", "tf_ng_web_test_suite")
 
 package(default_visibility = ["//tensorboard:internal"])
 
@@ -16,5 +16,27 @@ tf_ng_module(
         "//tensorboard/webapp/webapp_data_source:http_client",
         "@npm//@angular/core",
         "@npm//rxjs",
+    ],
+)
+
+tf_ng_web_test_suite(
+    name = "data_source_test",
+    deps = [
+        ":data_source_test_lib",
+    ],
+)
+
+tf_ts_library(
+    name = "data_source_test_lib",
+    testonly = True,
+    srcs = [
+        "profile_data_source_test.ts",
+    ],
+    deps = [
+        ":data_source",
+        "//tensorboard/webapp/profile:types",
+        "//tensorboard/webapp/webapp_data_source:http_client",
+        "@npm//@angular/common/http/testing",
+        "@npm//@angular/core/testing",
     ],
 )
