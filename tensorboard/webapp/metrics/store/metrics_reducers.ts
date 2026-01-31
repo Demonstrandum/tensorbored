@@ -42,6 +42,8 @@ import {
   CardUniqueInfo,
   SCALARS_SMOOTHING_MAX,
   SCALARS_SMOOTHING_MIN,
+  SuperimposedCardId,
+  SuperimposedCardMetadata,
   TooltipSort,
   URLDeserializedState,
 } from '../types';
@@ -74,6 +76,7 @@ import {
   METRICS_SETTINGS_DEFAULT,
   NonSampledPluginTagMetadata,
   RunToSeries,
+  SuperimposedCardMetadataMap,
   TagMetadata,
   TimeSeriesData,
   TimeSeriesLoadable,
@@ -225,6 +228,15 @@ function serializeCardUniqueInfo(
   sample?: number
 ): string {
   return JSON.stringify([plugin, tag, runId || '', sample]);
+}
+
+let superimposedCardCounter = 0;
+
+/**
+ * Generates a unique ID for a superimposed card.
+ */
+function generateSuperimposedCardId(): SuperimposedCardId {
+  return `superimposed-card-${Date.now()}-${++superimposedCardCounter}`;
 }
 
 const {initialState, reducers: namespaceContextedReducer} =
@@ -439,6 +451,8 @@ const {initialState, reducers: namespaceContextedReducer} =
         min: Infinity,
         max: -Infinity,
       },
+      superimposedCardMetadataMap: {},
+      superimposedCardList: [],
     },
     {
       isSettingsPaneOpen: true,
@@ -1563,6 +1577,151 @@ const reducer = createReducer(
       cardToPinnedCopy: new Map() as CardToPinnedCard,
       cardToPinnedCopyCache: new Map() as CardToPinnedCard,
       pinnedCardToOriginal: new Map() as PinnedCardToCard,
+    };
+  }),
+
+  // Superimposed card reducers
+  on(actions.superimposedCardCreated, (state, {title, tags, runId}) => {
+    const id = generateSuperimposedCardId();
+    const newMetadata: SuperimposedCardMetadata = {
+      id,
+      title,
+      tags,
+      runId: runId ?? null,
+    };
+
+    return {
+      ...state,
+      superimposedCardMetadataMap: {
+        ...state.superimposedCardMetadataMap,
+        [id]: newMetadata,
+      },
+      superimposedCardList: [...state.superimposedCardList, id],
+    };
+  }),
+
+  on(actions.superimposedCardTagAdded, (state, {superimposedCardId, tag}) => {
+    const metadata = state.superimposedCardMetadataMap[superimposedCardId];
+    if (!metadata || metadata.tags.includes(tag)) {
+      return state;
+    }
+
+    return {
+      ...state,
+      superimposedCardMetadataMap: {
+        ...state.superimposedCardMetadataMap,
+        [superimposedCardId]: {
+          ...metadata,
+          tags: [...metadata.tags, tag],
+        },
+      },
+    };
+  }),
+
+  on(actions.superimposedCardTagRemoved, (state, {superimposedCardId, tag}) => {
+    const metadata = state.superimposedCardMetadataMap[superimposedCardId];
+    if (!metadata) {
+      return state;
+    }
+
+    const newTags = metadata.tags.filter((t) => t !== tag);
+
+    // If no tags remain, delete the card
+    if (newTags.length === 0) {
+      const nextSuperimposedCardMetadataMap = {
+        ...state.superimposedCardMetadataMap,
+      };
+      delete nextSuperimposedCardMetadataMap[superimposedCardId];
+
+      return {
+        ...state,
+        superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
+        superimposedCardList: state.superimposedCardList.filter(
+          (id) => id !== superimposedCardId
+        ),
+      };
+    }
+
+    return {
+      ...state,
+      superimposedCardMetadataMap: {
+        ...state.superimposedCardMetadataMap,
+        [superimposedCardId]: {
+          ...metadata,
+          tags: newTags,
+        },
+      },
+    };
+  }),
+
+  on(actions.superimposedCardDeleted, (state, {superimposedCardId}) => {
+    const nextSuperimposedCardMetadataMap = {
+      ...state.superimposedCardMetadataMap,
+    };
+    delete nextSuperimposedCardMetadataMap[superimposedCardId];
+
+    return {
+      ...state,
+      superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
+      superimposedCardList: state.superimposedCardList.filter(
+        (id) => id !== superimposedCardId
+      ),
+    };
+  }),
+
+  on(
+    actions.superimposedCardTitleChanged,
+    (state, {superimposedCardId, title}) => {
+      const metadata = state.superimposedCardMetadataMap[superimposedCardId];
+      if (!metadata) {
+        return state;
+      }
+
+      return {
+        ...state,
+        superimposedCardMetadataMap: {
+          ...state.superimposedCardMetadataMap,
+          [superimposedCardId]: {
+            ...metadata,
+            title,
+          },
+        },
+      };
+    }
+  ),
+
+  on(actions.superimposedCardCreatedFromCards, (state, {cardIds, title}) => {
+    // Extract tags from the provided card IDs (only scalar cards)
+    const tags: string[] = [];
+    for (const cardId of cardIds) {
+      const metadata = state.cardMetadataMap[cardId];
+      if (metadata && metadata.plugin === PluginType.SCALARS) {
+        if (!tags.includes(metadata.tag)) {
+          tags.push(metadata.tag);
+        }
+      }
+    }
+
+    if (tags.length < 2) {
+      // Need at least 2 tags to superimpose
+      return state;
+    }
+
+    const id = generateSuperimposedCardId();
+    const newMetadata: SuperimposedCardMetadata = {
+      id,
+      title: title || `Superimposed: ${tags.slice(0, 2).join(', ')}${tags.length > 2 ? '...' : ''}`,
+      tags,
+      runId: null,
+    };
+
+    return {
+      ...state,
+      superimposedCardMetadataMap: {
+        ...state.superimposedCardMetadataMap,
+        [id]: newMetadata,
+      },
+      superimposedCardList: [...state.superimposedCardList, id],
     };
   })
 );
