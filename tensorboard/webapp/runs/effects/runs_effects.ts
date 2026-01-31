@@ -59,7 +59,9 @@ type StoredRunColorsV1 = {
   groupKeyToColorId: Array<[groupKey: string, colorId: number]>;
 };
 
-function safeParseStoredRunColors(serialized: string | null): StoredRunColorsV1 {
+function safeParseStoredRunColors(
+  serialized: string | null
+): StoredRunColorsV1 {
   if (!serialized) {
     return {version: 1, runColorOverrides: [], groupKeyToColorId: []};
   }
@@ -221,7 +223,10 @@ export class RunsEffects {
             this.store.select(getGroupKeyToColorIdMap)
           ),
           tap(([, runColorOverrides, groupKeyToColorId]) => {
-            persistRunColorsToLocalStorage(runColorOverrides, groupKeyToColorId);
+            persistRunColorsToLocalStorage(
+              runColorOverrides,
+              groupKeyToColorId
+            );
           })
         );
       },
@@ -399,9 +404,9 @@ export class RunsEffects {
   }> {
     return forkJoin([
       this.runsDataSource.fetchRuns(experimentId),
-      this.runColorDataSource.fetchRunColors(experimentId).pipe(
-        catchError(() => of({}))
-      ),
+      this.runColorDataSource
+        .fetchRunColors(experimentId)
+        .pipe(catchError(() => of({}))),
     ]).pipe(
       map(([runs, runColors]) => {
         return {

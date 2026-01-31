@@ -383,8 +383,8 @@ tf_web_library(
     deps = [
         "//tensorboard/webapp/widgets/source_code/monaco:monaco_editor",
         "//tensorboard/webapp/widgets/source_code/monaco:monaco_languages",
-        "@com_google_fonts_inter",
         "@com_google_fonts_ibm_plex_mono",
+        "@com_google_fonts_inter",
         "@com_google_fonts_roboto",
     ],
 )

@@ -235,7 +235,16 @@ describe('runs_reducers', () => {
       expect(nextState.data.groupKeyToColorId.get('run|foo')).toBe(0);
       expect(nextState.data.groupKeyToColorId.get('run|bar')).toBe(1);
 
-      const runIds = ['foo', 'bar', 'baz', 'qaz', 'alpha', 'beta', 'gamma', 'lambda'];
+      const runIds = [
+        'foo',
+        'bar',
+        'baz',
+        'qaz',
+        'alpha',
+        'beta',
+        'gamma',
+        'lambda',
+      ];
       for (const runId of runIds) {
         const colorId = nextState.data.defaultRunColorIdForGroupBy.get(runId);
         expect(typeof colorId).toBe('number');
@@ -291,10 +300,10 @@ describe('runs_reducers', () => {
 
         const nextState = runsReducers.reducers(state, action);
 
-        const eid1Color = nextState.data.defaultRunColorIdForGroupBy.get('baz')!;
-        const eid2Color = nextState.data.defaultRunColorIdForGroupBy.get(
-          'alpha'
-        )!;
+        const eid1Color =
+          nextState.data.defaultRunColorIdForGroupBy.get('baz')!;
+        const eid2Color =
+          nextState.data.defaultRunColorIdForGroupBy.get('alpha')!;
         expect(eid1Color).toBeGreaterThanOrEqual(0);
         expect(eid2Color).toBeGreaterThanOrEqual(0);
 
@@ -339,26 +348,28 @@ describe('runs_reducers', () => {
 
         const nextState = runsReducers.reducers(state, action);
 
-        const cFoo1 = nextState.data.defaultRunColorIdForGroupBy.get('eid1/alpha')!;
-        const cFoo2 = nextState.data.defaultRunColorIdForGroupBy.get('eid1/beta')!;
+        const cFoo1 =
+          nextState.data.defaultRunColorIdForGroupBy.get('eid1/alpha')!;
+        const cFoo2 =
+          nextState.data.defaultRunColorIdForGroupBy.get('eid1/beta')!;
         expect(cFoo1).toBeGreaterThanOrEqual(0);
         expect(cFoo2).toBeGreaterThanOrEqual(0);
 
         // Runs matching the same capture group share color.
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/beta')).toBe(
-          cFoo2
-        );
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/gamma')).toBe(
-          cFoo2
-        );
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid2/beta')
+        ).toBe(cFoo2);
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid2/gamma')
+        ).toBe(cFoo2);
 
         // Non-matching runs get the "unassigned" color.
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/alpha')).toBe(
-          -1
-        );
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/delta')).toBe(
-          -1
-        );
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid2/alpha')
+        ).toBe(-1);
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid2/delta')
+        ).toBe(-1);
       });
 
       it('assigns non-matched colors to regex by experiment, non-matched runs', () => {
@@ -403,32 +414,34 @@ describe('runs_reducers', () => {
 
         const nextState = runsReducers.reducers(state, action);
 
-        const cExp1 = nextState.data.defaultRunColorIdForGroupBy.get('eid1/alpha')!;
-        const cExp2 = nextState.data.defaultRunColorIdForGroupBy.get('eid2/alpha')!;
+        const cExp1 =
+          nextState.data.defaultRunColorIdForGroupBy.get('eid1/alpha')!;
+        const cExp2 =
+          nextState.data.defaultRunColorIdForGroupBy.get('eid2/alpha')!;
 
         expect(cExp1).toBeGreaterThanOrEqual(0);
         expect(cExp2).toBeGreaterThanOrEqual(0);
 
         // eid1 and eid3 are both in capture group "1"
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid1/beta')).toBe(
-          cExp1
-        );
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid3/delta')).toBe(
-          cExp1
-        );
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid1/beta')
+        ).toBe(cExp1);
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid3/delta')
+        ).toBe(cExp1);
 
         // eid2 is capture group "2"
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/beta')).toBe(
-          cExp2
-        );
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid2/gamma')).toBe(
-          cExp2
-        );
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid2/beta')
+        ).toBe(cExp2);
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid2/gamma')
+        ).toBe(cExp2);
 
         // Non-matching experiment name.
-        expect(nextState.data.defaultRunColorIdForGroupBy.get('eid4/theta')).toBe(
-          -1
-        );
+        expect(
+          nextState.data.defaultRunColorIdForGroupBy.get('eid4/theta')
+        ).toBe(-1);
       });
     });
 
@@ -849,8 +862,12 @@ describe('runs_reducers', () => {
       expect(nextState.data.initialGroupBy).toEqual({key: GroupByKey.RUN});
       expect(nextState.data.userSetGroupByKey).toEqual(GroupByKey.EXPERIMENT);
 
-      expect(nextState.data.groupKeyToColorId.has('experiment|eid1')).toBeTrue();
-      expect(nextState.data.groupKeyToColorId.has('experiment|eid2')).toBeTrue();
+      expect(
+        nextState.data.groupKeyToColorId.has('experiment|eid1')
+      ).toBeTrue();
+      expect(
+        nextState.data.groupKeyToColorId.has('experiment|eid2')
+      ).toBeTrue();
 
       const eid1Color = nextState.data.defaultRunColorIdForGroupBy.get('run1')!;
       const eid2Color = nextState.data.defaultRunColorIdForGroupBy.get('run3')!;
@@ -864,7 +881,9 @@ describe('runs_reducers', () => {
       );
 
       // User-picked overrides persist across groupBy changes.
-      expect(nextState.data.runColorOverrideForGroupBy.get('run1')).toBe('#aaa');
+      expect(nextState.data.runColorOverrideForGroupBy.get('run1')).toBe(
+        '#aaa'
+      );
     });
 
     it('reassigns color to RUN from EXPERIMENT', () => {
@@ -922,7 +941,9 @@ describe('runs_reducers', () => {
       }
 
       // User-picked overrides persist across groupBy changes.
-      expect(nextState.data.runColorOverrideForGroupBy.get('run1')).toBe('#ccc');
+      expect(nextState.data.runColorOverrideForGroupBy.get('run1')).toBe(
+        '#ccc'
+      );
     });
 
     it('reassigns color to REGEX from RUN', () => {
@@ -974,8 +995,10 @@ describe('runs_reducers', () => {
         nextState.data.groupKeyToColorId.has('regex:foo(\\d+)|["2"]')
       ).toBeTrue();
 
-      const group1Color = nextState.data.defaultRunColorIdForGroupBy.get('run1')!;
-      const group2Color = nextState.data.defaultRunColorIdForGroupBy.get('run2')!;
+      const group1Color =
+        nextState.data.defaultRunColorIdForGroupBy.get('run1')!;
+      const group2Color =
+        nextState.data.defaultRunColorIdForGroupBy.get('run2')!;
       expect(group1Color).toBeGreaterThanOrEqual(0);
       expect(group2Color).toBeGreaterThanOrEqual(0);
 
@@ -1056,8 +1079,10 @@ describe('runs_reducers', () => {
         nextState.data.groupKeyToColorId.has('regex_by_exp:foo(\\d+)|["2"]')
       ).toBeTrue();
 
-      const group1Color = nextState.data.defaultRunColorIdForGroupBy.get('run1')!;
-      const group2Color = nextState.data.defaultRunColorIdForGroupBy.get('run3')!;
+      const group1Color =
+        nextState.data.defaultRunColorIdForGroupBy.get('run1')!;
+      const group2Color =
+        nextState.data.defaultRunColorIdForGroupBy.get('run3')!;
       expect(group1Color).toBeGreaterThanOrEqual(0);
       expect(group2Color).toBeGreaterThanOrEqual(0);
 

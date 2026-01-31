@@ -14,7 +14,7 @@ diff --git a/web/web.bzl b/web/web.bzl
 +    browser_overrides = None
 +    if "browser_overrides" in in_kwargs and types.is_dict(in_kwargs["browser_overrides"]):
 +        browser_overrides = in_kwargs["browser_overrides"]
- 
+
      for k, v in in_kwargs.items():
 +        if k == "browser_overrides":
 +            continue
@@ -36,10 +36,10 @@ diff --git a/web/web.bzl b/web/web.bzl
 +            if not types.is_dict(overrides):
 +                fail("expected dict values in browser_overrides but got '%s'" % type(overrides))
 +            out_kwargs.update(overrides)
- 
+
      if not out_kwargs["tags"]:
          out_kwargs["tags"] = ["browser:" + browser]
      else:
          out_kwargs["tags"] = ["browser:" + browser] + out_kwargs["tags"]
- 
+
      return out_kwargs

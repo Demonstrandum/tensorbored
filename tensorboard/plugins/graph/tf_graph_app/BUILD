@@ -38,8 +38,8 @@ tf_web_library(
     ],
     path = "/",
     deps = [
-        "@com_google_fonts_inter",
         "@com_google_fonts_ibm_plex_mono",
+        "@com_google_fonts_inter",
         "@com_google_fonts_roboto",
     ],
 )
