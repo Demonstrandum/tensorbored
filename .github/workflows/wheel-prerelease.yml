@@ -1,0 +1,86 @@
+# GitHub Actions workflow to publish wheels as prerelease on push to master.
+#
+# This workflow builds the pip package and publishes it as a GitHub prerelease,
+# making it easy to download and test the latest changes without waiting for
+# an official release.
+
+name: Wheel Prerelease
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write # Needed for creating releases
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish-prerelease:
+    runs-on: ubuntu-22.04
+    needs: ci
+    steps:
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Download pip package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: tb-nightly_py*
+          merge-multiple: true
+          path: wheels
+
+      - name: Get version info
+        id: version
+        run: |
+          # Extract version from the wheel filename
+          WHEEL_FILE=$(ls wheels/*.whl | head -1)
+          WHEEL_NAME=$(basename "$WHEEL_FILE")
+          echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
+
+          # Create a unique tag based on date and short SHA
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          DATE=$(date -u +%Y%m%d)
+          TAG="prerelease-${DATE}-${SHORT_SHA}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: List wheel files
+        run: ls -la wheels/
+
+      - name: Create GitHub Prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: 'Prerelease ${{ steps.version.outputs.date }} (${{ steps.version.outputs.short_sha }})'
+          body: |
+            ## Automated Prerelease Build
+
+            This is an automated prerelease build from commit ${{ github.sha }}.
+
+            **Commit:** [`${{ steps.version.outputs.short_sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            **Branch:** `master`
+            **Date:** ${{ steps.version.outputs.date }}
+
+            ### Installation
+
+            Download the wheel file and install with:
+            ```bash
+            pip install ${{ steps.version.outputs.wheel_name }}
+            ```
+
+            Or install directly from this release:
+            ```bash
+            pip install ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/${{ steps.version.outputs.wheel_name }}
+            ```
+
+            ### Warning
+
+            This is a prerelease build intended for testing. It may contain bugs or incomplete features.
+          draft: false
+          prerelease: true
+          files: wheels/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
