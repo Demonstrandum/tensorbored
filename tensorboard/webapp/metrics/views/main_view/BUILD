@@ -67,6 +67,15 @@ tf_sass_binary(
     ],
 )
 
+tf_sass_binary(
+    name = "superimposed_cards_view_component_styles",
+    src = "superimposed_cards_view_component.scss",
+    deps = [
+        "//tensorboard/webapp/metrics/views:metrics_common_styles",
+        "//tensorboard/webapp/theme",
+    ],
+)
+
 tf_ts_library(
     name = "common_selectors",
     srcs = ["common_selectors.ts"],
@@ -112,6 +121,8 @@ tf_ng_module(
         "main_view_module.ts",
         "pinned_view_component.ts",
         "pinned_view_container.ts",
+        "superimposed_cards_view_component.ts",
+        "superimposed_cards_view_container.ts",
     ],
     assets = [
         "card_grid_component.ng.html",
@@ -124,6 +135,7 @@ tf_ng_module(
         ":filtered_view_component_styles",
         ":main_view_styles",
         ":pinned_view_component_styles",
+        ":superimposed_cards_view_component_styles",
     ],
     deps = [
         ":common_selectors",
