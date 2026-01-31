@@ -357,3 +357,22 @@ export const superimposedCardCreatedFromCards = createAction(
     title?: string;
   }>()
 );
+
+/**
+ * Action to apply profile settings to metrics state.
+ * Dispatched when a profile is activated.
+ */
+export const profileMetricsSettingsApplied = createAction(
+  '[Metrics] Profile Settings Applied',
+  props<{
+    pinnedCards: CardUniqueInfo[];
+    superimposedCards: Array<{
+      id: string;
+      title: string;
+      tags: string[];
+      runId: string | null;
+    }>;
+    tagFilter: string;
+    smoothing: number;
+  }>()
+);

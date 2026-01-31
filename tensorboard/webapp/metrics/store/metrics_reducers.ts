@@ -1727,7 +1727,61 @@ const reducer = createReducer(
       },
       superimposedCardList: [...state.superimposedCardList, id],
     };
-  })
+  }),
+
+  // Profile integration: Apply profile settings to metrics state
+  on(
+    actions.profileMetricsSettingsApplied,
+    (state, {pinnedCards, superimposedCards, tagFilter, smoothing}) => {
+      // Clear existing pins and apply profile's pins
+      const nextCardMetadataMap = {...state.cardMetadataMap};
+      const nextCardStepIndex = {...state.cardStepIndex};
+      const nextCardStateMap = {...state.cardStateMap};
+
+      // Remove existing pinned cards
+      for (const cardId of state.pinnedCardToOriginal.keys()) {
+        delete nextCardMetadataMap[cardId];
+        delete nextCardStepIndex[cardId];
+        delete nextCardStateMap[cardId];
+      }
+
+      // Apply superimposed cards from profile
+      const nextSuperimposedCardMetadataMap: SuperimposedCardMetadataMap = {};
+      const nextSuperimposedCardList: SuperimposedCardId[] = [];
+
+      for (const card of superimposedCards) {
+        const metadata: SuperimposedCardMetadata = {
+          id: card.id,
+          title: card.title,
+          tags: card.tags,
+          runId: card.runId,
+        };
+        nextSuperimposedCardMetadataMap[card.id] = metadata;
+        nextSuperimposedCardList.push(card.id);
+      }
+
+      return {
+        ...state,
+        // Reset pinned cards to apply from profile
+        cardToPinnedCopy: new Map() as CardToPinnedCard,
+        cardToPinnedCopyCache: new Map() as CardToPinnedCard,
+        pinnedCardToOriginal: new Map() as PinnedCardToCard,
+        unresolvedImportedPinnedCards: pinnedCards,
+        cardMetadataMap: nextCardMetadataMap,
+        cardStateMap: nextCardStateMap,
+        cardStepIndex: nextCardStepIndex,
+        // Apply other settings
+        tagFilter,
+        settingOverrides: {
+          ...state.settingOverrides,
+          scalarSmoothing: smoothing,
+        },
+        // Apply superimposed cards
+        superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
+        superimposedCardList: nextSuperimposedCardList,
+      };
+    }
+  )
 );
 
 export function reducers(state: MetricsState | undefined, action: Action) {
