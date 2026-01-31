@@ -12,7 +12,7 @@ on:
       - master
 
 permissions:
-  contents: write  # Needed for creating releases
+  contents: write # Needed for creating releases
 
 jobs:
   ci:
@@ -54,7 +54,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: "Prerelease ${{ steps.version.outputs.date }} (${{ steps.version.outputs.short_sha }})"
+          name: 'Prerelease ${{ steps.version.outputs.date }} (${{ steps.version.outputs.short_sha }})'
           body: |
             ## Automated Prerelease Build
 
