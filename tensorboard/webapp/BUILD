@@ -217,8 +217,8 @@ tf_web_library(
     path = "/",
     deps = [
         ":tb_webapp",
-        "//tensorboard/components/tf_imports:inter",
         "//tensorboard/components/tf_imports:ibm_plex_mono",
+        "//tensorboard/components/tf_imports:inter",
         "//tensorboard/components/tf_imports:roboto",
         "//tensorboard/webapp/widgets/source_code/monaco:requirejs",
     ],

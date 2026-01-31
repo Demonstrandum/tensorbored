@@ -114,7 +114,9 @@ class CorePlugin(base_plugin.TBPlugin):
                     content = zip_.read(path)
                     # Opt out of gzipping index.html
                     if path == "index.html":
-                        apps["/" + path] = functools.partial(self._serve_index, content)
+                        apps["/" + path] = functools.partial(
+                            self._serve_index, content
+                        )
                         continue
 
                     gzipped_asset_bytes = _gzip(content)
@@ -167,7 +169,8 @@ class CorePlugin(base_plugin.TBPlugin):
             else "."
         )
         meta_header = (
-            '<!doctype html><meta name="tb-relative-root" content="%s/">' % relpath
+            '<!doctype html><meta name="tb-relative-root" content="%s/">'
+            % relpath
         )
         content = meta_header.encode("utf-8") + index_asset_bytes
         # By passing content_encoding, disallow gzipping. Bloats the content
@@ -182,7 +185,9 @@ class CorePlugin(base_plugin.TBPlugin):
         """Serve a JSON object describing the TensorBoard parameters."""
         ctx = plugin_util.context(request.environ)
         experiment = plugin_util.experiment_id(request.environ)
-        md = self._data_provider.experiment_metadata(ctx, experiment_id=experiment)
+        md = self._data_provider.experiment_metadata(
+            ctx, experiment_id=experiment
+        )
 
         environment = {
             "version": version.VERSION,
@@ -229,7 +234,9 @@ class CorePlugin(base_plugin.TBPlugin):
         # TODO(chihuahua): Remove this method once the frontend instead uses the
         # /data/environment route (and no deps throughout Google use the
         # /data/logdir route).
-        return http_util.Respond(request, {"logdir": self._logdir}, "application/json")
+        return http_util.Respond(
+            request, {"logdir": self._logdir}, "application/json"
+        )
 
     @wrappers.Request.application
     def _serve_window_properties(self, request):
@@ -321,10 +328,14 @@ class CorePlugin(base_plugin.TBPlugin):
         try:
             payload = json.loads(request.data or b"{}")
         except Exception:
-            return http_util.Respond(request, "Invalid JSON", "text/plain", code=400)
+            return http_util.Respond(
+                request, "Invalid JSON", "text/plain", code=400
+            )
 
         if not isinstance(payload, dict):
-            return http_util.Respond(request, "Invalid request", "text/plain", code=400)
+            return http_util.Respond(
+                request, "Invalid request", "text/plain", code=400
+            )
 
         mapping = self._read_run_colors()
         if not isinstance(mapping, dict):
@@ -477,8 +488,7 @@ Port to serve TensorBoard on. Pass 0 to request an unused port selected
 by the operating system, or pass "default" to try to bind to the default
 port (%s) but search for a nearby free port if the default port is
 unavailable. (default: "default").\
-"""
-            % DEFAULT_PORT,
+""" % DEFAULT_PORT,
         )
 
         parser.add_argument(
@@ -782,13 +792,17 @@ disable fast-loading mode. (default: false)\
             pass
         elif flags.inspect:
             if flags.logdir_spec:
-                raise FlagsError("--logdir_spec is not supported with --inspect.")
+                raise FlagsError(
+                    "--logdir_spec is not supported with --inspect."
+                )
             if flags.logdir and flags.event_file:
                 raise FlagsError(
                     "Must specify either --logdir or --event_file, but not both."
                 )
             if not (flags.logdir or flags.event_file):
-                raise FlagsError("Must specify either --logdir or --event_file.")
+                raise FlagsError(
+                    "Must specify either --logdir or --event_file."
+                )
         elif flags.logdir and flags.logdir_spec:
             raise FlagsError("May not specify both --logdir and --logdir_spec")
         elif (
@@ -805,7 +819,9 @@ disable fast-loading mode. (default: false)\
             )
         elif flags.host is not None and flags.bind_all:
             raise FlagsError("Must not specify both --host and --bind_all.")
-        elif flags.load_fast == "true" and flags.detect_file_replacement is True:
+        elif (
+            flags.load_fast == "true" and flags.detect_file_replacement is True
+        ):
             raise FlagsError(
                 "Must not specify both --load_fast=true and"
                 "--detect_file_replacement=true"
@@ -814,7 +830,8 @@ disable fast-loading mode. (default: false)\
         flags.path_prefix = flags.path_prefix.rstrip("/")
         if flags.path_prefix and not flags.path_prefix.startswith("/"):
             raise FlagsError(
-                "Path prefix must start with slash, but got: %r." % flags.path_prefix
+                "Path prefix must start with slash, but got: %r."
+                % flags.path_prefix
             )
 
     def load(self, context):

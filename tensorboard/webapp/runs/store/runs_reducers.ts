@@ -43,7 +43,9 @@ import {ColumnHeaderType, SortingOrder} from '../../widgets/data_table/types';
 
 type Rgb = {r: number; g: number; b: number};
 
-const DEFAULT_RUN_COLORS = DEFAULT_PALETTE.colors.map((color) => color.lightHex);
+const DEFAULT_RUN_COLORS = DEFAULT_PALETTE.colors.map(
+  (color) => color.lightHex
+);
 const DEFAULT_RUN_COLORS_RGB: Rgb[] = DEFAULT_RUN_COLORS.map((hex) => {
   const normalized = hex.startsWith('#') ? hex.slice(1) : hex;
   // Expected format: RRGGBB.
@@ -101,14 +103,14 @@ function pickColorIdForGroupKey(groupKey: string, used: Set<number>): number {
     if (used.has(idx)) continue;
     let minDist = Infinity;
     for (const usedIdx of used) {
-      const dist = rgbDistSq(DEFAULT_RUN_COLORS_RGB[idx], DEFAULT_RUN_COLORS_RGB[usedIdx]);
+      const dist = rgbDistSq(
+        DEFAULT_RUN_COLORS_RGB[idx],
+        DEFAULT_RUN_COLORS_RGB[usedIdx]
+      );
       if (dist < minDist) minDist = dist;
     }
     const tie = fnv1a32(`${groupKey}:${idx}`);
-    if (
-      minDist > bestMinDist ||
-      (minDist === bestMinDist && tie > bestTie)
-    ) {
+    if (minDist > bestMinDist || (minDist === bestMinDist && tie > bestTie)) {
       bestIdx = idx;
       bestMinDist = minDist;
       bestTie = tie;
@@ -431,15 +433,18 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
       };
     }
   ),
-  on(runsActions.runColorOverridesFetchedFromApi, (state, {runColorOverrides}) => {
-    const nextRunColorOverride = new Map(state.runColorOverrideForGroupBy);
-    for (const [runId, color] of runColorOverrides) {
-      if (!nextRunColorOverride.has(runId)) {
-        nextRunColorOverride.set(runId, color);
+  on(
+    runsActions.runColorOverridesFetchedFromApi,
+    (state, {runColorOverrides}) => {
+      const nextRunColorOverride = new Map(state.runColorOverrideForGroupBy);
+      for (const [runId, color] of runColorOverrides) {
+        if (!nextRunColorOverride.has(runId)) {
+          nextRunColorOverride.set(runId, color);
+        }
       }
+      return {...state, runColorOverrideForGroupBy: nextRunColorOverride};
     }
-    return {...state, runColorOverrideForGroupBy: nextRunColorOverride};
-  }),
+  ),
   on(runsActions.runSelectorRegexFilterChanged, (state, action) => {
     return {
       ...state,

@@ -26,10 +26,10 @@ versions.check(
 
 http_archive(
     name = "io_bazel_rules_webtesting",
+    patch_args = ["-p1"],
+    patches = ["//third_party:rules_webtesting_browser_overrides.patch"],
     sha256 = "6e104e54c283c94ae3d5c6573cf3233ce478e89e0f541a869057521966a35b8f",
     strip_prefix = "rules_webtesting-b6fc79c5a37cd18a5433fd080c9d2cc59548222c",
-    patches = ["//third_party:rules_webtesting_browser_overrides.patch"],
-    patch_args = ["-p1"],
     urls = ["https://github.com/bazelbuild/rules_webtesting/archive/b6fc79c5a37cd18a5433fd080c9d2cc59548222c.tar.gz"],
 )
 
