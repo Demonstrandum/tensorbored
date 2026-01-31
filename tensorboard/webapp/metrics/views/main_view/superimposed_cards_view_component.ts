@@ -27,7 +27,7 @@ import {SuperimposedCardMetadata} from '../../types';
     <ng-container *ngIf="superimposedCards.length > 0">
       <div class="group-toolbar">
         <div class="left-items">
-          <mat-icon svgIcon="layers_24px"></mat-icon>
+          <mat-icon svgIcon="group_work_24px"></mat-icon>
           <span class="group-text">
             <span class="group-title" aria-role="heading" aria-level="3"
               >Superimposed</span
