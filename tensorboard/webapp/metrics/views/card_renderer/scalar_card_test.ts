@@ -923,7 +923,10 @@ describe('scalar card', () => {
     }));
 
     it('does not show x-axis scale toggle for WALL_TIME xAxisType', fakeAsync(() => {
-      store.overrideSelector(selectors.getMetricsXAxisType, XAxisType.WALL_TIME);
+      store.overrideSelector(
+        selectors.getMetricsXAxisType,
+        XAxisType.WALL_TIME
+      );
       const fixture = createComponent('card1');
 
       openOverflowMenu(fixture);

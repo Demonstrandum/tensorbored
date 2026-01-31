@@ -191,9 +191,7 @@ export class SymLogScale extends TfScale {
       const sortedValues = transformedValues.sort((a, b) => a - b);
       const a = d3.quantile(sortedValues, 0.05)!;
       const b = d3.quantile(sortedValues, 0.95)!;
-      filteredValues = sortedValues
-        .filter((x) => x >= a && x <= b)
-        .map(symexp);
+      filteredValues = sortedValues.filter((x) => x >= a && x <= b).map(symexp);
     }
     const extent = d3.extent(filteredValues);
     return extent[0] == null || extent[1] == null ? [] : extent;
