@@ -110,6 +110,87 @@ profile_writer.set_default_profile(
 )
 ```
 
+### Automatic Color Generation (`color_sampler`)
+
+Instead of manually picking hex colors, use the `color_sampler` module to
+automatically generate perceptually uniform colors that are easy to distinguish:
+
+```python
+from tensorboard.plugins.core import profile_writer, color_sampler
+
+run_ids = ['baseline', 'experiment_v1', 'experiment_v2', 'ablation_a', 'ablation_b']
+
+# Option 1: One-liner with colors_for_runs()
+run_colors = color_sampler.colors_for_runs(run_ids)
+
+# Option 2: Use ColorMap for more control
+cm = color_sampler.ColorMap(len(run_ids))
+run_colors = {rid: cm(i) for i, rid in enumerate(run_ids)}
+
+# Option 3: Get a list of colors directly
+colors = color_sampler.sample_colors(5)
+run_colors = dict(zip(run_ids, colors))
+
+# Use with profile_writer
+profile_writer.set_default_profile(
+    logdir='/path/to/logs',
+    run_colors=run_colors,
+    pinned_cards=[profile_writer.pin_scalar('loss')],
+)
+```
+
+The colors are generated in the **OKLCH color space**, which is perceptually
+uniform - meaning equal steps in the color space correspond to equal perceived
+differences. This ensures all colors are equally distinguishable.
+
+#### `color_sampler` API
+
+| Function | Description |
+|----------|-------------|
+| `sample_colors(n)` | Generate n evenly-spaced colors |
+| `sample_colors_varied(n)` | Generate n colors with varied lightness (better for >8 colors) |
+| `colors_for_runs(run_ids)` | Create a `{run_id: color}` dict directly |
+| `ColorMap(n)` | Callable object: `cm(i)` returns color at index i |
+| `palette_categorical(n)` | High-contrast colors for categorical data |
+| `palette_sequential(n)` | Light-to-dark gradient (single hue) |
+| `palette_diverging(n)` | Two-ended palette for data with midpoint |
+| `lighten(hex, amount)` | Lighten a hex color |
+| `darken(hex, amount)` | Darken a hex color |
+
+#### Parameters
+
+```python
+# Customize the color generation
+colors = color_sampler.sample_colors(
+    n=10,
+    lightness=0.7,    # 0-1, higher = lighter (default 0.7)
+    chroma=0.15,      # 0-0.4, higher = more saturated (default 0.15)
+    hue_start=0.0,    # 0-360, rotate the palette (default 0)
+)
+
+# For many runs (>8), use varied mode for maximum distinction
+colors = color_sampler.sample_colors_varied(15)
+
+# ColorMap with varied mode
+cm = color_sampler.ColorMap(15, varied=True)
+```
+
+#### Examples
+
+```python
+# 5 colors for a small experiment
+>>> color_sampler.sample_colors(5)
+['#dc8a78', '#a4b93e', '#40c4aa', '#7aa6f5', '#d898d5']
+
+# Sequential palette for ordered data (e.g., epochs)
+>>> color_sampler.palette_sequential(5, hue=250)  # Blue gradient
+['#e5e5f7', '#b5b5e5', '#8585d3', '#5555c1', '#2525af']
+
+# Diverging palette for metrics with a meaningful center
+>>> color_sampler.palette_diverging(5)  # Blue → White → Orange
+['#4d7ec7', '#a5c0e2', '#f5f5f5', '#e5b99b', '#c76341']
+```
+
 ### API Reference
 
 #### `profile_writer.set_default_profile()`

@@ -29,6 +29,13 @@ py_library(
     visibility = ["//visibility:public"],
 )
 
+py_library(
+    name = "color_sampler",
+    srcs = ["color_sampler.py"],
+    srcs_version = "PY3",
+    visibility = ["//visibility:public"],
+)
+
 py_test(
     name = "core_plugin_test",
     size = "small",
@@ -54,5 +61,15 @@ py_test(
     srcs_version = "PY3",
     deps = [
         ":profile_writer",
+    ],
+)
+
+py_test(
+    name = "color_sampler_test",
+    size = "small",
+    srcs = ["color_sampler_test.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":color_sampler",
     ],
 )
