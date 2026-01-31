@@ -18,6 +18,8 @@ import {Formatter} from './formatter';
 export enum ScaleType {
   LINEAR,
   LOG10,
+  /** Symmetric log scale: linear near zero, logarithmic away from zero. Handles negative values. */
+  SYMLOG10,
   TIME,
 }
 

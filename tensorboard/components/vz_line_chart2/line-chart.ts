@@ -26,6 +26,7 @@ import '../vz_chart_helpers/vz-chart-tooltip';
 import {LinearScale} from './linear-scale';
 import {LogScale} from './log-scale';
 import {PanZoomDragLayer} from './panZoomDragLayer';
+import {SymLogScale} from './symlog-scale';
 import {ITfScale} from './tf-scale';
 
 /**
@@ -46,6 +47,8 @@ enum TooltipColumnEvalType {
 export enum YScaleType {
   LOG = 'log',
   LINEAR = 'linear',
+  /** Symmetric log scale that handles negative values using log-modulus transformation. */
+  SYMLOG = 'symlog',
 }
 
 export type LineChartStatus = {
@@ -199,6 +202,7 @@ export class LineChart {
       this.yScale
     );
     let xZeroLine: any = null;
+    // Show zero line for scales that can represent zero (LINEAR and SYMLOG, not LOG)
     if (yScaleType !== YScaleType.LOG) {
       xZeroLine = new Plottable.Components.GuideLineLayer('horizontal');
       xZeroLine.scale(this.yScale).value(0);
@@ -741,6 +745,8 @@ export class LineChart {
       return new LogScale();
     } else if (yScaleType === YScaleType.LINEAR) {
       return new LinearScale();
+    } else if (yScaleType === YScaleType.SYMLOG) {
+      return new SymLogScale();
     } else {
       throw new Error('Unrecognized yScale type ' + yScaleType);
     }

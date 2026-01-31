@@ -26,6 +26,7 @@ tf_ts_library(
         "log-scale.ts",
         "panZoomDragLayer.html.ts",
         "panZoomDragLayer.ts",
+        "symlog-scale.ts",
         "tf-scale.ts",
         "vz-line-chart2.ts",
     ],

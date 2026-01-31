@@ -398,4 +398,157 @@ describe('line_chart_v2/lib/scale test', () => {
       });
     });
   });
+
+  describe('symlog10', () => {
+    let scale: Scale;
+
+    beforeEach(() => {
+      scale = createScale(ScaleType.SYMLOG10);
+    });
+
+    describe('#forward and #reverse', () => {
+      it('converts value from domain space to range space', () => {
+        // For symlog, forward(domain, range, x) should use sign(x)*log10(|x|+1)
+        expect(scale.forward([0, 1], [-100, 100], 0)).toBe(-100);
+        expect(scale.forward([0, 1], [-100, 100], 1)).toBe(100);
+
+        // Test with positive domain including larger values
+        expect(scale.forward([1, 1000], [0, 1], 100)).toBeCloseTo(0.698, 2);
+        expect(scale.forward([0.00001, 1], [0, 5], 0.01)).toBeCloseTo(0.022, 1);
+      });
+
+      it('handles zero correctly', () => {
+        // symlog(0) = sign(0) * log10(|0| + 1) = 0 * log10(1) = 0
+        expect(scale.forward([-10, 10], [0, 100], 0)).toBe(50);
+      });
+
+      it('handles negative values correctly', () => {
+        // Symlog should handle negative values symmetrically
+        expect(scale.forward([-100, 100], [0, 100], -100)).toBeCloseTo(0, 0);
+        expect(scale.forward([-100, 100], [0, 100], 100)).toBeCloseTo(100, 0);
+        expect(scale.forward([-100, 100], [0, 100], 0)).toBeCloseTo(50, 0);
+
+        // Negative values should map below the center
+        const negValue = scale.forward([-100, 100], [0, 100], -50);
+        const posValue = scale.forward([-100, 100], [0, 100], 50);
+        expect(negValue).toBeLessThan(50);
+        expect(posValue).toBeGreaterThan(50);
+        // Symmetric around 50
+        expect(negValue + posValue).toBeCloseTo(100, 0);
+      });
+
+      it('allows flipping order of the range', () => {
+        expect(scale.forward([0, 1], [100, -100], 0)).toBe(100);
+        expect(scale.forward([0, 1], [100, -100], 1)).toBe(-100);
+      });
+
+      it('returns range min value when domain spread is 0', () => {
+        expect(scale.forward([1, 1], [0, 100], 1)).toBe(0);
+        expect(scale.forward([1, 1], [0, 100], 0)).toBe(0);
+      });
+
+      it('does not choke when range spread is 0', () => {
+        expect(scale.forward([0, 1], [100, 100], 0)).toBe(100);
+        expect(scale.forward([0, 1], [100, 100], 1)).toBe(100);
+      });
+
+      it('reverse the scale from range to domain', () => {
+        // Test reverse for positive domain
+        expect(scale.reverse([1, 1000], [-100, 100], -100)).toBeCloseTo(1, 0);
+        expect(scale.reverse([1, 1000], [-100, 100], 100)).toBeCloseTo(1000, 0);
+
+        // Test reverse with negative domain
+        const reversed = scale.reverse([-100, 100], [0, 100], 50);
+        expect(reversed).toBeCloseTo(0, 0);
+      });
+
+      it('returns cyclic consistent value', () => {
+        const initialX = 100;
+        const forward = scale.forward([1, 1000], [-100, 100], initialX);
+        const inverse = scale.reverse([1, 1000], [-100, 100], forward);
+        expect(inverse).toBeCloseTo(initialX, 0);
+      });
+
+      it('returns cyclic consistent value for negative input', () => {
+        const initialX = -50;
+        const forward = scale.forward([-100, 100], [0, 100], initialX);
+        const inverse = scale.reverse([-100, 100], [0, 100], forward);
+        expect(inverse).toBeCloseTo(initialX, 0);
+      });
+    });
+
+    describe('#niceDomain', () => {
+      it('pads domain in transformed space', () => {
+        const [low, high] = scale.niceDomain([1, 100]);
+        expect(low).toBeLessThan(1);
+        expect(high).toBeGreaterThan(100);
+      });
+
+      it('handles domains that include zero', () => {
+        const [low, high] = scale.niceDomain([-10, 10]);
+        expect(low).toBeLessThan(-10);
+        expect(high).toBeGreaterThan(10);
+      });
+
+      it('returns expanded domain when min == max', () => {
+        expect(scale.niceDomain([100, 100])).toEqual([50, 200]);
+        expect(scale.niceDomain([1, 1])).toEqual([0.5, 2]);
+        expect(scale.niceDomain([0, 0])).toEqual([-1, 1]);
+        expect(scale.niceDomain([-10, -10])).toEqual([-20, -5]);
+      });
+
+      it('handles negative domains', () => {
+        const [low, high] = scale.niceDomain([-100, -1]);
+        expect(low).toBeLessThan(-100);
+        expect(high).toBeGreaterThan(-1);
+      });
+
+      it('throws an error when min is larger than max', () => {
+        expect(() => void scale.niceDomain([100, 0])).toThrowError(Error);
+      });
+    });
+
+    describe('#tick', () => {
+      it('returns ticks in between min and max for positive domain', () => {
+        const ticks = scale.ticks([1, 100], 5);
+        expect(ticks.length).toBeGreaterThan(0);
+        expect(ticks[0]).toBeGreaterThanOrEqual(1);
+        expect(ticks[ticks.length - 1]).toBeLessThanOrEqual(100);
+      });
+
+      it('returns ticks for domain including negative values', () => {
+        const ticks = scale.ticks([-100, 100], 5);
+        expect(ticks.length).toBeGreaterThan(0);
+        // Should include ticks on both sides of zero
+        const hasNegative = ticks.some((t) => t < 0);
+        const hasPositive = ticks.some((t) => t > 0);
+        expect(hasNegative).toBe(true);
+        expect(hasPositive).toBe(true);
+      });
+
+      it('handles domain with zero', () => {
+        const ticks = scale.ticks([0, 100], 5);
+        expect(ticks.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('#isSafeNumber', () => {
+      it('returns true for all finite numbers including negative', () => {
+        expect(scale.isSafeNumber(0)).toBe(true);
+        expect(scale.isSafeNumber(0.1)).toBe(true);
+        expect(scale.isSafeNumber(1)).toBe(true);
+        expect(scale.isSafeNumber(1e100)).toBe(true);
+        expect(scale.isSafeNumber(-1e100)).toBe(true);
+        expect(scale.isSafeNumber(1e-100)).toBe(true);
+        expect(scale.isSafeNumber(-0.001)).toBe(true);
+        expect(scale.isSafeNumber(-1000)).toBe(true);
+      });
+
+      it('returns false for infinities and NaN', () => {
+        expect(scale.isSafeNumber(NaN)).toBe(false);
+        expect(scale.isSafeNumber(Infinity)).toBe(false);
+        expect(scale.isSafeNumber(-Infinity)).toBe(false);
+      });
+    });
+  });
 });

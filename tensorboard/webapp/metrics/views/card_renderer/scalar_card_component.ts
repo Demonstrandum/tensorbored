@@ -155,12 +155,102 @@ export class ScalarCardComponent<Downloader> {
   constructor(private readonly ref: ElementRef, private dialog: MatDialog) {}
 
   yScaleType = ScaleType.LINEAR;
+  /** Local override for x-axis scale type. When null, uses the default xScaleType input. */
+  xScaleTypeOverride: ScaleType | null = null;
   isViewBoxOverridden: boolean = false;
   additionalItemsCount = 0;
 
+  /**
+   * Cycles through y-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
+   * SYMLOG10 (symmetric log) handles negative values gracefully.
+   */
   toggleYScaleType() {
-    this.yScaleType =
-      this.yScaleType === ScaleType.LINEAR ? ScaleType.LOG10 : ScaleType.LINEAR;
+    switch (this.yScaleType) {
+      case ScaleType.LINEAR:
+        this.yScaleType = ScaleType.LOG10;
+        break;
+      case ScaleType.LOG10:
+        this.yScaleType = ScaleType.SYMLOG10;
+        break;
+      case ScaleType.SYMLOG10:
+      default:
+        this.yScaleType = ScaleType.LINEAR;
+        break;
+    }
+  }
+
+  /**
+   * Cycles through x-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
+   * Only available when xAxisType is STEP (not TIME or RELATIVE).
+   */
+  toggleXScaleType() {
+    // Determine current effective x scale type
+    const currentScale = this.xScaleTypeOverride ?? this.xScaleType;
+    let nextScale: ScaleType;
+
+    switch (currentScale) {
+      case ScaleType.LINEAR:
+        nextScale = ScaleType.LOG10;
+        break;
+      case ScaleType.LOG10:
+        nextScale = ScaleType.SYMLOG10;
+        break;
+      case ScaleType.SYMLOG10:
+      default:
+        nextScale = ScaleType.LINEAR;
+        break;
+    }
+
+    // Store as override (null means use default)
+    this.xScaleTypeOverride = nextScale === ScaleType.LINEAR ? null : nextScale;
+  }
+
+  /**
+   * Returns the effective x-axis scale type, considering any local override.
+   */
+  getEffectiveXScaleType(): ScaleType {
+    return this.xScaleTypeOverride ?? this.xScaleType;
+  }
+
+  /**
+   * Returns a human-readable label for the current y-axis scale type.
+   */
+  getYScaleLabel(): string {
+    switch (this.yScaleType) {
+      case ScaleType.LOG10:
+        return 'Log';
+      case ScaleType.SYMLOG10:
+        return 'SymLog';
+      default:
+        return 'Linear';
+    }
+  }
+
+  /**
+   * Returns a human-readable label for the current x-axis scale type.
+   */
+  getXScaleLabel(): string {
+    const scaleType = this.getEffectiveXScaleType();
+    switch (scaleType) {
+      case ScaleType.LOG10:
+        return 'Log';
+      case ScaleType.SYMLOG10:
+        return 'SymLog';
+      case ScaleType.TIME:
+        return 'Time';
+      default:
+        return 'Linear';
+    }
+  }
+
+  /**
+   * Returns true if x-axis scale type can be toggled.
+   * Only available for STEP and RELATIVE x-axis types.
+   */
+  canToggleXScaleType(): boolean {
+    return (
+      this.xAxisType === XAxisType.STEP || this.xAxisType === XAxisType.RELATIVE
+    );
   }
 
   sortDataBy(sortingInfo: SortingInfo) {

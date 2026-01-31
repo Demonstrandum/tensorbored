@@ -24,6 +24,8 @@ export function createScale(type: ScaleType): Scale {
       return new LinearScale();
     case ScaleType.LOG10:
       return new Log10Scale();
+    case ScaleType.SYMLOG10:
+      return new SymLog10Scale();
     case ScaleType.TIME:
       return new TemporalScale();
     default:
@@ -178,6 +180,130 @@ class Log10Scale implements Scale {
 
   isSafeNumber(x: number): boolean {
     return Number.isFinite(x) && x > 0;
+  }
+
+  defaultFormatter = numberFormatter;
+}
+
+/**
+ * Symmetric log scale (base 10) that handles both positive and negative values.
+ * Uses the log-modulus transformation: sign(x) * log10(|x| + 1)
+ *
+ * Key properties:
+ * - Handles zero: symlog(0) = 0
+ * - Handles negative values: symlog(-x) = -symlog(x)
+ * - Behaves linearly near zero (when |x| << 1)
+ * - Behaves logarithmically for large |x|
+ */
+class SymLog10Scale implements Scale {
+  /**
+   * Symmetric log transformation: sign(x) * log10(|x| + 1)
+   */
+  private transform(x: number): number {
+    return Math.sign(x) * Math.log10(Math.abs(x) + 1);
+  }
+
+  /**
+   * Inverse of symmetric log: sign(y) * (10^|y| - 1)
+   */
+  private untransform(y: number): number {
+    return Math.sign(y) * (Math.pow(10, Math.abs(y)) - 1);
+  }
+
+  forward(
+    domain: [number, number],
+    range: [number, number],
+    x: number
+  ): number {
+    const [domainMin, domainMax] = domain;
+    const [rangeMin, rangeMax] = range;
+
+    const transformedMin = this.transform(domainMin);
+    const transformedMax = this.transform(domainMax);
+    const domainSpread = transformedMax - transformedMin;
+    const rangeSpread = rangeMax - rangeMin;
+
+    if (domainSpread === 0) {
+      return rangeMin;
+    }
+
+    const transformedX = this.transform(x);
+    return (
+      (rangeSpread / domainSpread) * (transformedX - transformedMin) + rangeMin
+    );
+  }
+
+  reverse(
+    domain: [number, number],
+    range: [number, number],
+    x: number
+  ): number {
+    const [domainMin, domainMax] = domain;
+    const [rangeMin, rangeMax] = range;
+
+    const transformedMin = this.transform(domainMin);
+    const transformedMax = this.transform(domainMax);
+    const domainSpread = transformedMax - transformedMin;
+    const rangeSpread = rangeMax - rangeMin;
+
+    if (rangeSpread === 0) {
+      return this.untransform(transformedMin);
+    }
+
+    const transformedVal =
+      (domainSpread / rangeSpread) * (x - rangeMin) + transformedMin;
+    return this.untransform(transformedVal);
+  }
+
+  niceDomain(domain: [number, number]): [number, number] {
+    const [min, max] = domain;
+    if (min > max) {
+      throw new Error('Unexpected input: min is larger than max');
+    }
+
+    // For symlog, we want to expand the domain symmetrically in log space
+    if (min === max) {
+      if (min === 0) return [-1, 1];
+      // Expand by factor of 2 in both directions (log space)
+      if (min > 0) return [min * 0.5, max * 2];
+      if (max < 0) return [min * 2, max * 0.5];
+    }
+
+    // Apply padding in the transformed space
+    const transformedMin = this.transform(min);
+    const transformedMax = this.transform(max);
+    const spread = transformedMax - transformedMin;
+    const padding = spread * PADDING_RATIO;
+
+    return [
+      this.untransform(transformedMin - padding),
+      this.untransform(transformedMax + padding),
+    ];
+  }
+
+  ticks(domain: [number, number], sizeGuidance: number): number[] {
+    const [min, max] = domain;
+    const transformedMin = this.transform(min);
+    const transformedMax = this.transform(max);
+
+    // Generate ticks in transformed space, then convert back
+    const transformedTicks = scaleLinear()
+      .domain([transformedMin, transformedMax])
+      .ticks(sizeGuidance);
+
+    // Convert back to original space and round to nice numbers
+    return transformedTicks.map((t) => {
+      const val = this.untransform(t);
+      // Round to reasonable precision to avoid floating point artifacts
+      if (Math.abs(val) < 1e-10) return 0;
+      const magnitude = Math.floor(Math.log10(Math.abs(val)));
+      const precision = Math.pow(10, magnitude - 2);
+      return Math.round(val / precision) * precision;
+    });
+  }
+
+  isSafeNumber(x: number): boolean {
+    return Number.isFinite(x);
   }
 
   defaultFormatter = numberFormatter;
