@@ -89,6 +89,11 @@ limitations under the License.
       [style.display]="showFilteredView ? 'none' : ''"
       [cardObserver]="cardObserver"
     ></metrics-pinned-view>
+    <!-- Superimposed cards view displays combined multi-tag plots -->
+    <metrics-superimposed-cards-view
+      [style.display]="showFilteredView ? 'none' : ''"
+      [cardObserver]="cardObserver"
+    ></metrics-superimposed-cards-view>
     <div *ngIf="initialTagsLoading" class="loading-container">
       <mat-spinner diameter="36"></mat-spinner>
     </div>

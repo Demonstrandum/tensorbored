@@ -93,6 +93,14 @@ limitations under the License.
           <span>Download data</span>
         </button>
         <button
+          mat-menu-item
+          (click)="onAddToSuperimposed.emit()"
+          aria-label="Add to superimposed plot"
+        >
+          <mat-icon svgIcon="layers_24px"></mat-icon>
+          <span>Add to superimposed plot</span>
+        </button>
+        <button
           *ngIf="columnCustomizationEnabled"
           mat-menu-item
           (click)="openTableEditMenu()"
