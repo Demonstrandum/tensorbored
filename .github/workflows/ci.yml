@@ -38,11 +38,9 @@ defaults:
 
 jobs:
   build:
-    # Self-hosted runner since the ones provided by GH were running out of space.
-    # Other workflows are likely ok to use standard GH runners for now.
-    # Googlers, see b/460874304.
-    runs-on: linux-x86-n2-32
-    container: us-docker.pkg.dev/ml-oss-artifacts-published/ml-public-container/ml-build:latest
+    # Use GitHub-hosted runner. The original tensorflow/tensorboard uses a
+    # self-hosted runner (linux-x86-n2-32) which is not available for forks.
+    runs-on: ubuntu-22.04
     needs: lint-python-flake8 # fail fast in case of "undefined variable" errors
     strategy:
       fail-fast: false
