@@ -38,7 +38,7 @@ jobs:
           WHEEL_FILE=$(ls wheels/*.whl | head -1)
           WHEEL_NAME=$(basename "$WHEEL_FILE")
           echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
-          
+
           # Create a unique tag based on date and short SHA
           SHORT_SHA="${GITHUB_SHA:0:7}"
           DATE=$(date -u +%Y%m%d)
@@ -57,27 +57,27 @@ jobs:
           name: "Prerelease ${{ steps.version.outputs.date }} (${{ steps.version.outputs.short_sha }})"
           body: |
             ## Automated Prerelease Build
-            
+
             This is an automated prerelease build from commit ${{ github.sha }}.
-            
+
             **Commit:** [`${{ steps.version.outputs.short_sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
             **Branch:** `master`
             **Date:** ${{ steps.version.outputs.date }}
-            
+
             ### Installation
-            
+
             Download the wheel file and install with:
             ```bash
             pip install ${{ steps.version.outputs.wheel_name }}
             ```
-            
+
             Or install directly from this release:
             ```bash
             pip install ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/${{ steps.version.outputs.wheel_name }}
             ```
-            
-            ### ⚠️ Warning
-            
+
+            ### Warning
+
             This is a prerelease build intended for testing. It may contain bugs or incomplete features.
           draft: false
           prerelease: true
