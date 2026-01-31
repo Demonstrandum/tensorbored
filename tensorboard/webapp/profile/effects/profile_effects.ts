@@ -423,4 +423,26 @@ export class ProfileEffects {
       filter((action) => action.type !== '[Profile] No Active Profile')
     )
   );
+
+  /**
+   * Download the exported profile JSON as a file.
+   */
+  downloadExportedProfile$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(profileActions.profileExported),
+        tap(({name, json}) => {
+          const blob = new Blob([json], {type: 'application/json'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${name.replace(/[^a-z0-9]/gi, '_')}_profile.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        })
+      ),
+    {dispatch: false}
+  );
 }
