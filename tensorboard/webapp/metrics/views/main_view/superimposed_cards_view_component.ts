@@ -12,11 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-import {
-  ChangeDetectionStrategy,
-  Component,
-  Input,
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {CardObserver} from '../card_renderer/card_lazy_loader';
 import {SuperimposedCardMetadata} from '../../types';
 
@@ -43,9 +39,7 @@ import {SuperimposedCardMetadata} from '../../types';
           *ngFor="let card of superimposedCards; trackBy: trackByCard"
           class="card-wrapper"
         >
-          <superimposed-card
-            [superimposedCardId]="card.id"
-          ></superimposed-card>
+          <superimposed-card [superimposedCardId]="card.id"></superimposed-card>
         </div>
       </div>
     </ng-container>

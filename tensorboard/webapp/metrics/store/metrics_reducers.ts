@@ -1710,7 +1710,11 @@ const reducer = createReducer(
     const id = generateSuperimposedCardId();
     const newMetadata: SuperimposedCardMetadata = {
       id,
-      title: title || `Superimposed: ${tags.slice(0, 2).join(', ')}${tags.length > 2 ? '...' : ''}`,
+      title:
+        title ||
+        `Superimposed: ${tags.slice(0, 2).join(', ')}${
+          tags.length > 2 ? '...' : ''
+        }`,
       tags,
       runId: null,
     };

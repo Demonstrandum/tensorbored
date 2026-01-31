@@ -17,9 +17,7 @@ import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {startWith} from 'rxjs/operators';
 import {State} from '../../../app_state';
-import {
-  getSuperimposedCardsWithMetadata,
-} from '../../store';
+import {getSuperimposedCardsWithMetadata} from '../../store';
 import {SuperimposedCardMetadata} from '../../types';
 import {CardObserver} from '../card_renderer/card_lazy_loader';
 

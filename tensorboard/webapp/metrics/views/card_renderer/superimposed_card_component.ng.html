@@ -17,7 +17,10 @@ limitations under the License.
 <div class="superimposed-card">
   <div class="heading">
     <span class="name">
-      <span class="superimposed-badge" title="Superimposed plot combining multiple tags">
+      <span
+        class="superimposed-badge"
+        title="Superimposed plot combining multiple tags"
+      >
         <mat-icon svgIcon="group_work_24px"></mat-icon>
       </span>
       <span class="title" title="{{ title }}">{{ title }}</span>
@@ -56,11 +59,7 @@ limitations under the License.
   <div class="tags-list">
     <span class="tags-label">Tags:</span>
     <div class="tags-chips">
-      <span
-        *ngFor="let tag of tags"
-        class="tag-chip"
-        [title]="tag"
-      >
+      <span *ngFor="let tag of tags" class="tag-chip" [title]="tag">
         <span class="tag-name">{{ tag }}</span>
         <button
           mat-icon-button

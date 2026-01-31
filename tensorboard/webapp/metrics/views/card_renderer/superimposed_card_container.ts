@@ -35,9 +35,7 @@ import {
 } from 'rxjs/operators';
 import {State} from '../../../app_state';
 import {ExperimentAlias} from '../../../experiments/types';
-import {
-  getForceSvgFeatureFlag,
-} from '../../../feature_flag/store/feature_flag_selectors';
+import {getForceSvgFeatureFlag} from '../../../feature_flag/store/feature_flag_selectors';
 import {
   getDarkModeEnabled,
   getExperimentIdForRunId,
@@ -63,7 +61,11 @@ import {
   getSuperimposedCardTimeSeries,
   RunToSeries,
 } from '../../store';
-import {SuperimposedCardId, SuperimposedCardMetadata, XAxisType} from '../../types';
+import {
+  SuperimposedCardId,
+  SuperimposedCardMetadata,
+  XAxisType,
+} from '../../types';
 import {
   PartialSeries,
   PartitionedSeries,

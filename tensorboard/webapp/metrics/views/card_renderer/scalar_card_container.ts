@@ -792,17 +792,19 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
     // Get the tag from the card metadata and create a new superimposed card
     // In a real implementation, this could open a dialog to select an existing
     // superimposed card or create a new one
-    this.tag$?.pipe(
-      filter((tag): tag is string => !!tag),
-      take(1)
-    ).subscribe((tag) => {
-      this.store.dispatch(
-        actions.superimposedCardCreated({
-          title: `Superimposed: ${tag}`,
-          tags: [tag],
-          runId: null,
-        })
-      );
-    });
+    this.tag$
+      ?.pipe(
+        filter((tag): tag is string => !!tag),
+        take(1)
+      )
+      .subscribe((tag) => {
+        this.store.dispatch(
+          actions.superimposedCardCreated({
+            title: `Superimposed: ${tag}`,
+            tags: [tag],
+            runId: null,
+          })
+        );
+      });
   }
 }
