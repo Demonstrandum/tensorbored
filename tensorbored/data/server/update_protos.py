@@ -17,10 +17,10 @@
 import os
 import sys
 
-# Paths to "tensorboard/data/server/" in (a) the Bazel runfiles tree,
+# Paths to "tensorbored/data/server/" in (a) the Bazel runfiles tree,
 # whence we can read data dependencies, and (b) the Git repository,
 # whither we can write output files.
-_BAZEL_DIR = os.path.join("tensorboard", "data", "server")
+_BAZEL_DIR = os.path.join("tensorbored", "data", "server")
 _REPO_DIR = os.path.dirname(os.readlink(__file__))
 
 # Basename for the gRPC file descriptor set. The same basename is used

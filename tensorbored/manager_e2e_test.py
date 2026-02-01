@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""End-to-end tests for `tensorboard.manager`."""
+"""End-to-end tests for `tensorbored.manager`."""
 
 import contextlib
 import datetime
@@ -60,15 +60,15 @@ class ManagerEndToEndTest(tf.test.TestCase):
         # Add our Bazel-provided `tensorbored` to the system path. (The
         # //tensorbored:tensorbored target is made available in the same
         # directory as //tensorbored:manager_e2e_test.)
-        tensorboard_binary_dir = os.path.dirname(os.environ["TEST_BINARY"])
+        tensorbored_binary_dir = os.path.dirname(os.environ["TEST_BINARY"])
         self._patch_environ(
             {
                 "PATH": os.pathsep.join(
-                    (tensorboard_binary_dir, os.environ["PATH"])
+                    (tensorbored_binary_dir, os.environ["PATH"])
                 ),
             }
         )
-        self._ensure_tensorboard_on_path(tensorboard_binary_dir)
+        self._ensure_tensorbored_on_path(tensorbored_binary_dir)
 
     def tearDown(self):
         failed_kills = []
@@ -92,26 +92,26 @@ class ManagerEndToEndTest(tf.test.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def _ensure_tensorboard_on_path(self, expected_binary_dir):
-        """Ensure that `tensorboard(1)` refers to our own binary.
+    def _ensure_tensorbored_on_path(self, expected_binary_dir):
+        """Ensure that `tensorbored(1)` refers to our own binary.
 
         Raises:
-          subprocess.CalledProcessError: If there is no `tensorboard` on the
+          subprocess.CalledProcessError: If there is no `tensorbored` on the
             path.
-          AssertionError: If the `tensorboard` on the path is not under the
+          AssertionError: If the `tensorbored` on the path is not under the
             provided directory.
         """
         # In Python 3.3+, we could use `shutil.which` to inspect the path.
         # For Python 2 compatibility, we shell out to the host platform's
         # standard utility.
         command = "where" if os.name == "nt" else "which"
-        binary = subprocess.check_output([command, "tensorboard"])
+        binary = subprocess.check_output([command, "tensorbored"])
         self.assertTrue(
             binary.startswith(expected_binary_dir.encode("utf-8")),
             "expected %r to start with %r" % (binary, expected_binary_dir),
         )
 
-    def _stub_tensorboard(self, name, program):
+    def _stub_tensorbored(self, name, program):
         """Install a stub version of TensorBoard.
 
         Args:
@@ -121,9 +121,9 @@ class ManagerEndToEndTest(tf.test.TestCase):
             string that starts with "#!/bin/sh" and then contains a POSIX
             shell script.
         """
-        tempdir = tempfile.mkdtemp(prefix="tensorboard-stub-%s-" % name)
+        tempdir = tempfile.mkdtemp(prefix="tensorbored-stub-%s-" % name)
         # (this directory is under our test directory; no need to clean it up)
-        filepath = os.path.join(tempdir, "tensorboard")
+        filepath = os.path.join(tempdir, "tensorbored")
         with open(filepath, "w") as outfile:
             outfile.write(program)
         os.chmod(filepath, 0o777)
@@ -132,7 +132,7 @@ class ManagerEndToEndTest(tf.test.TestCase):
                 "PATH": os.pathsep.join((tempdir, os.environ["PATH"])),
             }
         )
-        self._ensure_tensorboard_on_path(expected_binary_dir=tempdir)
+        self._ensure_tensorbored_on_path(expected_binary_dir=tempdir)
 
     def _assert_live(self, info, expected_logdir):
         url = "http://localhost:%d%s/data/logdir" % (
@@ -210,7 +210,7 @@ class ManagerEndToEndTest(tf.test.TestCase):
         if os.name == "nt":
             # TODO(@wchargin): This could in principle work on Windows.
             self.skipTest("Requires a POSIX shell for the stub script.")
-        self._stub_tensorboard(
+        self._stub_tensorbored(
             name="fail-with-77",
             program=textwrap.dedent(
                 r"""
@@ -239,7 +239,7 @@ class ManagerEndToEndTest(tf.test.TestCase):
         if os.name == "nt":
             # TODO(@wchargin): This could in principle work on Windows.
             self.skipTest("Requires a POSIX shell for the stub script.")
-        self._stub_tensorboard(
+        self._stub_tensorbored(
             name="fail-with-0",
             program=textwrap.dedent(
                 r"""
@@ -266,7 +266,7 @@ class ManagerEndToEndTest(tf.test.TestCase):
         if os.name == "nt":
             # TODO(@wchargin): This could in principle work on Windows.
             self.skipTest("Requires a POSIX shell for the stub script.")
-        self._stub_tensorboard(
+        self._stub_tensorbored(
             name="fail-and-nuke-tmp",
             program=textwrap.dedent(
                 r"""
@@ -295,7 +295,7 @@ class ManagerEndToEndTest(tf.test.TestCase):
             self.skipTest("Requires a POSIX shell for the stub script.")
         tempdir = tempfile.mkdtemp()
         pid_file = os.path.join(tempdir, "pidfile")
-        self._stub_tensorboard(
+        self._stub_tensorbored(
             name="wait-a-minute",
             program=textwrap.dedent(
                 r"""
