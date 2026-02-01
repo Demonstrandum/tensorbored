@@ -43,7 +43,10 @@ projector = "tensorboard.plugins.projector.projector_plugin:ProjectorPlugin"
 
 [tool.black]
 line-length = 80
-target-version = ["py39", "py310", "py311"]
+# Keep targeting older Python to avoid reformatting existing code with
+# Python 3.10+ syntax features (e.g., parenthesized context managers).
+# The actual package requires Python >=3.9.
+target-version = ["py38", "py39"]
 
 [tool.setuptools.dynamic]
 version = {attr = "tensorboard.version.VERSION"}
