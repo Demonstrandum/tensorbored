@@ -46,6 +46,8 @@ sh_binary(
         "//tensorbored/plugins/mesh",  #  User-facing mesh API
         "//tensorbored/plugins/projector",  # User-facing projector API
         "//tensorbored/summary:tf_summary",  #  tf.summary API for TF 2.0
+        "//tensorbored/plugins/core:profile_writer",  # User-facing profile writer API
+        "//tensorbored/plugins/core:color_sampler",  # User-facing color sampler API
     ],
 )
 
