@@ -133,7 +133,8 @@ class TextPluginTest(tf.test.TestCase):
         )[0]["text"]
         self.assertEqual(
             md_table,
-            textwrap.dedent("""\
+            textwrap.dedent(
+                """\
                 <table>
                 <tbody>
                 <tr>
@@ -150,7 +151,8 @@ class TextPluginTest(tf.test.TestCase):
                 </tr>
                 </tbody>
                 </table>
-                """.rstrip()),
+                """.rstrip()
+            ),
         )
         plain_table = plugin.text_impl(
             context.RequestContext(),
@@ -161,7 +163,8 @@ class TextPluginTest(tf.test.TestCase):
         )[0]["text"]
         self.assertEqual(
             plain_table,
-            textwrap.dedent("""\
+            textwrap.dedent(
+                """\
                 <table>
                 <tbody>
                 <tr>
@@ -178,12 +181,14 @@ class TextPluginTest(tf.test.TestCase):
                 </tr>
                 </tbody>
                 </table>
-                """.rstrip()),
+                """.rstrip()
+            ),
         )
 
     def testTableGeneration(self):
         array2d = np.array([["one", "two"], ["three", "four"]])
-        expected_table = textwrap.dedent("""\
+        expected_table = textwrap.dedent(
+            """\
             <table>
             <tbody>
             <tr>
@@ -196,10 +201,12 @@ class TextPluginTest(tf.test.TestCase):
             </tr>
             </tbody>
             </table>
-            """.rstrip())
+            """.rstrip()
+        )
         self.assertEqual(text_plugin.make_table(array2d), expected_table)
 
-        expected_table_with_headers = textwrap.dedent("""\
+        expected_table_with_headers = textwrap.dedent(
+            """\
             <table>
             <thead>
             <tr>
@@ -218,7 +225,8 @@ class TextPluginTest(tf.test.TestCase):
             </tr>
             </tbody>
             </table>
-            """.rstrip())
+            """.rstrip()
+        )
 
         actual_with_headers = text_plugin.make_table(
             array2d, headers=["c1", "c2"]
@@ -226,7 +234,8 @@ class TextPluginTest(tf.test.TestCase):
         self.assertEqual(actual_with_headers, expected_table_with_headers)
 
         array_1d = np.array(["one", "two", "three", "four", "five"])
-        expected_1d = textwrap.dedent("""\
+        expected_1d = textwrap.dedent(
+            """\
             <table>
             <tbody>
             <tr>
@@ -246,10 +255,12 @@ class TextPluginTest(tf.test.TestCase):
             </tr>
             </tbody>
             </table>
-            """.rstrip())
+            """.rstrip()
+        )
         self.assertEqual(text_plugin.make_table(array_1d), expected_1d)
 
-        expected_1d_with_headers = textwrap.dedent("""\
+        expected_1d_with_headers = textwrap.dedent(
+            """\
             <table>
             <thead>
             <tr>
@@ -274,7 +285,8 @@ class TextPluginTest(tf.test.TestCase):
             </tr>
             </tbody>
             </table>
-            """.rstrip())
+            """.rstrip()
+        )
         actual_1d_with_headers = text_plugin.make_table(array_1d, headers=["X"])
         self.assertEqual(actual_1d_with_headers, expected_1d_with_headers)
 
@@ -349,7 +361,8 @@ class TextPluginTest(tf.test.TestCase):
         )
 
         vector = np.array(["foo", "bar"])
-        vector_expected = textwrap.dedent("""\
+        vector_expected = textwrap.dedent(
+            """\
             <table>
             <tbody>
             <tr>
@@ -360,11 +373,13 @@ class TextPluginTest(tf.test.TestCase):
             </tr>
             </tbody>
             </table>
-            """.rstrip())
+            """.rstrip()
+        )
         self.assertEqual(convert(vector), vector_expected)
 
         d2 = np.array([["foo", "bar"], ["zoink", "zod"]])
-        d2_expected = textwrap.dedent("""\
+        d2_expected = textwrap.dedent(
+            """\
             <table>
             <tbody>
             <tr>
@@ -377,7 +392,8 @@ class TextPluginTest(tf.test.TestCase):
             </tr>
             </tbody>
             </table>
-            """.rstrip())
+            """.rstrip()
+        )
         self.assertEqual(convert(d2), d2_expected)
 
         d3 = np.array(
@@ -390,7 +406,8 @@ class TextPluginTest(tf.test.TestCase):
         warning = plugin_util.markdown_to_safe_html(
             text_plugin.WARNING_TEMPLATE % 3
         )
-        d3_expected = warning + textwrap.dedent("""\
+        d3_expected = warning + textwrap.dedent(
+            """\
             <table>
             <tbody>
             <tr>
@@ -403,7 +420,8 @@ class TextPluginTest(tf.test.TestCase):
             </tr>
             </tbody>
             </table>
-            """.rstrip())
+            """.rstrip()
+        )
         self.assertEqual(convert(d3), d3_expected)
 
     def testPluginIndexImpl(self):

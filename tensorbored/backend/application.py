@@ -380,11 +380,13 @@ class TensorBoardWSGI:
         digest = hashlib.sha256(script_content.encode("utf-8")).digest()
         script_sha = base64.b64encode(digest).decode("ascii")
 
-        html = textwrap.dedent("""
+        html = textwrap.dedent(
+            """
             <!DOCTYPE html>
             <head><base href="plugin/{name}/" /></head>
             <body><script type="module">{script_content}</script></body>
-            """).format(name=name, script_content=script_content)
+            """
+        ).format(name=name, script_content=script_content)
         return http_util.Respond(
             request,
             html,

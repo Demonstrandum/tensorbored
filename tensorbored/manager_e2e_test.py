@@ -212,12 +212,14 @@ class ManagerEndToEndTest(tf.test.TestCase):
             self.skipTest("Requires a POSIX shell for the stub script.")
         self._stub_tensorboard(
             name="fail-with-77",
-            program=textwrap.dedent(r"""
+            program=textwrap.dedent(
+                r"""
                 #!/bin/sh
                 printf >&2 'fatal: something bad happened\n'
                 printf 'also some stdout\n'
                 exit 77
-                """).lstrip(),
+                """
+            ).lstrip(),
         )
         start_result = manager.start(["--logdir=./logs", "--port=0"])
         self.assertIsInstance(start_result, manager.StartFailed)
@@ -239,12 +241,14 @@ class ManagerEndToEndTest(tf.test.TestCase):
             self.skipTest("Requires a POSIX shell for the stub script.")
         self._stub_tensorboard(
             name="fail-with-0",
-            program=textwrap.dedent(r"""
+            program=textwrap.dedent(
+                r"""
                 #!/bin/sh
                 printf >&2 'info: something good happened\n'
                 printf 'also some standard output\n'
                 exit 0
-                """).lstrip(),
+                """
+            ).lstrip(),
         )
         start_result = manager.start(["--logdir=./logs", "--port=0"])
         self.assertIsInstance(start_result, manager.StartFailed)
@@ -269,7 +273,8 @@ class ManagerEndToEndTest(tf.test.TestCase):
                 #!/bin/sh
                 rm -r %s
                 exit 22
-                """ % shlex.quote(self.tmproot),
+                """
+                % shlex.quote(self.tmproot),
             ).lstrip(),
         )
         start_result = manager.start(["--logdir=./logs", "--port=0"])
@@ -298,7 +303,8 @@ class ManagerEndToEndTest(tf.test.TestCase):
                 printf >%s '%%s' "$$"
                 printf >&2 'warn: I am tired\n'
                 sleep 60
-                """ % shlex.quote(os.path.realpath(pid_file)),
+                """
+                % shlex.quote(os.path.realpath(pid_file)),
             ).lstrip(),
         )
         start_result = manager.start(
@@ -317,12 +323,14 @@ class ManagerEndToEndTest(tf.test.TestCase):
             self.skipTest("Requires a POSIX shell for the stub script.")
         tempdir = tempfile.mkdtemp()
         filepath = os.path.join(tempdir, "tensorbad")
-        program = textwrap.dedent(r"""
+        program = textwrap.dedent(
+            r"""
             #!/bin/sh
             printf >&2 'tensorbad: fatal: something bad happened\n'
             printf 'tensorbad: also some stdout\n'
             exit 77
-            """).lstrip()
+            """
+        ).lstrip()
         with open(filepath, "w") as outfile:
             outfile.write(program)
         os.chmod(filepath, 0o777)

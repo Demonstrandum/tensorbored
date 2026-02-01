@@ -142,7 +142,8 @@ def run_all(logdir, verbose=False):
 def main(unused_argv):
     print("Saving output to %s." % LOGDIR)
     run_all(LOGDIR, verbose=True)
-    print("""
+    print(
+        """
 You can now view the scalars in this logdir:
 
 Run TensorBoard locally:
@@ -155,7 +156,9 @@ Upload to TensorBoard.dev:
       --logdir=%s \\
       --name=\"Scalars demo.\" \\
       --one_shot
-""" % (LOGDIR, LOGDIR))
+"""
+        % (LOGDIR, LOGDIR)
+    )
     print("Done. Output saved to %s." % LOGDIR)
 
 
