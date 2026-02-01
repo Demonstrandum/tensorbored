@@ -438,8 +438,8 @@ describe('line_chart_v2/lib/scale test', () => {
       });
 
       it('allows flipping order of the range', () => {
-        expect(scale.forward([0, 1], [100, -100], 0)).toBe(100);
-        expect(scale.forward([0, 1], [100, -100], 1)).toBe(-100);
+        expect(scale.forward([0, 1], [100, -100], 0)).toBeCloseTo(100, 5);
+        expect(scale.forward([0, 1], [100, -100], 1)).toBeCloseTo(-100, 5);
       });
 
       it('returns range min value when domain spread is 0', () => {

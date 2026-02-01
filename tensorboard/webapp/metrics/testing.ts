@@ -145,6 +145,8 @@ function buildBlankState(): MetricsState {
       pins: [],
       clicks: [],
     },
+    superimposedCardMetadataMap: {},
+    superimposedCardList: [],
   };
 }
 

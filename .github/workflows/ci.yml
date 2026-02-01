@@ -59,6 +59,17 @@ jobs:
           sudo mv ~/bazel /usr/local/bin/bazel
           sudo chmod +x /usr/local/bin/bazel
           cp ./ci/bazelrc ~/.bazelrc
+      - name: 'Cache Bazel'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel
+            ~/.cache/bazel-disk-cache
+          key: bazel-${{ matrix.tf_version_id }}-${{ matrix.python_version }}-${{ hashFiles('WORKSPACE', '.bazelversion', 'third_party/**') }}
+          restore-keys: |
+            bazel-${{ matrix.tf_version_id }}-${{ matrix.python_version }}-
+            bazel-${{ matrix.tf_version_id }}-
+            bazel-
       - name: 'Install TensorFlow'
         run: |
           python -m pip install -U pip

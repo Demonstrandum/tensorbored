@@ -12,14 +12,30 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-@use '../common';
+@import 'tensorboard/webapp/theme/tb_theme';
+@import '../common';
 
 :host {
   display: block;
 }
 
 .group-toolbar {
-  @include common.group-toolbar;
+  @include tb-theme-background-prop(background-color, background);
+  @include tb-theme-foreground-prop(border-bottom, border, 1px solid);
+  align-items: center;
+  background-color: #fff;
+  display: flex;
+  flex: none;
+  height: 42px;
+  margin-bottom: -1px;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0px 2px 4px 0px rgba(#000, 15%);
+  @include tb-dark-theme {
+    box-shadow: 0px 2px 4px 0px rgba(#fff, 15%);
+  }
 
   .left-items {
     align-items: center;

@@ -22,7 +22,7 @@ import {
   Output,
 } from '@angular/core';
 import {Store} from '@ngrx/store';
-import {combineLatest, Observable, of, Subject} from 'rxjs';
+import {combineLatest, from, Observable, of, Subject} from 'rxjs';
 import {
   combineLatestWith,
   debounceTime,
@@ -293,20 +293,22 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
           return of(cleanedRunsData);
         }
 
-        return classicSmoothing(cleanedRunsData, smoothing).then(
-          (smoothedDataSeriesList) => {
-            const smoothedList = cleanedRunsData.map((dataSeries, index) => {
-              return {
-                id: getSmoothedSeriesId(dataSeries.id),
-                points: smoothedDataSeriesList[index].points.map(
-                  ({y}, pointIndex) => {
-                    return {...dataSeries.points[pointIndex], y};
-                  }
-                ),
-              };
-            });
-            return [...cleanedRunsData, ...smoothedList];
-          }
+        return from(
+          classicSmoothing(cleanedRunsData, smoothing).then(
+            (smoothedDataSeriesList) => {
+              const smoothedList = cleanedRunsData.map((dataSeries, index) => {
+                return {
+                  id: getSmoothedSeriesId(dataSeries.id),
+                  points: smoothedDataSeriesList[index].points.map(
+                    ({y}, pointIndex) => {
+                      return {...dataSeries.points[pointIndex], y};
+                    }
+                  ),
+                };
+              });
+              return [...cleanedRunsData, ...smoothedList];
+            }
+          )
         );
       }),
       startWith([] as ScalarCardDataSeries[])
