@@ -601,7 +601,8 @@ Port to serve TensorBoard on. Pass 0 to request an unused port selected
 by the operating system, or pass "default" to try to bind to the default
 port (%s) but search for a nearby free port if the default port is
 unavailable. (default: "default").\
-""" % DEFAULT_PORT,
+"""
+            % DEFAULT_PORT,
         )
 
         parser.add_argument(
