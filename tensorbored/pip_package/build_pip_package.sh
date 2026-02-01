@@ -91,11 +91,11 @@ build() (
 
   chmod -R u+w,go+r .
 
-  find tensorboard -name \*.py -exec $sedi -e '
-      s/^import bleach$/from tensorboard._vendor import bleach/
-      s/^from bleach/from tensorboard._vendor.bleach/
-      s/^import webencodings$/from tensorboard._vendor import webencodings/
-      s/^from webencodings/from tensorboard._vendor.webencodings/
+  find tensorbored -name \*.py -exec $sedi -e '
+      s/^import bleach$/from tensorbored._vendor import bleach/
+      s/^from bleach/from tensorbored._vendor.bleach/
+      s/^import webencodings$/from tensorbored._vendor import webencodings/
+      s/^from webencodings/from tensorbored._vendor.webencodings/
     ' {} +
 
   virtualenv -q -p python3 venv
