@@ -46,12 +46,12 @@ mod writer;
 /// Protocol buffer bindings.
 #[allow(clippy::all)]
 pub mod proto {
-    /// Bindings for `package tensorboard`, containing standard TensorFlow protos.
-    pub mod tensorboard {
-        include!("tensorboard.pb.rs");
-        /// Bindings for `package tensorboard.data`, containing the data provider API.
+    /// Bindings for `package tensorbored`, containing standard TensorFlow protos.
+    pub mod tensorbored {
+        include!("tensorbored.pb.rs");
+        /// Bindings for `package tensorbored.data`, containing the data provider API.
         pub mod data {
-            include!("tensorboard.data.pb.rs");
+            include!("tensorbored.data.pb.rs");
         }
     }
     /// Protobuf-encoded file descriptor set for all message types, used for gRPC reflection.

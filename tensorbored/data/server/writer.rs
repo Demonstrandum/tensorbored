@@ -18,7 +18,7 @@ limitations under the License.
 use bytes::Bytes;
 use std::io::Write;
 
-use crate::proto::tensorboard as pb;
+use crate::proto::tensorbored as pb;
 use crate::types::{Step, Tag, WallTime};
 
 /// Extends [`Write`] with methods for writing summary event files.

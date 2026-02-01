@@ -18,7 +18,7 @@ limitations under the License.
 use prost::{DecodeError, Message};
 use std::io::Read;
 
-use crate::proto::tensorboard::Event;
+use crate::proto::tensorbored::Event;
 use crate::tf_record::{ChecksumError, ReadRecordError, TfRecordReader};
 
 /// A reader for a stream of `Event` protos framed as TFRecords.
@@ -113,7 +113,7 @@ impl<R: Read> EventFileReader<R> {
 mod tests {
     use super::*;
     use crate::masked_crc::MaskedCrc;
-    use crate::proto::tensorboard as pb;
+    use crate::proto::tensorbored as pb;
     use crate::scripted_reader::ScriptedReader;
     use crate::tf_record::TfRecord;
     use std::io::Cursor;

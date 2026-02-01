@@ -30,7 +30,7 @@ use tonic::transport::Server;
 
 use crate::commit::Commit;
 use crate::logdir::LogdirLoader;
-use crate::proto::tensorboard::data;
+use crate::proto::tensorbored::data;
 use crate::server::DataProviderHandler;
 use crate::types::PluginSamplingHint;
 

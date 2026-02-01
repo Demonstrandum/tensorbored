@@ -22,7 +22,7 @@ use std::fmt::Debug;
 use std::iter;
 
 use crate::commit::{BlobSequenceValue, DataLoss, ScalarValue};
-use crate::proto::tensorboard as pb;
+use crate::proto::tensorbored as pb;
 use pb::summary_metadata::PluginData;
 
 /// Plugin names with special compatibility considerations.

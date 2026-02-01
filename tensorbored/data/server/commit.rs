@@ -20,7 +20,7 @@ use bytes::Bytes;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use crate::proto::tensorboard as pb;
+use crate::proto::tensorbored as pb;
 use crate::reservoir::Basin;
 use crate::types::{Run, Step, Tag, WallTime};
 
@@ -222,7 +222,7 @@ pub mod test_data {
         ///
         /// ```
         /// use rustboard_core::commit::{test_data::CommitBuilder, Commit};
-        /// use rustboard_core::proto::tensorboard as pb;
+        /// use rustboard_core::proto::tensorbored as pb;
         /// use rustboard_core::types::Step;
         ///
         /// let my_commit: Commit = CommitBuilder::new()

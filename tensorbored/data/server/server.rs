@@ -28,8 +28,8 @@ use tonic::{Request, Response, Status};
 use crate::blob_key::BlobKey;
 use crate::commit::{self, BlobSequenceValue, Commit};
 use crate::downsample;
-use crate::proto::tensorboard as pb;
-use crate::proto::tensorboard::data;
+use crate::proto::tensorbored as pb;
+use crate::proto::tensorbored::data;
 use crate::types::{Run, Tag, WallTime};
 use data::tensor_board_data_provider_server::TensorBoardDataProvider;
 

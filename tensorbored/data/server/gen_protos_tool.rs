@@ -28,9 +28,9 @@ fn main() -> std::io::Result<()> {
     };
     let file_descriptor = out_dir.join("descriptor.bin");
     let mut prost_config = prost_build::Config::new();
-    // Generate `bytes::Bytes` struct fields for all `bytes` protobuf fields in the `tensorboard`
+    // Generate `bytes::Bytes` struct fields for all `bytes` protobuf fields in the `tensorbored`
     // package.
-    prost_config.bytes(&[".tensorboard"]);
+    prost_config.bytes(&[".tensorbored"]);
     tonic_build::configure()
         .out_dir(&out_dir)
         .file_descriptor_set_path(&file_descriptor)
@@ -38,10 +38,10 @@ fn main() -> std::io::Result<()> {
         .compile_with_config(
             prost_config,
             &[
-                "tensorboard/compat/proto/event.proto",
-                "tensorboard/data/proto/data_provider.proto",
-                "tensorboard/plugins/audio/plugin_data.proto",
-                "tensorboard/plugins/image/plugin_data.proto",
+                "tensorbored/compat/proto/event.proto",
+                "tensorbored/data/proto/data_provider.proto",
+                "tensorbored/plugins/audio/plugin_data.proto",
+                "tensorbored/plugins/image/plugin_data.proto",
             ],
             &["."],
         )

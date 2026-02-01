@@ -25,7 +25,7 @@ use crate::commit;
 use crate::data_compat::{EventValue, GraphDefValue, SummaryValue, TaggedRunMetadataValue};
 use crate::event_file::EventFileReader;
 use crate::logdir::{EventFileBuf, Logdir};
-use crate::proto::tensorboard as pb;
+use crate::proto::tensorbored as pb;
 use crate::reservoir::{Capacity, StageReservoir};
 use crate::types::{PluginSamplingHint, Run, Step, Tag, WallTime};
 
