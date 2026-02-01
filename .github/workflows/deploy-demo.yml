@@ -1,28 +1,20 @@
 name: Deploy Demo to HuggingFace Spaces
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'demo/**'
-      - 'tensorbored/plugins/core/profile_writer.py'
-      - 'tensorbored/plugins/core/color_sampler.py'
-      - 'tensorbored/plugins/core/__init__.py'
-      - '.github/workflows/deploy-demo.yml'
-  workflow_dispatch:
+  # Only deploy after Wheel Prerelease publishes to PyPI
   workflow_run:
     workflows: ['Wheel Prerelease']
     types:
       - completed
     branches:
       - master
+  # Allow manual trigger (assumes PyPI already has latest)
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     if: >
-      github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion == 'success')
