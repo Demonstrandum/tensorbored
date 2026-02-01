@@ -31,7 +31,7 @@ FLAGS = flags.FLAGS
 # Max number of steps to run training with.
 _MAX_STEPS = 10
 
-DEMO_PLY_MESH_PATH = "tensorboard/plugins/mesh/test_data/icosphere.ply"
+DEMO_PLY_MESH_PATH = "tensorbored/plugins/mesh/test_data/icosphere.ply"
 
 
 def train_step(vertices, faces, colors, config_dict, step):

@@ -185,7 +185,7 @@ To get this test passing, follow these steps:
 
 3. In your tensorbored repo, run:
 
-    ./tensorboard/compat/proto/update.sh PATH_TO_TENSORFLOW_REPO
+    ./tensorbored/compat/proto/update.sh PATH_TO_TENSORFLOW_REPO
 
 4. Verify the updates build. In your tensorbored repo, run:
 
@@ -197,7 +197,7 @@ To get this test passing, follow these steps:
 
   Then create the file in the tensorbored repo:
 
-    touch tensorboard/compat/proto/full_type.proto
+    touch tensorbored/compat/proto/full_type.proto
 
   And rerun `update.sh`. The script will only copy files that already exist in
   the tensorbored repo.
