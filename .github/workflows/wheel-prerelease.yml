@@ -2,7 +2,7 @@
 #
 # This workflow builds the pip package and publishes it as a GitHub prerelease,
 # making it easy to download and test the latest changes without waiting for
-# an official release.
+# an official release. It also publishes RC versions to PyPI.
 
 name: Wheel Prerelease
 
@@ -14,21 +14,81 @@ on:
 permissions:
   contents: write # Needed for creating releases
 
+env:
+  BAZEL_VERSION: '6.5.0'
+  BAZEL_SHA256SUM: 'a40ac69263440761199fcb8da47ad4e3f328cbe79ffbf4ecc14e5ba252857307'
+
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml
 
-  publish-prerelease:
+  build-rc-wheel:
     runs-on: ubuntu-22.04
     needs: ci
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
 
-      - name: Download pip package artifacts
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # v4.3.0
+        with:
+          python-version: '3.9'
+          architecture: 'x64'
+
+      - name: 'Set up Bazel'
+        run: |
+          ci/download_bazel.sh "${BAZEL_VERSION}" "${BAZEL_SHA256SUM}" ~/bazel
+          sudo mv ~/bazel /usr/local/bin/bazel
+          sudo chmod +x /usr/local/bin/bazel
+          cp ./ci/bazelrc ~/.bazelrc
+
+      - name: 'Cache Bazel'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel
+            ~/.cache/bazel-disk-cache
+          key: bazel-rc-wheel-${{ hashFiles('WORKSPACE', '.bazelversion', 'third_party/**') }}
+          restore-keys: |
+            bazel-rc-wheel-
+            bazel-tf-
+            bazel-
+
+      - name: 'Install Python dependencies'
+        run: |
+          python -m pip install -U pip
+          pip install \
+            -r ./tensorboard/pip_package/requirements.txt \
+            -r ./tensorboard/pip_package/requirements_dev.txt \
+            ;
+
+      - name: 'Bazel: fetch and build'
+        run: |
+          bazel fetch //tensorboard/...
+          bazel build //tensorboard/... 2>&1 | grep -v 'external/com_google_protobuf/python: warning: directory' | grep -v 'INFO: From ProtoCompile ' || true
+
+      - name: 'Set RC version'
+        run: ./tensorboard/tools/set_rc_version.sh
+
+      - name: 'Build RC pip package'
+        run: |
+          rm -rf /tmp/tensorbored_rc_pip_package && mkdir /tmp/tensorbored_rc_pip_package
+          bazel run //tensorboard/pip_package:build_pip_package -- /tmp/tensorbored_rc_pip_package
+
+      - name: 'Upload RC wheel artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tensorbored-rc-wheel
+          path: /tmp/tensorbored_rc_pip_package/*
+
+  publish-prerelease:
+    runs-on: ubuntu-22.04
+    needs: build-rc-wheel
+    steps:
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Download RC pip package artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: tb-nightly_py*
-          merge-multiple: true
+          name: tensorbored-rc-wheel
           path: wheels
 
       - name: Get version info
@@ -38,6 +98,10 @@ jobs:
           WHEEL_FILE=$(ls wheels/*.whl | head -1)
           WHEEL_NAME=$(basename "$WHEEL_FILE")
           echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
+
+          # Extract version from wheel name (format: tensorbored-X.Y.ZrcYYYYMMDD-py3-none-any.whl)
+          VERSION=$(echo "$WHEEL_NAME" | sed -E 's/tensorbored-([^-]+)-.*/\1/')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
           # Create a unique tag based on date and short SHA
           SHORT_SHA="${GITHUB_SHA:0:7}"
@@ -60,13 +124,19 @@ jobs:
 
             This is an automated prerelease build from commit ${{ github.sha }}.
 
+            **Version:** `${{ steps.version.outputs.version }}`
             **Commit:** [`${{ steps.version.outputs.short_sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
             **Branch:** `master`
             **Date:** ${{ steps.version.outputs.date }}
 
             ### Installation
 
-            Download the wheel file and install with:
+            Install from PyPI (recommended):
+            ```bash
+            pip install tensorbored==${{ steps.version.outputs.version }}
+            ```
+
+            Or download the wheel file and install with:
             ```bash
             pip install ${{ steps.version.outputs.wheel_name }}
             ```
@@ -84,3 +154,14 @@ jobs:
           files: wheels/*.whl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Twine
+        run: pip install twine
+
+      - name: Publish RC to PyPI
+        run: |
+          twine check wheels/*.whl
+          twine upload wheels/*.whl
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}

@@ -30,9 +30,9 @@ jobs:
         run: pip install twine
       - name: Publish the package
         run: |
-          twine check tb_nightly*.whl
-          twine upload tb_nightly*.whl
+          twine check tensorbored_nightly*.whl
+          twine upload tensorbored_nightly*.whl
         working-directory: wheels
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.NIGHTLY_PYPI_PASSWORD }}
+          TWINE_PASSWORD: ${{ secrets.NIGHTLY_PYPI_API_TOKEN }}

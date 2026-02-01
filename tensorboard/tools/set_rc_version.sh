@@ -14,14 +14,14 @@
 # limitations under the License.
 # ==============================================================================
 
-# Updates package version and renames the package to `tb-nightly`.
+# Updates package version for release candidate (RC) builds.
+# Sets version to X.Y.ZrcYYYYMMDD format for PyPI pre-releases.
 version="$(python tensorboard/version.py)"
 case "${version}" in
   *a0)
-    # Strip a0 as the suffix and add "a" plus today's date.
-    release="${version%a0}a$(date +%Y%m%d)"
+    # Strip a0 suffix and add "rc" plus today's date.
+    release="${version%a0}rc$(date +%Y%m%d)"
     sed -i -e "s/${version}/${release}/" tensorboard/version.py
-    sed -i -e "s/name *= *['\"][^'\"]*['\"]/name=\"tensorbored-nightly\"/" tensorboard/pip_package/setup.py
     ;;
   *)
     printf "error: found non-placeholder version %s\n" "${version}"
