@@ -145,6 +145,7 @@ describe('core deeplink provider', () => {
       // See https://github.com/tensorflow/tensorboard/issues/4242
 
       it('does NOT serialize pinned cards to URL (stored in localStorage instead)', () => {
+        // Set up pinned cards state
         store.overrideSelector(selectors.getPinnedCardsWithMetadata, [
           {
             cardId: 'card1',
@@ -159,22 +160,30 @@ describe('core deeplink provider', () => {
             tag: 'loss',
           },
         ]);
+        // Trigger an emission by changing a serialized selector (tag filter)
+        store.overrideSelector(selectors.getMetricsTagFilter, 'test');
         store.refreshState();
 
-        // Should be empty - pinned cards no longer go to URL
-        expect(queryParamsSerialized[queryParamsSerialized.length - 1]).toEqual(
-          []
-        );
+        // Verify emission occurred and does NOT contain pinned cards
+        const lastEmission =
+          queryParamsSerialized[queryParamsSerialized.length - 1];
+        expect(lastEmission).toBeDefined();
+        expect(
+          lastEmission.find((p: {key: string}) => p.key === 'pinnedCards')
+        ).toBeUndefined();
       });
 
       it('serializes nothing when states are empty', () => {
         store.overrideSelector(selectors.getPinnedCardsWithMetadata, []);
         store.overrideSelector(selectors.getUnresolvedImportedPinnedCards, []);
+        // Trigger an emission by changing a serialized selector
+        store.overrideSelector(selectors.getMetricsTagFilter, '');
         store.refreshState();
 
-        expect(queryParamsSerialized[queryParamsSerialized.length - 1]).toEqual(
-          []
-        );
+        // When tag filter is empty, result should be empty (no pinnedCards param)
+        const lastEmission =
+          queryParamsSerialized[queryParamsSerialized.length - 1];
+        expect(lastEmission).toEqual([]);
       });
 
       // Deserialization still works for backwards compatibility with old URLs
