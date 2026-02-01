@@ -1,0 +1,103 @@
+name: Deploy Demo to HuggingFace Spaces
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'demo/**'
+      - 'tensorbored/plugins/core/profile_writer.py'
+      - 'tensorbored/plugins/core/color_sampler.py'
+      - 'tensorbored/plugins/core/__init__.py'
+      - '.github/workflows/deploy-demo.yml'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Wheel Prerelease']
+    types:
+      - completed
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download wheel from triggering workflow
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: tensorbored-rc-wheel
+          path: wheel
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Download wheel from latest CI run
+        if: github.event_name != 'workflow_run'
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: wheel-prerelease.yml
+          name: tensorbored-rc-wheel
+          path: wheel
+          branch: master
+          check_artifacts: true
+          search_artifacts: true
+
+      - name: List wheel files
+        run: ls -la wheel/
+
+      - name: Setup Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Clone HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git clone \
+            "https://user:${HF_TOKEN}@huggingface.co/spaces/Demonstrandum/tensorbored-sample" \
+            hf-space
+
+      - name: Copy files to Space
+        run: |
+          # Copy wheel
+          mkdir -p hf-space/wheel
+          cp wheel/*.whl hf-space/wheel/
+
+          # Copy demo files
+          cp demo/Dockerfile hf-space/
+          cp demo/README.md hf-space/
+          cp demo/generate_demo_data.py hf-space/
+          cp demo/start.sh hf-space/
+
+          # Copy TensorBored custom modules
+          mkdir -p hf-space/tensorbored_plugins_core
+          cp tensorbored/plugins/core/profile_writer.py \
+            hf-space/tensorbored_plugins_core/
+          cp tensorbored/plugins/core/color_sampler.py \
+            hf-space/tensorbored_plugins_core/
+          cp tensorbored/plugins/core/__init__.py \
+            hf-space/tensorbored_plugins_core/
+
+      - name: Push to HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd hf-space
+          git add -A
+
+          if git diff --staged --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy from GitHub Actions"
+            git push
+            echo "Deployed successfully!"
+          fi
