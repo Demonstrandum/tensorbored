@@ -298,7 +298,7 @@ def tensorboard_data_server_version():
 
 @check
 def tensorboard_binary_path():
-    logging.info("which tensorboard: %r", which("tensorboard"))
+    logging.info("which tensorbored: %r", which("tensorbored"))
 
 
 @check
@@ -407,23 +407,23 @@ def source_trees_without_genfiles():
         # `diagnose_tensorboard.py` is run as a standalone script.
         roots.insert(0, "")
 
-    def has_tensorboard(root):
-        return os.path.isfile(os.path.join(root, "tensorboard", "__init__.py"))
+    def has_tensorbored(root):
+        return os.path.isfile(os.path.join(root, "tensorbored", "__init__.py"))
 
     def has_genfiles(root):
         sample_genfile = os.path.join("compat", "proto", "summary_pb2.py")
-        return os.path.isfile(os.path.join(root, "tensorboard", sample_genfile))
+        return os.path.isfile(os.path.join(root, "tensorbored", sample_genfile))
 
     def is_bad(root):
-        return has_tensorboard(root) and not has_genfiles(root)
+        return has_tensorbored(root) and not has_genfiles(root)
 
-    tensorboard_roots = [root for root in roots if has_tensorboard(root)]
+    tensorbored_roots = [root for root in roots if has_tensorbored(root)]
     bad_roots = [root for root in roots if is_bad(root)]
 
     logging.info(
-        "tensorboard_roots (%d): %r; bad_roots (%d): %r",
-        len(tensorboard_roots),
-        tensorboard_roots,
+        "tensorbored_roots (%d): %r; bad_roots (%d): %r",
+        len(tensorbored_roots),
+        tensorbored_roots,
         len(bad_roots),
         bad_roots,
     )
@@ -432,10 +432,10 @@ def source_trees_without_genfiles():
         if bad_roots == [""]:
             message = reflow(
                 """
-                Your current directory contains a `tensorboard` Python package
+                Your current directory contains a `tensorbored` Python package
                 that does not include generated files. This can happen if your
-                current directory includes the TensorBoard source tree (e.g.,
-                you are in the TensorBoard Git repository). Consider changing
+                current directory includes the TensorBored source tree (e.g.,
+                you are in the TensorBored Git repository). Consider changing
                 to a different directory.
                 """
             )

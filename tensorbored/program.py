@@ -176,7 +176,7 @@ class TensorBoard:
         """
 
         base_parser = argparse_flags.ArgumentParser(
-            prog="tensorboard",
+            prog="tensorbored",
             description=(
                 "TensorBoard is a suite of web applications for "
                 "inspecting and understanding your TensorFlow runs "

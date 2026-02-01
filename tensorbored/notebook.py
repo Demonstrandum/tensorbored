@@ -75,20 +75,20 @@ def _get_context():
 
 
 def load_ipython_extension(ipython):
-    """Deprecated: use `%load_ext tensorboard` instead.
+    """Deprecated: use `%load_ext tensorbored` instead.
 
     Raises:
       RuntimeError: Always.
     """
     raise RuntimeError(
-        "Use '%load_ext tensorboard' instead of '%load_ext tensorboard.notebook'."
+        "Use '%load_ext tensorbored' instead of '%load_ext tensorbored.notebook'."
     )
 
 
 def _load_ipython_extension(ipython):
     """Load the TensorBoard notebook extension.
 
-    Intended to be called from `%load_ext tensorboard`. Do not invoke this
+    Intended to be called from `%load_ext tensorbored`. Do not invoke this
     directly.
 
     Args:
@@ -106,12 +106,12 @@ def _register_magics(ipython):
     ipython.register_magic_function(
         _start_magic,
         magic_kind="line",
-        magic_name="tensorboard",
+        magic_name="tensorbored",
     )
 
 
 def _start_magic(line):
-    """Implementation of the `%tensorboard` line magic."""
+    """Implementation of the `%tensorbored` line magic."""
     return start(line)
 
 
@@ -198,12 +198,12 @@ def start(args_string):
             "%r (set by the `TENSORBOARD_BINARY` environment variable)"
             % (start_result.explicit_binary,)
             if start_result.explicit_binary is not None
-            else "`tensorboard`"
+            else "`tensorbored`"
         )
         if start_result.os_error.errno == errno.ENOENT:
             message = (
                 "ERROR: Could not find %s. Please ensure that your PATH contains "
-                "an executable `tensorboard` program, or explicitly specify the path "
+                "an executable `tensorbored` program, or explicitly specify the path "
                 "to a TensorBoard binary by setting the `TENSORBOARD_BINARY` "
                 "environment variable." % (the_tensorboard_binary,)
             )
@@ -360,7 +360,7 @@ def _display_colab(port, height, display_handle):
 def _display_ipython(port, height, display_handle):
     import IPython.display
 
-    frame_id = "tensorboard-frame-{:08x}".format(random.getrandbits(64))
+    frame_id = "tensorbored-frame-{:08x}".format(random.getrandbits(64))
     shell = """
       <iframe id="%HTML_ID%" width="100%" height="%HEIGHT%" frameborder="0">
       </iframe>

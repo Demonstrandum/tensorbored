@@ -41,11 +41,11 @@ find tensorbored/compat/proto/ -type f  -name '*.proto' -exec perl -pi \
   -e 's|tensorflow/core/util|tensorbored/compat/proto|g;' \
   -e 's|tensorflow/python/framework|tensorbored/compat/proto|g;' \
   -e 's|xla/tsl/protobuf|tensorbored/compat/proto|g;' \
-  -e 's|package tensorflow.tfprof;|package tensorboard;|g;' \
-  -e 's|package tensorflow;|package tensorboard;|g;' \
-  -e 's|tensorflow\.DataType|tensorboard.DataType|g;' \
-  -e 's|tensorflow\.TensorProto|tensorboard.TensorProto|g;' \
-  -e 's|tensorflow\.TensorShapeProto|tensorboard.TensorShapeProto|g;' \
+  -e 's|package tensorflow.tfprof;|package tensorbored;|g;' \
+  -e 's|package tensorflow;|package tensorbored;|g;' \
+  -e 's|tensorflow\.DataType|tensorbored.DataType|g;' \
+  -e 's|tensorflow\.TensorProto|tensorbored.TensorProto|g;' \
+  -e 's|tensorflow\.TensorShapeProto|tensorbored.TensorShapeProto|g;' \
   -e 's|\/\/ LINT\.|// DISABLED.|g;' \
   {} +
 

@@ -52,9 +52,9 @@ pip install ./example-plugin/dist/*.whl
 
 python -m tensorboard_plugin_example_raw_scalars.demo
 
-# Test tensorboard + tensorboard_plugin_example_raw_scalars integration.
+# Test tensorbored + tensorboard_plugin_example_raw_scalars integration.
 mkfifo pipe
-tensorboard \
+tensorbored \
     --logdir=. \
     --port=0 \
     --reload_interval=0 \

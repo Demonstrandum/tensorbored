@@ -52,9 +52,9 @@ pip install ./example-plugin/dist/*.whl
 
 python -m tensorboard_plugin_example.demo
 
-# Test tensorboard + tensorboard_plugin_example integration.
+# Test tensorbored + tensorboard_plugin_example integration.
 mkfifo pipe
-tensorboard \
+tensorbored \
     --logdir=. \
     --port=0 \
     --reload_interval=0 \
