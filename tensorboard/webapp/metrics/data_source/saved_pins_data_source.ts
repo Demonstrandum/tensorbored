@@ -207,7 +207,10 @@ export class SavedPinsDataSource {
 
     if (newPinsToAdd.length > 0) {
       existingNewPins.push(...newPinsToAdd);
-      window.localStorage.setItem(SAVED_PINS_KEY, JSON.stringify(existingNewPins));
+      window.localStorage.setItem(
+        SAVED_PINS_KEY,
+        JSON.stringify(existingNewPins)
+      );
     }
 
     // Clear legacy storage after migration

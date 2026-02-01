@@ -230,7 +230,11 @@ describe('SavedPinsDataSource Test', () => {
     it('distinguishes pins by all fields', () => {
       const pin1: CardUniqueInfo = {plugin: 'scalars', tag: 'loss'};
       const pin2: CardUniqueInfo = {plugin: 'scalars', tag: 'accuracy'};
-      const pin3: CardUniqueInfo = {plugin: 'histograms', tag: 'loss', runId: 'run1'};
+      const pin3: CardUniqueInfo = {
+        plugin: 'histograms',
+        tag: 'loss',
+        runId: 'run1',
+      };
 
       dataSource.savePin(pin1);
       dataSource.savePin(pin2);

@@ -16,11 +16,7 @@ import {TestBed} from '@angular/core/testing';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {ProfileDataSource, TEST_ONLY} from './profile_data_source';
 import {TBHttpClient} from '../../webapp_data_source/tb_http_client';
-import {
-  ProfileData,
-  PROFILE_VERSION,
-  createEmptyProfile,
-} from '../types';
+import {ProfileData, PROFILE_VERSION, createEmptyProfile} from '../types';
 
 describe('ProfileDataSource', () => {
   let dataSource: ProfileDataSource;

@@ -111,7 +111,8 @@ export const reducer: ActionReducer<ProfileState> = createReducer(
   on(profileActions.profileDeleted, (state, {name}) => ({
     ...state,
     availableProfiles: state.availableProfiles.filter((p) => p.name !== name),
-    activeProfile: state.activeProfileName === name ? null : state.activeProfile,
+    activeProfile:
+      state.activeProfileName === name ? null : state.activeProfile,
     activeProfileName:
       state.activeProfileName === name ? null : state.activeProfileName,
     hasUnsavedChanges:
@@ -185,22 +186,19 @@ export const reducer: ActionReducer<ProfileState> = createReducer(
     lastError: null,
   })),
 
-  on(
-    profileActions.defaultProfileFetched,
-    (state, {profile, experimentId}) => {
-      if (!profile) {
-        return state;
-      }
-
-      const newDefaultProfiles = new Map(state.defaultProfiles);
-      newDefaultProfiles.set(experimentId, profile);
-
-      return {
-        ...state,
-        defaultProfiles: newDefaultProfiles,
-      };
+  on(profileActions.defaultProfileFetched, (state, {profile, experimentId}) => {
+    if (!profile) {
+      return state;
     }
-  ),
+
+    const newDefaultProfiles = new Map(state.defaultProfiles);
+    newDefaultProfiles.set(experimentId, profile);
+
+    return {
+      ...state,
+      defaultProfiles: newDefaultProfiles,
+    };
+  }),
 
   on(profileActions.profileRenamed, (state, {oldName, newName, profile}) => {
     const updatedProfiles = state.availableProfiles

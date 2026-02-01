@@ -33,7 +33,10 @@ describe('profile reducers', () => {
 
   describe('profileListRequested', () => {
     it('sets profileListLoadState to LOADING', () => {
-      const state = reducer(initialState, profileActions.profileListRequested());
+      const state = reducer(
+        initialState,
+        profileActions.profileListRequested()
+      );
       expect(state.profileListLoadState).toBe(DataLoadState.LOADING);
     });
   });
@@ -92,7 +95,10 @@ describe('profile reducers', () => {
   describe('profileSaved', () => {
     it('updates availableProfiles and sets activeProfile', () => {
       const profile = createEmptyProfile('New Profile');
-      const state = reducer(initialState, profileActions.profileSaved({profile}));
+      const state = reducer(
+        initialState,
+        profileActions.profileSaved({profile})
+      );
 
       expect(state.availableProfiles.length).toBe(1);
       expect(state.availableProfiles[0].name).toBe('New Profile');
@@ -113,7 +119,10 @@ describe('profile reducers', () => {
       const profile = createEmptyProfile('Existing');
       profile.lastModifiedTimestamp = 2000;
 
-      const state = reducer(existingState, profileActions.profileSaved({profile}));
+      const state = reducer(
+        existingState,
+        profileActions.profileSaved({profile})
+      );
 
       expect(state.availableProfiles.length).toBe(2);
       // Should be sorted by timestamp (most recent first)
@@ -272,9 +281,7 @@ describe('profile reducers', () => {
     it('updates profile name in availableProfiles', () => {
       const existingState: ProfileState = {
         ...initialState,
-        availableProfiles: [
-          {name: 'Old Name', lastModifiedTimestamp: 1000},
-        ],
+        availableProfiles: [{name: 'Old Name', lastModifiedTimestamp: 1000}],
         activeProfileName: 'Old Name',
         activeProfile: createEmptyProfile('Old Name'),
       };

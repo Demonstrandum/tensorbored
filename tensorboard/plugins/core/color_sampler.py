@@ -40,7 +40,7 @@ Example usage:
 """
 
 import math
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 # =============================================================================
 # OKLCH Color Space Implementation

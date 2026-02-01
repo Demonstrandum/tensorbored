@@ -67,9 +67,13 @@ import {ProfileMetadata} from '../types';
           (click)="onLoadProfile(profile.name)"
           [class.active]="profile.name === activeProfileName"
         >
-          <mat-icon>{{ profile.name === activeProfileName ? 'check' : 'description' }}</mat-icon>
+          <mat-icon>{{
+            profile.name === activeProfileName ? 'check' : 'description'
+          }}</mat-icon>
           <span class="profile-name">{{ profile.name }}</span>
-          <span class="profile-date">{{ formatDate(profile.lastModifiedTimestamp) }}</span>
+          <span class="profile-date">{{
+            formatDate(profile.lastModifiedTimestamp)
+          }}</span>
         </button>
       </div>
 

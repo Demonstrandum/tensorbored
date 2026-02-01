@@ -1,4 +1,4 @@
-load("//tensorboard/defs:defs.bzl", "tf_ng_module", "tf_ts_library", "tf_ng_web_test_suite")
+load("//tensorboard/defs:defs.bzl", "tf_ng_module", "tf_ng_web_test_suite", "tf_ts_library")
 
 package(default_visibility = ["//tensorboard:internal"])
 
@@ -8,8 +8,8 @@ tf_ng_module(
     name = "data_source",
     srcs = [
         "index.ts",
-        "profile_data_source_module.ts",
         "profile_data_source.ts",
+        "profile_data_source_module.ts",
     ],
     deps = [
         "//tensorboard/webapp/profile:types",

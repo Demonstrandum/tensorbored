@@ -55,7 +55,10 @@ import {
   createEmptyProfile,
   PROFILE_VERSION,
 } from '../types';
-import {isSampledPlugin, isSingleRunPlugin} from '../../metrics/data_source/types';
+import {
+  isSampledPlugin,
+  isSingleRunPlugin,
+} from '../../metrics/data_source/types';
 
 /**
  * Effects for profile management.
@@ -410,8 +413,7 @@ export class ProfileEffects {
     this.actions$.pipe(
       ofType(profileActions.profileListLoaded),
       map(() => {
-        const activeProfileName =
-          this.profileDataSource.getActiveProfileName();
+        const activeProfileName = this.profileDataSource.getActiveProfileName();
         if (activeProfileName) {
           return profileActions.profileLoadRequested({
             name: activeProfileName,
