@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import {Injectable} from '@angular/core';
-import {CardUniqueInfo} from '../types';
+import {CardUniqueInfo} from '../internal_types';
 import {Tag} from './types';
 
 /**
@@ -90,7 +90,10 @@ export class SavedPinsDataSource {
   getSavedScalarPins(): Tag[] {
     const savedPins = window.localStorage.getItem(SAVED_SCALAR_PINS_KEY);
     if (savedPins) {
-      return JSON.parse(savedPins) as Tag[];
+      const parsed = JSON.parse(savedPins) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed as Tag[];
+      }
     }
     return [];
   }
@@ -157,7 +160,7 @@ export class SavedPinsDataSource {
     const savedPins = window.localStorage.getItem(SAVED_PINS_KEY);
     if (savedPins) {
       try {
-        const parsed = JSON.parse(savedPins);
+        const parsed = JSON.parse(savedPins) as unknown;
         if (Array.isArray(parsed)) {
           return parsed as CardUniqueInfo[];
         }

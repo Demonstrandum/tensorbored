@@ -46,6 +46,7 @@ tf_ng_module(
     ],
     deps = [
         ":types",
+        "//tensorboard/webapp/metrics:internal_types",
         "@npm//@angular/core",
     ],
 )
