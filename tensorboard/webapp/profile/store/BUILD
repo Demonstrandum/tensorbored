@@ -38,5 +38,6 @@ tf_ts_library(
         "//tensorboard/webapp/profile:types",
         "//tensorboard/webapp/profile/actions",
         "//tensorboard/webapp/types",
+        "@npm//@types/jasmine",
     ],
 )
