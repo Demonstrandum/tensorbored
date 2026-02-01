@@ -156,7 +156,10 @@ describe('ProfileDataSource', () => {
       profile.tagFilter = 'exported';
 
       const json = dataSource.exportProfile(profile);
-      const parsed = JSON.parse(json);
+      const parsed = JSON.parse(json) as {
+        version: number;
+        data: {name: string; tagFilter: string};
+      };
 
       expect(parsed.version).toBe(PROFILE_VERSION);
       expect(parsed.data.name).toBe('Export Test');
