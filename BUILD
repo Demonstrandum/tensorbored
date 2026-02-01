@@ -9,7 +9,7 @@ ts_config(
     name = "tsconfig-lax",
     src = "tsconfig-lax.json",
     visibility = [
-        "//tensorboard:internal",
+        "//tensorbored:internal",
     ],
     deps = [],
 )

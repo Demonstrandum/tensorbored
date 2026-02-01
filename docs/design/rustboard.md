@@ -211,7 +211,7 @@ commit, and steps are moved into `committed_steps`. After a commit operation,
 
 ## Code location
 
-The code for RustBoard lives in `//tensorboard/data/server`. The above type
+The code for RustBoard lives in `//tensorbored/data/server`. The above type
 definitions are meant to be illustrative, and may diverge from the exact
 implementations.
 

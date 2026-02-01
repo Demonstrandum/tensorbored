@@ -1,0 +1,60 @@
+load("//tensorbored/defs:defs.bzl", "tf_ng_module")
+
+package(default_visibility = ["//tensorbored:internal"])
+
+licenses(["notice"])
+
+tf_ng_module(
+    name = "effects",
+    srcs = [
+        "app_routing_effects.ts",
+        "index.ts",
+    ],
+    deps = [
+        "//tensorbored/webapp:app_state",
+        "//tensorbored/webapp/app_routing:app_root",
+        "//tensorbored/webapp/app_routing:dirty_updates_registry",
+        "//tensorbored/webapp/app_routing:internal_utils",
+        "//tensorbored/webapp/app_routing:location",
+        "//tensorbored/webapp/app_routing:programmatical_navigation_module",
+        "//tensorbored/webapp/app_routing:route_config",
+        "//tensorbored/webapp/app_routing:route_registry",
+        "//tensorbored/webapp/app_routing:types",
+        "//tensorbored/webapp/app_routing/actions",
+        "//tensorbored/webapp/app_routing/store",
+        "//tensorbored/webapp/feature_flag/store",
+        "@npm//@angular/core",
+        "@npm//@ngrx/effects",
+        "@npm//@ngrx/store",
+        "@npm//rxjs",
+    ],
+)
+
+tf_ng_module(
+    name = "effects_tests",
+    testonly = True,
+    srcs = ["app_routing_effects_test.ts"],
+    deps = [
+        ":effects",
+        "//tensorbored/webapp:app_state",
+        "//tensorbored/webapp/angular:expect_angular_core_testing",
+        "//tensorbored/webapp/angular:expect_ngrx_store_testing",
+        "//tensorbored/webapp/app_routing:app_root",
+        "//tensorbored/webapp/app_routing:dirty_updates_registry",
+        "//tensorbored/webapp/app_routing:internal_utils",
+        "//tensorbored/webapp/app_routing:location",
+        "//tensorbored/webapp/app_routing:programmatical_navigation_module",
+        "//tensorbored/webapp/app_routing:route_registry",
+        "//tensorbored/webapp/app_routing:testing",
+        "//tensorbored/webapp/app_routing:types",
+        "//tensorbored/webapp/app_routing/actions",
+        "//tensorbored/webapp/app_routing/store",
+        "//tensorbored/webapp/feature_flag/store",
+        "//tensorbored/webapp/testing:utils",
+        "@npm//@angular/core",
+        "@npm//@ngrx/effects",
+        "@npm//@ngrx/store",
+        "@npm//@types/jasmine",
+        "@npm//rxjs",
+    ],
+)

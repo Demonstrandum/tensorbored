@@ -114,7 +114,7 @@ Running the program with the debugger instrumentation creates a logdir at
 /tmp/tfdbg2_logdir. We can start TensorBoard and point it at the logdir with:
 
 ```sh
-tensorboard --logdir /tmp/tfdbg2_logdir
+tensorbored --logdir /tmp/tfdbg2_logdir
 ```
 
 In the web browser, navigate to TensorBoard’s page at http://localhost:6006. The

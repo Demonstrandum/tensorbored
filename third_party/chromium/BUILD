@@ -1,4 +1,4 @@
-package(default_visibility = ["//tensorboard:internal"])
+package(default_visibility = ["//tensorbored:internal"])
 
 licenses(["notice"])
 
@@ -19,7 +19,7 @@ alias(
         ":linux": "@org_chromium_chromium_linux_x64//:metadata",
         ":mac": "@org_chromium_chromium_macos//:metadata",
     }),
-    visibility = ["//tensorboard/functionaltests/browsers:__pkg__"],
+    visibility = ["//tensorbored/functionaltests/browsers:__pkg__"],
 )
 
 alias(
@@ -29,5 +29,5 @@ alias(
         ":linux": "@org_chromium_chromedriver_linux_x64//:metadata",
         ":mac": "@org_chromium_chromedriver_macos//:metadata",
     }),
-    visibility = ["//tensorboard/functionaltests/browsers:__pkg__"],
+    visibility = ["//tensorbored/functionaltests/browsers:__pkg__"],
 )

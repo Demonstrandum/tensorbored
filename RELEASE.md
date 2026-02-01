@@ -86,7 +86,7 @@ The 2.16 minor series tracks TensorFlow 2.16.
 - Brings the `tensorboard-data-server` wheel into conformance with [PEP 600](https://peps.python.org/pep-0600/), enabling support for the `--load-fast` flag in systems with GLIBC >= 2.29. (Requires installing/updating package `tensorboard-data-server==0.7.2`) (#6636 fixes #6578)
 
 ## Breaking Changes
-- `tensorboard dev` subcommand will now show an error message without sending any requests, as our hosted service at http://tensorboard.dev has been shut down.
+- `tensorboard dev` subcommand will now show an error message without sending any requests, as our hosted service at http://tensorbored.dev has been shut down.
 - Not quite a breaking change, but to something to be aware of: TensorBoard releases generally follow TensorFlow’s releases. However, while TF 2.16 will start using Keras 3 by default, TensorBoard plugins’ implementation remains with keras 2 support only. See @keras-team/keras#18467 for details.
 
 # Release 2.15.2
@@ -100,7 +100,7 @@ The 2.16 minor series tracks TensorFlow 2.16.
 
 ## Breaking Changes
 
-  - TensorBoard.dev is shutting down. See the FAQ at https://tensorboard.dev.
+  - TensorBoard.dev is shutting down. See the FAQ at https://tensorbored.dev.
   - No longer able to upload new data to TensorBoard.dev. The `tensorboard dev upload` command will fail. (#6638)
   - The experimental dataframe api has been deleted. (#6644)
 
@@ -761,13 +761,13 @@ The 2.1 minor series tracks TensorFlow 2.1.
   - In the event of a transient backend issue or permanent breaking change, the
     uploader can now gracefully degrade and print a diagnostic (#2879)
 
-[TensorBoard.dev]: https://tensorboard.dev/
+[TensorBoard.dev]: https://tensorbored.dev/
 
 # Release 2.0.1
 
 ## Features
 
-- Preview of TensorBoard.dev uploader! Check out <https://tensorboard.dev/> for
+- Preview of TensorBoard.dev uploader! Check out <https://tensorbored.dev/> for
   information and usage instructions.
 
 # Release 2.0.0

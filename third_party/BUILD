@@ -1,3 +1,3 @@
-package(default_visibility = ["//tensorboard:internal"])
+package(default_visibility = ["//tensorbored:internal"])
 
 exports_files(glob(["*.LICENSE"]))

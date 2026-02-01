@@ -24,7 +24,7 @@ A plugin is comprised of three components:
 
 The backend and frontend operate within a plugin lifecycle:
 
-  - **1) Plugin initializes**: When a user starts `tensorboard --logdir ...`, TensorBoard discovers available plugins, allows them to parse command line flags if needed, and configures URL routes to be served.
+  - **1) Plugin initializes**: When a user starts `tensorbored --logdir ...`, TensorBoard discovers available plugins, allows them to parse command line flags if needed, and configures URL routes to be served.
 
   - **2) User loads TensorBoard**: When a user opens the frontend in a web browser, TensorBoard reads plugin frontend metadata and collects all active plugins.
 

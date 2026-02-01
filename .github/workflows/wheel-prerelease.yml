@@ -59,22 +59,22 @@ jobs:
         run: |
           python -m pip install -U pip
           pip install \
-            -r ./tensorboard/pip_package/requirements.txt \
-            -r ./tensorboard/pip_package/requirements_dev.txt \
+            -r ./tensorbored/pip_package/requirements.txt \
+            -r ./tensorbored/pip_package/requirements_dev.txt \
             ;
 
       - name: 'Bazel: fetch and build'
         run: |
-          bazel fetch //tensorboard/...
-          bazel build //tensorboard/... 2>&1 | grep -v 'external/com_google_protobuf/python: warning: directory' | grep -v 'INFO: From ProtoCompile ' || true
+          bazel fetch //tensorbored/...
+          bazel build //tensorbored/... 2>&1 | grep -v 'external/com_google_protobuf/python: warning: directory' | grep -v 'INFO: From ProtoCompile ' || true
 
       - name: 'Set RC version'
-        run: ./tensorboard/tools/set_rc_version.sh
+        run: ./tensorbored/tools/set_rc_version.sh
 
       - name: 'Build RC pip package'
         run: |
           rm -rf /tmp/tensorbored_rc_pip_package && mkdir /tmp/tensorbored_rc_pip_package
-          bazel run //tensorboard/pip_package:build_pip_package -- /tmp/tensorbored_rc_pip_package
+          bazel run //tensorbored/pip_package:build_pip_package -- /tmp/tensorbored_rc_pip_package
 
       - name: 'Upload RC wheel artifact'
         uses: actions/upload-artifact@v4
