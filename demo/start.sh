@@ -1,6 +1,6 @@
 #!/bin/bash
 # TensorBored Demo Startup Script
-# 
+#
 # This script:
 # 1. Generates demo data if it doesn't exist
 # 2. Starts TensorBored on port 7860 (HuggingFace Spaces default)

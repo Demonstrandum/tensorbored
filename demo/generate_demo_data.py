@@ -429,7 +429,7 @@ from tensorbored.plugins.core import profile_writer, color_sampler
 
 class SimpleNet(nn.Module):
     """A simple CNN for demonstration."""
-    
+
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
@@ -438,7 +438,7 @@ class SimpleNet(nn.Module):
         self.fc2 = nn.Linear(256, 10)
         self.pool = nn.MaxPool2d(2)
         self.relu = nn.ReLU()
-    
+
     def forward(self, x):
         x = self.pool(self.relu(self.conv1(x)))
         x = self.pool(self.relu(self.conv2(x)))
@@ -449,15 +449,15 @@ class SimpleNet(nn.Module):
 
 def setup_tensorboard_profile(logdir: str, run_names: list):
     """Configure TensorBored dashboard before training starts."""
-    
+
     # Generate perceptually uniform colors for all runs
     run_colors = color_sampler.colors_for_runs(run_names, varied=True)
-    
+
     # Set up the default dashboard profile
     profile_writer.set_default_profile(
         logdir=logdir,
         name="Training Dashboard",
-        
+
         # Pin the most important metrics at the top
         pinned_cards=[
             profile_writer.pin_scalar("loss/train"),
@@ -466,7 +466,7 @@ def setup_tensorboard_profile(logdir: str, run_names: list):
             profile_writer.pin_scalar("accuracy/eval"),
             profile_writer.pin_scalar("learning_rate"),
         ],
-        
+
         # Create comparison charts
         superimposed_cards=[
             profile_writer.create_superimposed_card(
@@ -478,32 +478,32 @@ def setup_tensorboard_profile(logdir: str, run_names: list):
                 tags=["accuracy/train", "accuracy/eval"],
             ),
         ],
-        
+
         # Apply the generated colors
         run_colors=run_colors,
-        
+
         # Default settings
         smoothing=0.8,
         tag_filter="loss|accuracy|learning_rate",
     )
-    
+
     print(f"Dashboard profile configured with {len(run_names)} runs")
 
 
 def train(config):
     """Main training loop."""
-    
+
     # Setup
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = SimpleNet().to(device)
     criterion = nn.CrossEntropyLoss()
-    
+
     # Choose optimizer based on config
     if config["optimizer"] == "adam":
         optimizer = optim.Adam(model.parameters(), lr=config["lr"])
     else:
         optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=0.9)
-    
+
     # Learning rate scheduler with warmup
     def lr_lambda(step):
         warmup_steps = 50
@@ -511,58 +511,58 @@ def train(config):
             return step / warmup_steps
         progress = (step - warmup_steps) / (config["total_steps"] - warmup_steps)
         return 0.5 * (1 + math.cos(math.pi * progress))
-    
+
     scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
-    
+
     # TensorBoard writer
     writer = SummaryWriter(log_dir=f"{config['logdir']}/{config['run_name']}")
-    
+
     # Training loop
     for step in range(config["total_steps"]):
         model.train()
-        
+
         # Get batch (simplified - using random data for demo)
         inputs = torch.randn(config["batch_size"], 3, 32, 32).to(device)
         targets = torch.randint(0, 10, (config["batch_size"],)).to(device)
-        
+
         # Forward pass
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, targets)
-        
+
         # Backward pass
         loss.backward()
         optimizer.step()
         scheduler.step()
-        
+
         # Calculate accuracy
         _, predicted = outputs.max(1)
         accuracy = (predicted == targets).float().mean()
-        
+
         # Log scalars
         if step % 5 == 0:
             writer.add_scalar("loss/train", loss.item(), step)
             writer.add_scalar("accuracy/train", accuracy.item(), step)
             writer.add_scalar("learning_rate", scheduler.get_last_lr()[0], step)
-            
+
             # Log gradient norm
             total_norm = 0
             for p in model.parameters():
                 if p.grad is not None:
                     total_norm += p.grad.data.norm(2).item() ** 2
             writer.add_scalar("gradients/global_norm", total_norm ** 0.5, step)
-        
+
         # Log histograms (less frequently)
         if step % 50 == 0:
             writer.add_histogram("weights/conv1", model.conv1.weight, step)
             writer.add_histogram("weights/conv2", model.conv2.weight, step)
             writer.add_histogram("weights/fc1", model.fc1.weight, step)
             writer.add_histogram("weights/fc2", model.fc2.weight, step)
-            
+
             if model.conv1.weight.grad is not None:
                 writer.add_histogram("gradients/conv1", model.conv1.weight.grad, step)
                 writer.add_histogram("gradients/fc1", model.fc1.weight.grad, step)
-        
+
         # Evaluation (simplified)
         if step % 5 == 0:
             model.eval()
@@ -573,13 +573,13 @@ def train(config):
                 eval_loss = criterion(eval_outputs, eval_targets)
                 _, eval_pred = eval_outputs.max(1)
                 eval_acc = (eval_pred == eval_targets).float().mean()
-                
+
                 writer.add_scalar("loss/eval", eval_loss.item(), step)
                 writer.add_scalar("accuracy/eval", eval_acc.item(), step)
-        
+
         if step % 100 == 0:
             print(f"Step {step}: loss={loss.item():.4f}, acc={accuracy.item():.4f}")
-    
+
     writer.close()
     print("Training complete!")
 
@@ -587,7 +587,7 @@ def train(config):
 if __name__ == "__main__":
     import argparse
     import math
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--optimizer", default="adam", choices=["adam", "sgd"])
     parser.add_argument("--lr", type=float, default=0.001)
@@ -596,11 +596,11 @@ if __name__ == "__main__":
     parser.add_argument("--logdir", default="./logs")
     parser.add_argument("--run_name", default="experiment")
     args = parser.parse_args()
-    
+
     # Set up dashboard profile (do this once for all runs)
     run_names = ["baseline", "adam_lr1e-3", "adam_lr1e-4", "large_batch", "small_batch"]
     setup_tensorboard_profile(args.logdir, run_names)
-    
+
     # Train
     train(vars(args))
 '''
