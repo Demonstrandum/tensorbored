@@ -15,12 +15,14 @@
 # ==============================================================================
 
 # Updates package version for release candidate (RC) builds.
-# Sets version to X.Y.ZrcYYYYMMDD format for PyPI pre-releases.
+# Sets version to X.Y.Zrc<timestamp> format for PyPI pre-releases.
+# Uses Unix timestamp for uniqueness (allows multiple RCs per day).
+# Example: 2.21.0rc1738425600
 version="$(python tensorboard/version.py)"
 case "${version}" in
   *a0)
-    # Strip a0 suffix and add "rc" plus today's date.
-    release="${version%a0}rc$(date +%Y%m%d)"
+    # Strip a0 suffix and add "rc" plus Unix timestamp.
+    release="${version%a0}rc$(date +%s)"
     sed -i -e "s/${version}/${release}/" tensorboard/version.py
     ;;
   *)
