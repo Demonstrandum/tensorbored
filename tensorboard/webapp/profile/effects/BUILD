@@ -16,7 +16,7 @@ tf_ng_module(
         "//tensorboard/webapp/metrics:types",
         "//tensorboard/webapp/metrics/actions",
         "//tensorboard/webapp/metrics/data_source:types",
-        "//tensorboard/webapp/metrics/store:metrics_selectors",
+        "//tensorboard/webapp/metrics/store",
         "//tensorboard/webapp/profile:types",
         "//tensorboard/webapp/profile/actions",
         "//tensorboard/webapp/profile/data_source",
