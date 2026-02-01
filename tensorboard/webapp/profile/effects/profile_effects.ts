@@ -42,7 +42,7 @@ import {
   getRunSelectorRegexFilter,
 } from '../../runs/store/runs_selectors';
 import {CardIdWithMetadata, CardUniqueInfo} from '../../metrics/types';
-import {GroupByKey} from '../../runs/types';
+import {GroupBy, GroupByKey} from '../../runs/types';
 import {ProfileDataSource} from '../data_source/profile_data_source';
 import * as profileActions from '../actions/profile_actions';
 import * as metricsActions from '../../metrics/actions';
@@ -153,12 +153,21 @@ export class ProfileEffects {
     this.actions$.pipe(
       ofType(profileActions.profileActivated),
       map(({profile}) => {
-        let groupBy = null;
+        let groupBy: GroupBy | null = null;
         if (profile.groupBy) {
-          groupBy = {
-            key: profile.groupBy.key,
-            regexString: profile.groupBy.regexString,
-          };
+          if (
+            profile.groupBy.key === GroupByKey.REGEX ||
+            profile.groupBy.key === GroupByKey.REGEX_BY_EXP
+          ) {
+            groupBy = {
+              key: profile.groupBy.key,
+              regexString: profile.groupBy.regexString || '',
+            };
+          } else {
+            groupBy = {
+              key: profile.groupBy.key,
+            };
+          }
         }
         return runsActions.profileRunsSettingsApplied({
           runColors: profile.runColors,
