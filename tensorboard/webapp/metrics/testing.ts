@@ -30,6 +30,7 @@ import {
   SavedPinsDataSource,
   Tag,
 } from './data_source';
+import {CardUniqueInfo} from './internal_types';
 import * as selectors from './store/metrics_selectors';
 import {
   MetricsState,
@@ -422,6 +423,7 @@ export function buildStepIndexMetadata(
 
 @Injectable()
 export class TestingSavedPinsDataSource {
+  // Legacy scalar-only methods (deprecated but still used)
   saveScalarPin(tag: Tag) {}
 
   saveScalarPins(tag: Tag[]) {}
@@ -433,6 +435,23 @@ export class TestingSavedPinsDataSource {
   }
 
   removeAllScalarPins() {}
+
+  // New CardUniqueInfo-based methods
+  savePin(cardInfo: CardUniqueInfo) {}
+
+  savePins(cardInfos: CardUniqueInfo[]) {}
+
+  removePin(cardInfo: CardUniqueInfo) {}
+
+  getSavedPins(): CardUniqueInfo[] {
+    return [];
+  }
+
+  setSavedPins(cardInfos: CardUniqueInfo[]) {}
+
+  removeAllPins() {}
+
+  migrateLegacyPins() {}
 }
 
 export function provideTestingSavedPinsDataSource() {

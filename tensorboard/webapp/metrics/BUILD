@@ -84,6 +84,7 @@ tf_ts_library(
         "testing.ts",
     ],
     deps = [
+        ":internal_types",
         ":types",
         "//tensorboard/webapp:app_state",
         "//tensorboard/webapp/metrics/data_source",
