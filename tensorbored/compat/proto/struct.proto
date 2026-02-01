@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import "tensorboard/compat/proto/tensor.proto";
-import "tensorboard/compat/proto/tensor_shape.proto";
-import "tensorboard/compat/proto/types.proto";
+import "tensorbored/compat/proto/tensor.proto";
+import "tensorbored/compat/proto/tensor_shape.proto";
+import "tensorbored/compat/proto/types.proto";
 
 option go_package = "github.com/tensorflow/tensorflow/tensorflow/go/core/protobuf/for_core_protos_go_proto";
 
@@ -54,9 +54,9 @@ message StructuredValue {
     bool bool_value = 14;
 
     // Represents a TensorShape.
-    tensorboard.TensorShapeProto tensor_shape_value = 31;
+    tensorbored.TensorShapeProto tensor_shape_value = 31;
     // Represents an enum value for dtype.
-    tensorboard.DataType tensor_dtype_value = 32;
+    tensorbored.DataType tensor_dtype_value = 32;
     // Represents a value for tf.TensorSpec.
     TensorSpecProto tensor_spec_value = 33;
     // Represents a value for tf.TypeSpec.
@@ -73,9 +73,9 @@ message StructuredValue {
     // Represents Python's namedtuple.
     NamedTupleValue named_tuple_value = 54;
     // Represents a value for tf.Tensor.
-    tensorboard.TensorProto tensor_value = 55;
+    tensorbored.TensorProto tensor_value = 55;
     // Represents a value for np.ndarray.
-    tensorboard.TensorProto numpy_value = 56;
+    tensorbored.TensorProto numpy_value = 56;
   }
 }
 
@@ -113,17 +113,17 @@ message NamedTupleValue {
 // A protobuf to represent tf.TensorSpec.
 message TensorSpecProto {
   string name = 1;
-  tensorboard.TensorShapeProto shape = 2;
-  tensorboard.DataType dtype = 3;
+  tensorbored.TensorShapeProto shape = 2;
+  tensorbored.DataType dtype = 3;
 }
 
 // A protobuf to represent tf.BoundedTensorSpec.
 message BoundedTensorSpecProto {
   string name = 1;
-  tensorboard.TensorShapeProto shape = 2;
-  tensorboard.DataType dtype = 3;
-  tensorboard.TensorProto minimum = 4;
-  tensorboard.TensorProto maximum = 5;
+  tensorbored.TensorShapeProto shape = 2;
+  tensorbored.DataType dtype = 3;
+  tensorbored.TensorProto minimum = 4;
+  tensorbored.TensorProto maximum = 5;
 }
 
 // Represents a tf.TypeSpec

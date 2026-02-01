@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import public "tensorboard/compat/proto/histogram.proto";
+import public "tensorbored/compat/proto/histogram.proto";
 
-import "tensorboard/compat/proto/tensor.proto";
+import "tensorbored/compat/proto/tensor.proto";
 
 option cc_enable_arenas = true;
 option java_outer_classname = "SummaryProtos";

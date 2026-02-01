@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import "tensorboard/compat/proto/summary.proto";
+import "tensorbored/compat/proto/summary.proto";
 
 option cc_enable_arenas = true;
 option java_outer_classname = "EventProtos";

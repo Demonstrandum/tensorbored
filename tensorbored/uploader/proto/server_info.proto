@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package tensorboard.service;
+package tensorbored.service;
 
 // Request sent by uploader clients at the start of an upload session. Used to
 // determine whether the client is recent enough to communicate with the

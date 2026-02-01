@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import "tensorboard/compat/proto/tensor_shape.proto";
-import "tensorboard/compat/proto/types.proto";
+import "tensorbored/compat/proto/tensor_shape.proto";
+import "tensorbored/compat/proto/types.proto";
 
 option cc_enable_arenas = true;
 option java_outer_classname = "ResourceHandle";

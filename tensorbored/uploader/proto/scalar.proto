@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package tensorboard.service;
+package tensorbored.service;
 
 import "google/protobuf/timestamp.proto";
-import "tensorboard/compat/proto/summary.proto";
+import "tensorbored/compat/proto/summary.proto";
 
 // One point viewable on a scalar metric plot.
 message ScalarPoint {
@@ -24,5 +24,5 @@ message ScalarPointMetadata {
   // Information about the plugin which created this scalar data.
   // Note: The period is required part of the type here due to the
   // package name resolution logic.
-  .tensorboard.SummaryMetadata summary_metadata = 3;
+  .tensorbored.SummaryMetadata summary_metadata = 3;
 }

@@ -19,9 +19,9 @@ limitations under the License.
 syntax = "proto3";
 
 import "google/protobuf/struct.proto";
-import "tensorboard/plugins/hparams/api.proto";
+import "tensorbored/plugins/hparams/api.proto";
 
-package tensorboard.hparams;
+package tensorbored.hparams;
 
 message HParamInfosList {
   repeated HParamInfo hparam_infos = 1;

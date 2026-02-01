@@ -28,10 +28,10 @@ limitations under the License.
 
 syntax = "proto3";
 
-import "tensorboard/plugins/hparams/api.proto";
+import "tensorbored/plugins/hparams/api.proto";
 import "google/protobuf/struct.proto";
 
-package tensorboard.hparams;
+package tensorbored.hparams;
 
 // HParam summaries created by `tensorboard.plugins.hparams.summary`
 // module will include `SummaryMetadata` whose `plugin_data` field has

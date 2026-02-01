@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package tensorboard.service;
+package tensorbored.service;
 
 import "google/protobuf/timestamp.proto";
-import "tensorboard/uploader/proto/experiment.proto";
-import "tensorboard/uploader/proto/scalar.proto";
-import "tensorboard/uploader/proto/tensor.proto";
-import "tensorboard/uploader/proto/blob.proto";
-import "tensorboard/compat/proto/summary.proto";
+import "tensorbored/uploader/proto/experiment.proto";
+import "tensorbored/uploader/proto/scalar.proto";
+import "tensorbored/uploader/proto/tensor.proto";
+import "tensorbored/uploader/proto/blob.proto";
+import "tensorbored/compat/proto/summary.proto";
 
 // Service for writing data to TensorBoard.dev.
 service TensorBoardWriterService {
@@ -144,7 +144,7 @@ message WriteScalarRequest {
     // Data to store for this Run/Tag combination.
     repeated ScalarPoint points = 2;
     // The metadata of this tag.
-    .tensorboard.SummaryMetadata metadata = 3;
+    .tensorbored.SummaryMetadata metadata = 3;
   }
 
   // Which experiment to write to - corresponding to one hosted TensorBoard URL.
@@ -183,7 +183,7 @@ message WriteTensorRequest {
     // Data to store for this Run/Tag combination.
     repeated TensorPoint points = 2;
     // The metadata of this tag.
-    .tensorboard.SummaryMetadata metadata = 3;
+    .tensorbored.SummaryMetadata metadata = 3;
   }
 
   // Which experiment to write to - corresponding to one hosted TensorBoard URL.
@@ -282,7 +282,7 @@ message GetOrCreateBlobSequenceRequest {
   // to be filled with subsequent WriteBlob RPCs.
   int64 final_sequence_length = 6;
   // Note that metadata.plugin_data.content does not carry the payload.
-  .tensorboard.SummaryMetadata metadata = 7;
+  .tensorbored.SummaryMetadata metadata = 7;
 }
 
 message GetOrCreateBlobSequenceResponse {

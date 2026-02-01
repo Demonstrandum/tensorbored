@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
 import "google/protobuf/any.proto";
-import "tensorboard/compat/proto/tensor_shape.proto";
-import "tensorboard/compat/proto/types.proto";
-import "tensorboard/compat/proto/variable.proto";
-import "tensorboard/compat/proto/versions.proto";
-import "tensorboard/compat/proto/struct.proto";
-import "tensorboard/compat/proto/trackable_object_graph.proto";
+import "tensorbored/compat/proto/tensor_shape.proto";
+import "tensorbored/compat/proto/types.proto";
+import "tensorbored/compat/proto/variable.proto";
+import "tensorbored/compat/proto/versions.proto";
+import "tensorbored/compat/proto/struct.proto";
+import "tensorbored/compat/proto/trackable_object_graph.proto";
 
 option cc_enable_arenas = true;
 option go_package = "github.com/tensorflow/tensorflow/tensorflow/go/core/protobuf/for_core_protos_go_proto";

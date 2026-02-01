@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package tensorboard.service;
+package tensorbored.service;
 
 import "google/protobuf/timestamp.proto";
-import "tensorboard/uploader/proto/blob.proto";
-import "tensorboard/uploader/proto/experiment.proto";
-import "tensorboard/compat/proto/summary.proto";
-import "tensorboard/compat/proto/tensor.proto";
+import "tensorbored/uploader/proto/blob.proto";
+import "tensorbored/uploader/proto/experiment.proto";
+import "tensorbored/compat/proto/summary.proto";
+import "tensorbored/compat/proto/tensor.proto";
 
 // Service for exporting data from TensorBoard.dev.
 service TensorBoardExporterService {
@@ -106,7 +106,7 @@ message StreamExperimentDataResponse {
   // Name of the run that contains the tag `tag_name`.
   string run_name = 2;
   // The metadata of the tag `tag_name`.
-  .tensorboard.SummaryMetadata tag_metadata = 3;
+  .tensorbored.SummaryMetadata tag_metadata = 3;
 
   // Data to store for the tag `tag_name.
   oneof data {
@@ -143,7 +143,7 @@ message StreamExperimentDataResponse {
     // Timestamp of the creation of this point.
     repeated google.protobuf.Timestamp wall_times = 2;
     // Value of the point at this step / timestamp.
-    repeated .tensorboard.TensorProto values = 3;
+    repeated .tensorbored.TensorProto values = 3;
   }
 
   message BlobSequencePoints {

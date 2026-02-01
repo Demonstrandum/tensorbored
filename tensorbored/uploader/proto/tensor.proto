@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package tensorboard.service;
+package tensorbored.service;
 
 import "google/protobuf/timestamp.proto";
-import "tensorboard/compat/proto/summary.proto";
-import "tensorboard/compat/proto/tensor.proto";
+import "tensorbored/compat/proto/summary.proto";
+import "tensorbored/compat/proto/tensor.proto";
 
 // One point viewable on a tensor metric plot.
 message TensorPoint {
@@ -13,7 +13,7 @@ message TensorPoint {
   // Timestamp of the creation of this point.
   google.protobuf.Timestamp wall_time = 2;
   // Value of the point at this step / timestamp.
-  .tensorboard.TensorProto value = 3;
+  .tensorbored.TensorProto value = 3;
 }
 
 // Metadata for the TensorPoints stored for one (Experiment, Run, Tag).
@@ -25,5 +25,5 @@ message TensorTag {
   // Information about the plugin which created this tensor data.
   // Note: The period is required part of the type here due to the
   // package name resolution logic.
-  .tensorboard.SummaryMetadata summary_metadata = 3;
+  .tensorbored.SummaryMetadata summary_metadata = 3;
 }

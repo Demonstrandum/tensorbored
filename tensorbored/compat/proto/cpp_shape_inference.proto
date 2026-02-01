@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import "tensorboard/compat/proto/full_type.proto";
-import "tensorboard/compat/proto/tensor_shape.proto";
-import "tensorboard/compat/proto/types.proto";
+import "tensorbored/compat/proto/full_type.proto";
+import "tensorbored/compat/proto/tensor_shape.proto";
+import "tensorbored/compat/proto/types.proto";
 
 option cc_enable_arenas = true;
 option go_package = "github.com/tensorflow/tensorflow/tensorflow/go/python/framework/cpp_shape_inference_go_proto";

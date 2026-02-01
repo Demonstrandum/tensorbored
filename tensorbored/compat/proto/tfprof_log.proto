@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import "tensorboard/compat/proto/attr_value.proto";
-import "tensorboard/compat/proto/step_stats.proto";
+import "tensorbored/compat/proto/attr_value.proto";
+import "tensorbored/compat/proto/step_stats.proto";
 
 option go_package = "github.com/tensorflow/tensorflow/tensorflow/go/core/profiler/protos_all_go_proto";
 

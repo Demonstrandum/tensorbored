@@ -15,7 +15,7 @@ limitations under the License.
 
 syntax = "proto3";
 
-package tensorboard.projector;
+package tensorbored.projector;
 
 message SpriteMetadata {
   string image_path = 1;

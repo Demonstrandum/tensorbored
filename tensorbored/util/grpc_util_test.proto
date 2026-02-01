@@ -1,7 +1,7 @@
 // Minimal example RPC service definition. See grpc_util_test.py for usage.
 syntax = "proto3";
 
-package tensorboard.util;
+package tensorbored.util;
 
 // Test service for grpc_util_test.py.
 service TestService {

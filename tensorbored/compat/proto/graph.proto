@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import "tensorboard/compat/proto/function.proto";
-import "tensorboard/compat/proto/graph_debug_info.proto";
-import "tensorboard/compat/proto/node_def.proto";
-import "tensorboard/compat/proto/versions.proto";
+import "tensorbored/compat/proto/function.proto";
+import "tensorbored/compat/proto/graph_debug_info.proto";
+import "tensorbored/compat/proto/node_def.proto";
+import "tensorbored/compat/proto/versions.proto";
 
 option cc_enable_arenas = true;
 option java_outer_classname = "GraphProtos";

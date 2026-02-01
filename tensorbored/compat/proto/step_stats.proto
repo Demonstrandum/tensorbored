@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import "tensorboard/compat/proto/allocation_description.proto";
-import "tensorboard/compat/proto/tensor_description.proto";
+import "tensorbored/compat/proto/allocation_description.proto";
+import "tensorbored/compat/proto/tensor_description.proto";
 
 option cc_enable_arenas = true;
 option java_outer_classname = "StepStatsProtos";

@@ -15,7 +15,7 @@ limitations under the License.
 
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
 // Scalar summaries created by the `tensorboard.plugins.scalar.summary`
 // module will include `SummaryMetadata` whose `plugin_data` field has

@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
-import "tensorboard/compat/proto/coordination_config.proto";
-import "tensorboard/compat/proto/cost_graph.proto";
-import "tensorboard/compat/proto/graph.proto";
-import "tensorboard/compat/proto/step_stats.proto";
-import "tensorboard/compat/proto/cluster.proto";
-import "tensorboard/compat/proto/debug.proto";
-import "tensorboard/compat/proto/rewriter_config.proto";
-import "tensorboard/compat/proto/rpc_options.proto";
+import "tensorbored/compat/proto/coordination_config.proto";
+import "tensorbored/compat/proto/cost_graph.proto";
+import "tensorbored/compat/proto/graph.proto";
+import "tensorbored/compat/proto/step_stats.proto";
+import "tensorbored/compat/proto/cluster.proto";
+import "tensorbored/compat/proto/debug.proto";
+import "tensorbored/compat/proto/rewriter_config.proto";
+import "tensorbored/compat/proto/rpc_options.proto";
 
 option cc_enable_arenas = true;
 option java_outer_classname = "ConfigProtos";

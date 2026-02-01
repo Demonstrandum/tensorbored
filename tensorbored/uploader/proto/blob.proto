@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package tensorboard.service;
+package tensorbored.service;
 
 enum BlobState {
   // Object state is unknown. This value should never be used; it is present

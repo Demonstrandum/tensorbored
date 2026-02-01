@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package tensorboard;
+package tensorbored;
 
 option cc_enable_arenas = true;
 option java_outer_classname = "GraphDebugInfoProtos";

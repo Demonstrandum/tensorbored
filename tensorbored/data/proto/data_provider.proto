@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package tensorboard.data;
+package tensorbored.data;
 
 import "google/protobuf/timestamp.proto";
 
-import "tensorboard/compat/proto/summary.proto";
-import "tensorboard/compat/proto/tensor.proto";
+import "tensorbored/compat/proto/summary.proto";
+import "tensorbored/compat/proto/tensor.proto";
 
-option go_package = "github.com/tensorflow/tensorboard/tensorboard/data/proto/data_provider_proto";
+option go_package = "github.com/Demonstrandum/tensorbored/tensorbored/data/proto/data_provider_proto";
 
 service TensorBoardDataProvider {
   // Get metadata about an experiment.
@@ -163,7 +163,7 @@ message ScalarMetadata {
   // Largest wall time of any datum in this time series.
   double max_wall_time = 2;
   // Atemporal summary metadata for this time series.
-  tensorboard.SummaryMetadata summary_metadata = 3;
+  tensorbored.SummaryMetadata summary_metadata = 3;
 }
 
 message ReadScalarsRequest {
@@ -230,7 +230,7 @@ message TensorMetadata {
   // Largest wall time of any datum in this time series.
   double max_wall_time = 2;
   // Atemporal summary metadata for this time series.
-  tensorboard.SummaryMetadata summary_metadata = 3;
+  tensorbored.SummaryMetadata summary_metadata = 3;
 }
 
 message ReadTensorsRequest {
@@ -267,7 +267,7 @@ message ReadTensorsResponse {
 message TensorData {
   repeated int64 step = 1;
   repeated double wall_time = 2;
-  repeated tensorboard.TensorProto value = 3;
+  repeated tensorbored.TensorProto value = 3;
 }
 
 message ListBlobSequencesRequest {
@@ -300,7 +300,7 @@ message BlobSequenceMetadata {
   // Largest number of blobs in any datum in this time series.
   int64 max_length = 3;
   // Atemporal summary metadata for this time series.
-  tensorboard.SummaryMetadata summary_metadata = 4;
+  tensorbored.SummaryMetadata summary_metadata = 4;
 }
 
 message ReadBlobSequencesRequest {

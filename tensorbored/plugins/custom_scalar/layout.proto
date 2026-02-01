@@ -15,7 +15,7 @@ limitations under the License.
 
 syntax = "proto3";
 
-package tensorboard;
+package tensorbored;
 
 /**
  * Encapsulates information on a single chart. Many charts appear in a category.

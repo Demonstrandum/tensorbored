@@ -32,7 +32,7 @@ syntax = "proto3";
 
 import "google/protobuf/struct.proto";
 
-package tensorboard.hparams;
+package tensorbored.hparams;
 
 // Represents a single experiment.
 // An experiment consists of multiple "sessions". Typically, in each session
