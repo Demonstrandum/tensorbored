@@ -3,14 +3,11 @@
 TensorBored is a suite of web applications for inspecting and understanding your
 runs and graphs, with a focus on PyTorch compatibility.
 
-This README gives an overview of key concepts in TensorBoard, as well as how to
-interpret the visualizations TensorBoard provides. For an in-depth example of
-using TensorBoard, see the tutorial: [TensorBoard: Getting Started][].
-Documentation on how to use TensorBoard to work with images, graphs, hyper
-parameters, and more are linked from there, along with tutorial walk-throughs in
-Colab.
+This README gives an overview of key concepts in TensorBored, as well as how to
+interpret the visualizations it provides. For an in-depth example of using
+TensorBoard, see the tutorial: [TensorBoard: Getting Started][].
 
-TensorBoard is designed to run entirely offline, without requiring any access
+TensorBored is designed to run entirely offline, without requiring any access
 to the Internet. For instance, this may be on your local machine, behind a
 corporate firewall, or in a datacenter.
 
@@ -20,7 +17,7 @@ corporate firewall, or in a datacenter.
 
 # Usage
 
-Before running TensorBoard, make sure you have generated summary data in a log
+Before running TensorBored, make sure you have generated summary data in a log
 directory by creating a summary writer:
 
 ``` python
@@ -31,7 +28,7 @@ file_writer = tf.summary.FileWriter('/path/to/logs', sess.graph)
 
 For more details, see
 [the TensorBoard tutorial](https://www.tensorflow.org/get_started/summaries_and_tensorboard).
-Once you have event files, run TensorBoard and provide the log directory. If
+Once you have event files, run TensorBored and provide the log directory. If
 you're using a precompiled TensorFlow package (e.g. you installed via pip), run:
 
 ```
@@ -48,43 +45,41 @@ bazel build tensorboard:tensorboard
 bazel run tensorboard -- --logdir path/to/logs
 ```
 
-This should print that TensorBoard has started. Next, connect to
+This should print that TensorBored has started. Next, connect to
 http://localhost:6006.
 
-TensorBoard requires a `logdir` to read logs from. For info on configuring
-TensorBoard, run `tensorboard --help`.
+TensorBored requires a `logdir` to read logs from. For info on configuring
+it, run `tensorboard --help`.
 
-TensorBoard can be used in Google Chrome or Firefox. Other browsers might
+TensorBored can be used in Google Chrome or Firefox. Other browsers might
 work, but there may be bugs or performance issues.
 
 # Dashboard Profiles
 
-TensorBoard supports **Dashboard Profiles** - a system for saving, loading, and
-sharing your dashboard configurations. This includes pinned cards, run colors,
-filters, smoothing settings, and more.
+TensorBored supports **Dashboard Profiles**, a system for saving, loading, and
+sharing your dashboard configurations (pinned cards, run colors, filters,
+smoothing settings, and more).
 
 ## Why Profiles?
 
-Previously, TensorBoard stored dashboard state in the URL, which caused several
-issues:
+Previously, dashboard state was stored in the URL, causing issues:
 
-- **URL length limits**: Browsers have URL length limits (~2000-8000 characters),
-  restricting you to only ~10 pinned cards
-- **Unwieldy URLs**: Long URLs with encoded JSON were difficult to share and manage
-- **No persistence**: Refreshing the page or closing the browser lost your setup
+- **URL length limits**: Browsers limit URLs to ~2000-8000 characters (~10 pinned cards max)
+- **Unwieldy URLs**: Long encoded JSON was difficult to share
+- **No persistence**: Refreshing the page lost your setup
 
-The profile system solves these problems by storing configurations in:
-1. **Browser localStorage** - for automatic persistence across sessions
-2. **JSON files** - for sharing and programmatic configuration from training scripts
+Profiles solve this by storing configurations in:
+1. **Browser localStorage** - automatic persistence across sessions
+2. **JSON files** - sharing and programmatic configuration from training scripts
 
 ## Configuring from Training Scripts (Python API)
 
-You can set up default dashboard configurations directly from your training code
-using the `profile_writer` module. This is ideal for:
+Set up default dashboard configurations from your training code using the
+`profile_writer` module:
 
-- Pre-configuring dashboards for specific experiments
-- Ensuring team members see the same default view
-- Automating dashboard setup in MLOps pipelines
+- Pre-configure dashboards for specific experiments
+- Ensure team members see the same default view
+- Automate dashboard setup in MLOps pipelines
 
 ### Basic Usage
 
@@ -112,8 +107,7 @@ profile_writer.set_default_profile(
 
 ### Automatic Color Generation (`color_sampler`)
 
-Instead of manually picking hex colors, use the `color_sampler` module to
-automatically generate perceptually uniform colors that are easy to distinguish:
+Use the `color_sampler` module to generate perceptually uniform, distinguishable colors:
 
 ```python
 from tensorboard.plugins.core import profile_writer, color_sampler
@@ -139,9 +133,8 @@ profile_writer.set_default_profile(
 )
 ```
 
-The colors are generated in the **OKLCH color space**, which is perceptually
-uniform - meaning equal steps in the color space correspond to equal perceived
-differences. This ensures all colors are equally distinguishable.
+Colors are generated in **OKLCH color space** (perceptually uniform), ensuring
+all colors are equally distinguishable.
 
 #### `color_sampler` API
 
@@ -199,7 +192,7 @@ Creates and writes a default profile to the log directory.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `logdir` | `str` | Path to TensorBoard log directory |
+| `logdir` | `str` | Path to TensorBored log directory |
 | `name` | `str` | Display name for the profile (default: "Default Profile") |
 | `pinned_cards` | `list` | List of cards to pin (use helper functions below) |
 | `run_colors` | `dict` | Mapping of run names to hex color codes |
@@ -269,11 +262,11 @@ The profile is written to:
 <logdir>/.tensorboard/default_profile.json
 ```
 
-This file is automatically loaded when TensorBoard starts with that log directory.
+This file is automatically loaded when TensorBored starts with that log directory.
 
 ## Frontend Profile Management
 
-The TensorBoard web interface provides a profile management menu for interactive
+The TensorBored web interface provides a profile management menu for interactive
 configuration.
 
 ### Features
@@ -324,10 +317,10 @@ Use **Export/Import** to transfer profiles between browsers or share with teamma
 │              <logdir>/.tensorboard/default_profile.json                 │
 └─────────────────────────────────────────────────────────────────────────┘
                                │
-                               │ (TensorBoard reads on startup)
+                               │ (TensorBored reads on startup)
                                ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         TENSORBOARD BACKEND                             │
+│                         TENSORBORED BACKEND                             │
 │                                                                         │
 │   GET /data/profile  →  Returns default_profile.json contents           │
 │   POST /data/profile →  Saves new default profile (optional)            │
@@ -336,7 +329,7 @@ Use **Export/Import** to transfer profiles between browsers or share with teamma
                                │ (HTTP API)
                                ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                          TENSORBOARD FRONTEND                           │
+│                         TENSORBORED FRONTEND                            │
 │                                                                         │
 │   localStorage['tb-profile-*']  ←→  User profiles                       │
 │   localStorage['tb-saved-pins'] ←→  Auto-saved pinned cards             │
@@ -394,8 +387,8 @@ Use **Export/Import** to transfer profiles between browsers or share with teamma
 
 ### Backwards Compatibility
 
-- **Old URLs with pins**: Still work! TensorBoard can read pinned cards from
-  URL parameters for backwards compatibility with shared links.
+- **Old URLs with pins**: Still work! TensorBored reads pinned cards from URL
+  parameters for backwards compatibility with shared links.
 - **Legacy scalar pins**: The old `tb-saved-scalar-pins` localStorage key is
   automatically migrated to the new format on first load.
 
@@ -407,8 +400,8 @@ Use **Export/Import** to transfer profiles between browsers or share with teamma
 # In your training script (train.py)
 from tensorboard.plugins.core import profile_writer
 
-def setup_tensorboard_profile(logdir):
-    """Configure TensorBoard for this experiment."""
+def setup_tensorbored_profile(logdir):
+    """Configure TensorBored for this experiment."""
     profile_writer.set_default_profile(
         logdir=logdir,
         name='ResNet-50 Training',
@@ -439,7 +432,7 @@ def setup_tensorboard_profile(logdir):
     )
 
 # Call during training setup
-setup_tensorboard_profile('/experiments/resnet50/logs')
+setup_tensorbored_profile('/experiments/resnet50/logs')
 ```
 
 ### Example 2: Team Dashboard Template
@@ -463,7 +456,7 @@ profile = profile_writer.create_profile(
 with open('team_profile.json', 'w') as f:
     json.dump(profile, f, indent=2)
 
-# Team members can import this via the TensorBoard UI
+# Team members can import this via the TensorBored UI
 ```
 
 ### Example 3: CI/CD Integration
@@ -473,7 +466,7 @@ with open('team_profile.json', 'w') as f:
 from tensorboard.plugins.core import profile_writer
 
 def configure_ci_tensorboard(logdir, experiment_name):
-    """Standard CI TensorBoard configuration."""
+    """Standard CI TensorBored configuration."""
     profile_writer.set_default_profile(
         logdir=logdir,
         name=f'CI: {experiment_name}',
@@ -489,20 +482,19 @@ def configure_ci_tensorboard(logdir, experiment_name):
 
 ## Migration from URL-based Storage
 
-If you're upgrading from an older TensorBoard version:
+If you're upgrading from an older version:
 
-1. **Existing URL bookmarks**: Still work for loading, but new pins won't be
-   added to the URL
+1. **Existing URL bookmarks**: Still work for loading, but new pins won't be added to the URL
 2. **Legacy scalar pins**: Automatically migrated to new format
 3. **Pin limit**: Increased from 10 to 1000
 
-No action required - migration happens automatically on first use.
+No action required — migration happens automatically on first use.
 
 # Key Concepts
 
-### Summary Ops: How TensorBoard gets data from TensorFlow
+### Summary Ops: How TensorBored gets data from TensorFlow
 
-The first step in using TensorBoard is acquiring data from your TensorFlow run.
+The first step in using TensorBored is acquiring data from your TensorFlow run.
 For this, you need
 [summary ops](https://www.tensorflow.org/api_docs/python/tf/summary).
 Summary ops are ops, just like
@@ -511,8 +503,8 @@ and
 [`tf.nn.relu`](https://www.tensorflow.org/api_docs/python/tf/nn/relu),
 which means they take in tensors, produce tensors, and are evaluated from within
 a TensorFlow graph. However, summary ops have a twist: the Tensors they produce
-contain serialized protobufs, which are written to disk and sent to TensorBoard.
-To visualize the summary data in TensorBoard, you should evaluate the summary
+contain serialized protobufs, which are written to disk and sent to TensorBored.
+To visualize the summary data in TensorBored, you should evaluate the summary
 op, retrieve the result, and then write that result to disk using a
 summary.FileWriter. A full explanation, with examples, is in [the
 tutorial](https://www.tensorflow.org/get_started/summaries_and_tensorboard).
@@ -532,12 +524,12 @@ in the frontend. The scalar and histogram dashboards organize data by tag, and
 group the tags into folders according to a directory/like/hierarchy. If you have
 a lot of tags, we recommend grouping them with slashes.
 
-### Event Files & LogDirs: How TensorBoard loads the data
+### Event Files & LogDirs: How TensorBored loads the data
 
 `summary.FileWriters` take summary data from TensorFlow, and then write them to a
 specified directory, known as the `logdir`. Specifically, the data is written to
 an append-only record dump that will have "tfevents" in the filename.
-TensorBoard reads data from a full directory, and organizes it into the history
+TensorBored reads data from a full directory, and organizes it into the history
 of a single TensorFlow execution.
 
 Why does it read the whole directory, rather than an individual file? You might
@@ -545,20 +537,20 @@ have been using
 [supervisor.py](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/training/supervisor.py)
 to run your model, in which case if TensorFlow crashes, the supervisor will
 restart it from a checkpoint. When it restarts, it will start writing to a new
-events file, and TensorBoard will stitch the various event files together to
+events file, and TensorBored will stitch the various event files together to
 produce a consistent history of what happened.
 
 ### Runs: Comparing different executions of your model
 
 You may want to visually compare multiple executions of your model; for example,
 suppose you've changed the hyperparameters and want to see if it's converging
-faster. TensorBoard enables this through different "runs". When TensorBoard is
+faster. TensorBored enables this through different "runs". When TensorBored is
 passed a `logdir` at startup, it recursively walks the directory tree rooted at
 `logdir` looking for subdirectories that contain tfevents data. Every time it
 encounters such a subdirectory, it loads it as a new `run`, and the frontend
 will organize the data accordingly.
 
-For example, here is a well-organized TensorBoard log directory, with two runs,
+For example, here is a well-organized TensorBored log directory, with two runs,
 "run1" and "run2".
 
 ```
@@ -573,7 +565,7 @@ For example, here is a well-organized TensorBoard log directory, with two runs,
 
 #### Logdir & Logdir_spec (Legacy Mode)
 
-You may also pass a comma separated list of log directories, and TensorBoard
+You may also pass a comma separated list of log directories, and TensorBored
 will watch each directory. You can also assign names to individual log
 directories by putting a colon between the name and the path, as in
 
@@ -581,13 +573,13 @@ directories by putting a colon between the name and the path, as in
 tensorboard --logdir_spec name1:/path/to/logs/1,name2:/path/to/logs/2
 ```
 
-_This flag (`--logdir_spec`) is discouraged and can usually be avoided_. TensorBoard walks log directories recursively; for finer-grained control, prefer using a symlink tree. _Some features may not work when using `--logdir_spec` instead of `--logdir`._
+_This flag (`--logdir_spec`) is discouraged and can usually be avoided_. TensorBored walks log directories recursively; for finer-grained control, prefer using a symlink tree. _Some features may not work when using `--logdir_spec` instead of `--logdir`._
 
 # The Visualizations
 
 ### Scalar Dashboard
 
-TensorBoard's Scalar Dashboard visualizes scalar statistics that vary over time;
+TensorBored's Scalar Dashboard visualizes scalar statistics that vary over time;
 for example, you might want to track the model's loss or learning rate. As
 described in *Key Concepts*, you can compare multiple runs, and the data is
 organized by tag. The line charts have the following interactions:
@@ -636,7 +628,7 @@ The Image Dashboard can display pngs that were saved via a `tf.summary.image`.
 The dashboard is set up so that each row corresponds to a different tag, and
 each column corresponds to a run. Since the image dashboard supports arbitrary
 pngs, you can use this to embed custom visualizations (e.g. matplotlib
-scatterplots) into TensorBoard. This dashboard always shows you the latest image
+scatterplots) into TensorBored. This dashboard always shows you the latest image
 for each tag.
 
 ### Audio Dashboard
@@ -648,7 +640,7 @@ embeds the latest audio for each tag.
 
 ### Graph Explorer
 
-The Graph Explorer can visualize a TensorBoard graph, enabling inspection of the
+The Graph Explorer can visualize a TensorFlow graph, enabling inspection of the
 TensorFlow model. To get best use of the graph visualizer, you should use name
 scopes to hierarchically group the ops in your graph - otherwise, the graph may
 be difficult to decipher. For more information, including examples, see the
@@ -685,21 +677,21 @@ a run's color.
 at the top for quick comparison.
 
 * Settings: the right pane offers settings for charts and other visualizations.
-Important settings will persist across TensorBoard sessions, when hosted at the
+Important settings will persist across TensorBored sessions, when hosted at the
 same URL origin.
 
 * Autocomplete in tag filter: search for specific charts more easily.
 
 # Frequently Asked Questions
 
-### My TensorBoard isn't showing any data! What's wrong?
+### My TensorBored isn't showing any data! What's wrong?
 
 First, check that the directory passed to `--logdir` is correct. You can also
 verify this by navigating to the Scalars dashboard (under the "Inactive" menu)
 and looking for the log directory path at the bottom of the left sidebar.
 
 If you're loading from the proper path, make sure that event files are present.
-TensorBoard will recursively walk its logdir, it's fine if the data is nested
+TensorBored will recursively walk its logdir, it's fine if the data is nested
 under a subdirectory. Ensure the following shows at least one result:
 
 `find DIRECTORY_PATH | grep tfevents`
@@ -709,9 +701,9 @@ tensorboard in inspect mode to inspect the contents of your event files.
 
 `tensorboard --inspect --logdir DIRECTORY_PATH`
 
-The output for an event file corresponding to a blank TensorBoard may
+The output for an event file corresponding to a blank TensorBored may
 still sometimes show a few steps, representing a few initial events that
-aren't shown by TensorBoard (for example, when using the Keras TensorBoard callback):
+aren't shown by TensorBored (for example, when using the Keras TensorBoard callback):
 
 ```
 tensor
@@ -735,11 +727,11 @@ tensor
    outoforder_steps     [(2, 0), (2, 0), (2, 0), (2, 0), (50, 9), (100, 19), (150, 29), (200, 39), (250, 49)]
 ```
 
-### TensorBoard is showing only some of my data, or isn't properly updating!
+### TensorBored is showing only some of my data, or isn't properly updating!
 
 > **Update:** After [2.3.0 release][2-3-0], TensorBoard no longer auto reloads
 > every 30 seconds. To re-enable the behavior, please open the settings by
-> clicking the gear icon in the top-right of the TensorBoard web interface, and
+> clicking the gear icon in the top-right of the TensorBored web interface, and
 > enable "Reload data".
 
 > **Update:** the [experimental `--reload_multifile=true` option][pr-1867] can
@@ -748,23 +740,23 @@ tensor
 > received new data within `--reload_multifile_inactive_secs` seconds ago,
 > defaulting to 86400.
 
-This issue usually comes about because of how TensorBoard iterates through the
+This issue usually comes about because of how TensorBored iterates through the
 `tfevents` files: it progresses through the events file in timestamp order, and
 only reads one file at a time. Let's suppose we have files with timestamps `a`
-and `b`, where `a<b`. Once TensorBoard has read all the events in `a`, it will
+and `b`, where `a<b`. Once TensorBored has read all the events in `a`, it will
 never return to it, because it assumes any new events are being written in the
 more recent file. This could cause an issue if, for example, you have two
 `FileWriters` simultaneously writing to the same directory. If you have
 multiple summary writers, each one should be writing to a separate directory.
 
-### Does TensorBoard support multiple or distributed summary writers?
+### Does TensorBored support multiple or distributed summary writers?
 
 > **Update:** the [experimental `--reload_multifile=true` option][pr-1867] can
 > now be used to poll all "active" files in a directory for new data, defined as
 > any file that received new data within `--reload_multifile_inactive_secs`
 > seconds ago, defaulting to 86400.
 
-No. TensorBoard expects that only one events file will be written to at a time,
+No. TensorBored expects that only one events file will be written to at a time,
 and multiple summary writers means multiple events files. If you are running a
 distributed TensorFlow instance, we encourage you to designate a single worker
 as the "chief" that is responsible for all summary processing. See
@@ -790,7 +782,7 @@ to `FileWriter.add_summary`) is being maintained incorrectly.
 * It may be that your TensorFlow job crashed, and was restarted from an earlier
 checkpoint. See *How to handle TensorFlow restarts*, below.
 
-As a workaround, try changing the x-axis display in TensorBoard from `steps` to
+As a workaround, try changing the x-axis display in TensorBored from `steps` to
 `wall_time`. This will frequently clear up the issue.
 
 ### How should I handle TensorFlow restarts?
@@ -799,27 +791,27 @@ TensorFlow is designed with a mechanism for graceful recovery if a job crashes
 or is killed: TensorFlow can periodically write model checkpoint files, which
 enable you to restart TensorFlow without losing all your training progress.
 
-However, this can complicate things for TensorBoard; imagine that TensorFlow
+However, this can complicate things for TensorBored; imagine that TensorFlow
 wrote a checkpoint at step `a`, and then continued running until step `b`, and
 then crashed and restarted at timestamp `a`. All of the events written between
 `a` and `b` were "orphaned" by the restart event and should be removed.
 
 To facilitate this, we have a `SessionLog` message in
 `tensorflow/core/util/event.proto` which can record `SessionStatus.START` as an
-event; like all events, it may have a `step` associated with it. If TensorBoard
+event; like all events, it may have a `step` associated with it. If TensorBored
 detects a `SessionStatus.START` event with step `a`, it will assume that every
 event with a step greater than `a` was orphaned, and it will discard those
 events. This behavior may be disabled with the flag
 `--purge_orphaned_data false` (in versions after 0.7).
 
-### How can I export data from TensorBoard?
+### How can I export data from TensorBored?
 
 The Scalar Dashboard supports exporting data; you can click the "enable
 download links" option in the left-hand bar. Then, each plot will provide
 download links for the data it contains.
 
 If you need access to the full dataset, you can read the event files that
-TensorBoard consumes by using the [`summary_iterator`](
+TensorBored consumes by using the [`summary_iterator`](
 https://www.tensorflow.org/api_docs/python/tf/compat/v1/train/summary_iterator)
 method.
 
@@ -855,11 +847,11 @@ scalars plugin does not support visualizing margins.
 This isn't yet possible. As a workaround, you could create your custom plot in
 your own code (e.g. matplotlib) and then write it into an `SummaryProto`
 (`core/framework/summary.proto`) and add it to your `FileWriter`. Then, your
-custom plot will appear in the TensorBoard image tab.
+custom plot will appear in the TensorBored image tab.
 
 ### Is my data being downsampled? Am I really seeing all the data?
 
-TensorBoard uses [reservoir
+TensorBored uses [reservoir
 sampling](https://en.wikipedia.org/wiki/Reservoir_sampling) to downsample your
 data so that it can be loaded into RAM. You can modify the number of elements it
 will keep per tag by using the `--samples_per_plugin` command line argument (ex:
@@ -867,7 +859,7 @@ will keep per tag by using the `--samples_per_plugin` command line argument (ex:
 See this [Stack Overflow question](http://stackoverflow.com/questions/43702546/tensorboard-doesnt-show-all-data-points/)
 for some more information.
 
-### I get a network security popup every time I run TensorBoard on a mac!
+### I get a network security popup every time I run TensorBored on a mac!
 
 Versions of TensorBoard prior to TensorBoard 2.0 would by default serve on host
 `0.0.0.0`, which is publicly accessible. For those versions of TensorBoard, you
@@ -885,7 +877,7 @@ following plugins are supported: scalars, custom scalars, image, audio,
 graph, projector (partial), distributions, histograms, text, PR curves, mesh.
 In addition, there is no support for log directories on Google Cloud Storage.
 
-### How can I contribute to TensorBoard development?
+### How can I contribute to TensorBored development?
 
 See [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -899,7 +891,7 @@ that someone else has already had the same issue or question.
 General usage questions (or problems that may be specific to your local setup)
 should go to [Stack Overflow][stack-overflow].
 
-If you have found a bug in TensorBoard, please [file a GitHub issue](
+If you have found a bug in TensorBored, please [file a GitHub issue](
 https://github.com/tensorflow/tensorboard/issues/new) with as much supporting
 information as you can provide (e.g. attaching events files, including the output
 of `tensorboard --inspect`, etc.).
