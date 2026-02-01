@@ -38,7 +38,7 @@ Documentation = "https://github.com/Demonstrandum/tensorbored#readme"
 tensorboard = "tensorbored.main:run_main"
 tensorbored = "tensorbored.main:run_main"
 
-[project.entry-points."tensorboard_plugins"]
+[project.entry-points."tensorbored_plugins"]
 projector = "tensorbored.plugins.projector.projector_plugin:ProjectorPlugin"
 
 [tool.black]

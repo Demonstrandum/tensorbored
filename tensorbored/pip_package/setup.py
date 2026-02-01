@@ -48,7 +48,7 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": CONSOLE_SCRIPTS,
-        "tensorboard_plugins": [
+        "tensorbored_plugins": [
             "projector = tensorbored.plugins.projector.projector_plugin:ProjectorPlugin",
         ],
     },

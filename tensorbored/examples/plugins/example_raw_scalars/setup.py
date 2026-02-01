@@ -29,7 +29,7 @@ setuptools.setup(
         "tensorboard_plugin_example_raw_scalars": ["static/**"],
     },
     entry_points={
-        "tensorboard_plugins": [
+        "tensorbored_plugins": [
             "raw_scalars = tensorboard_plugin_example_raw_scalars.plugin:ExampleRawScalarsPlugin",
         ],
     },

@@ -119,6 +119,6 @@ def get_dynamic_plugins():
     return [
         entry_point.resolve()
         for entry_point in pkg_resources.iter_entry_points(
-            "tensorboard_plugins"
+            "tensorbored_plugins"
         )
     ]

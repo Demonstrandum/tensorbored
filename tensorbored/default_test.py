@@ -57,7 +57,7 @@ class DefaultTest(test.TestCase):
 
         actual_plugins = default.get_dynamic_plugins()
 
-        mock_iter_entry_points.assert_called_with("tensorboard_plugins")
+        mock_iter_entry_points.assert_called_with("tensorbored_plugins")
         self.assertEqual(actual_plugins, [FakePlugin])
 
 

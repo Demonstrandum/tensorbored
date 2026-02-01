@@ -25,7 +25,7 @@ setuptools.setup(
         "tensorboard_plugin_example": ["static/**"],
     },
     entry_points={
-        "tensorboard_plugins": [
+        "tensorbored_plugins": [
             "example_basic = tensorboard_plugin_example.plugin:ExamplePlugin",
         ],
     },
