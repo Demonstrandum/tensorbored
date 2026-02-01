@@ -392,7 +392,7 @@ def start(arguments, timeout=datetime.timedelta(seconds=60)):
     TensorBoard process (see `get_all`), that process will be reused.
 
     Otherwise, a new TensorBoard process will be spawned with the provided
-    arguments, using the `tensorboard` binary from the system path.
+    arguments, using the `tensorbored` binary from the system path.
 
     Args:
       arguments: List of strings to be passed as arguments to
@@ -425,7 +425,7 @@ def start(arguments, timeout=datetime.timedelta(seconds=60)):
     explicit_tb = os.environ.get("TENSORBOARD_BINARY", None)
     try:
         p = subprocess.Popen(
-            ["tensorboard" if explicit_tb is None else explicit_tb] + arguments,
+            ["tensorbored" if explicit_tb is None else explicit_tb] + arguments,
             stdout=stdout_fd,
             stderr=stderr_fd,
         )

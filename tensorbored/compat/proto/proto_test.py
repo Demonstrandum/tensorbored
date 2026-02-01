@@ -148,16 +148,16 @@ PROTO_IMPORTS = [
 
 PROTO_REPLACEMENTS = [
     # Keep replacements here in sync with the sed command in update.sh.
-    ("tensorflow/core/framework/", "tensorboard/compat/proto/"),
-    ("tensorflow/core/profiler/", "tensorboard/compat/proto/"),
-    ("tensorflow/core/protobuf/", "tensorboard/compat/proto/"),
-    ("tensorflow/core/util/", "tensorboard/compat/proto/"),
-    ("tensorflow/python/framework/", "tensorboard/compat/proto/"),
-    ("xla/tsl/protobuf", "tensorboard/compat/proto"),
-    ('package: "tensorflow.tfprof"', 'package: "tensorboard"'),
-    ('package: "tensorflow"', 'package: "tensorboard"'),
-    ('type_name: ".tensorflow.tfprof', 'type_name: ".tensorboard'),
-    ('type_name: ".tensorflow', 'type_name: ".tensorboard'),
+    ("tensorflow/core/framework/", "tensorbored/compat/proto/"),
+    ("tensorflow/core/profiler/", "tensorbored/compat/proto/"),
+    ("tensorflow/core/protobuf/", "tensorbored/compat/proto/"),
+    ("tensorflow/core/util/", "tensorbored/compat/proto/"),
+    ("tensorflow/python/framework/", "tensorbored/compat/proto/"),
+    ("xla/tsl/protobuf", "tensorbored/compat/proto"),
+    ('package: "tensorflow.tfprof"', 'package: "tensorbored"'),
+    ('package: "tensorflow"', 'package: "tensorbored"'),
+    ('type_name: ".tensorflow.tfprof', 'type_name: ".tensorbored'),
+    ('type_name: ".tensorflow', 'type_name: ".tensorbored'),
 ]
 
 
@@ -183,11 +183,11 @@ To get this test passing, follow these steps:
    version is untagged (e.g. a tf-nightly release), you'll need to pick a
    commit close in time to when that release was cut.
 
-3. In your tensorboard repo, run:
+3. In your tensorbored repo, run:
 
     ./tensorboard/compat/proto/update.sh PATH_TO_TENSORFLOW_REPO
 
-4. Verify the updates build. In your tensorboard repo, run:
+4. Verify the updates build. In your tensorbored repo, run:
 
     bazel build //tensorbored/compat/proto/...
 
@@ -195,12 +195,12 @@ To get this test passing, follow these steps:
 
     '//tensorbored/compat/proto:full_type_genproto' does not exist
 
-  Then create the file in the tensorboard repo:
+  Then create the file in the tensorbored repo:
 
     touch tensorboard/compat/proto/full_type.proto
 
   And rerun `update.sh`. The script will only copy files that already exist in
-  the tensorboard repo.
+  the tensorbored repo.
 
 5. Verify that this test now passes. Ensure that the target version of TF from
    step 1 is the version in your virtual environment, and then run:
@@ -216,7 +216,7 @@ To get this test passing, follow these steps:
 
    Ensure the test passes before proceeding.
 
-5. Update the rust data server proto binaries. In your tensorboard repo, run:
+5. Update the rust data server proto binaries. In your tensorbored repo, run:
 
     bazel run //tensorbored/data/server:update_protos
 
