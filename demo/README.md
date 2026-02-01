@@ -27,7 +27,7 @@ Save, load, and share your dashboard configurations! No more lost settings.
 Generate perceptually uniform colors using the OKLCH color space:
 
 ```python
-from tensorboard.plugins.core import color_sampler
+from tensorbored.plugins.core import color_sampler
 
 # Auto-assign colors to runs
 run_colors = color_sampler.colors_for_runs(['train', 'eval', 'test'])
@@ -40,7 +40,7 @@ colors = color_sampler.sample_colors(5)
 Configure dashboards directly from your training scripts:
 
 ```python
-from tensorboard.plugins.core import profile_writer, color_sampler
+from tensorbored.plugins.core import profile_writer, color_sampler
 
 profile_writer.set_default_profile(
     logdir='/path/to/logs',

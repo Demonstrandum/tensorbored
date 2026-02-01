@@ -6,18 +6,55 @@ on:
       - master
     paths:
       - 'demo/**'
-      - 'tensorboard/plugins/core/profile_writer.py'
-      - 'tensorboard/plugins/core/color_sampler.py'
-      - 'tensorboard/plugins/core/__init__.py'
+      - 'tensorbored/plugins/core/profile_writer.py'
+      - 'tensorbored/plugins/core/color_sampler.py'
+      - 'tensorbored/plugins/core/__init__.py'
       - '.github/workflows/deploy-demo.yml'
   workflow_dispatch:  # Allow manual trigger
+  workflow_run:
+    workflows: ["Wheel Prerelease"]
+    types:
+      - completed
+    branches:
+      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only run if triggered manually, by push, or if the wheel build succeeded
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get latest prerelease wheel URL
+        id: wheel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get the latest prerelease
+          RELEASE_INFO=$(gh release list --limit 10 --json tagName,isPrerelease | jq -r '.[] | select(.isPrerelease == true) | .tagName' | head -1)
+          
+          if [ -z "$RELEASE_INFO" ]; then
+            echo "No prerelease found, using latest release"
+            RELEASE_INFO=$(gh release list --limit 1 --json tagName | jq -r '.[0].tagName')
+          fi
+          
+          echo "Using release: $RELEASE_INFO"
+          
+          # Get the wheel URL from the release
+          WHEEL_URL=$(gh release view "$RELEASE_INFO" --json assets | jq -r '.assets[] | select(.name | endswith(".whl")) | .url' | head -1)
+          WHEEL_NAME=$(gh release view "$RELEASE_INFO" --json assets | jq -r '.assets[] | select(.name | endswith(".whl")) | .name' | head -1)
+          
+          echo "wheel_url=$WHEEL_URL" >> "$GITHUB_OUTPUT"
+          echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_INFO" >> "$GITHUB_OUTPUT"
+          
+          echo "Wheel URL: $WHEEL_URL"
+          echo "Wheel Name: $WHEEL_NAME"
 
       - name: Setup Git
         run: |
@@ -30,6 +67,14 @@ jobs:
         run: |
           git clone https://user:${HF_TOKEN}@huggingface.co/spaces/Demonstrandum/tensorbored-sample hf-space
 
+      - name: Download wheel artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p hf-space/wheel
+          gh release download "${{ steps.wheel.outputs.release_tag }}" --pattern "*.whl" --dir hf-space/wheel
+          ls -la hf-space/wheel/
+
       - name: Copy demo files to Space
         run: |
           # Copy demo files
@@ -38,11 +83,11 @@ jobs:
           cp demo/generate_demo_data.py hf-space/
           cp demo/start.sh hf-space/
           
-          # Copy TensorBored custom modules
-          mkdir -p hf-space/tensorboard_plugins_core
-          cp tensorboard/plugins/core/profile_writer.py hf-space/tensorboard_plugins_core/
-          cp tensorboard/plugins/core/color_sampler.py hf-space/tensorboard_plugins_core/
-          cp tensorboard/plugins/core/__init__.py hf-space/tensorboard_plugins_core/
+          # Copy TensorBored custom modules (in case wheel doesn't have latest)
+          mkdir -p hf-space/tensorbored_plugins_core
+          cp tensorbored/plugins/core/profile_writer.py hf-space/tensorbored_plugins_core/
+          cp tensorbored/plugins/core/color_sampler.py hf-space/tensorbored_plugins_core/
+          cp tensorbored/plugins/core/__init__.py hf-space/tensorbored_plugins_core/
 
       - name: Push to HuggingFace Space
         env:
@@ -55,7 +100,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to deploy"
           else
-            git commit -m "Deploy from GitHub Actions ($(date -u +%Y-%m-%d))"
+            git commit -m "Deploy from GitHub Actions - ${{ steps.wheel.outputs.release_tag }}"
             git push
             echo "Deployed successfully!"
           fi

@@ -36,13 +36,13 @@ from pathlib import Path
 
 import numpy as np
 
-# TensorBoard imports
-from tensorboard.compat.proto import event_pb2
-from tensorboard.compat.proto import summary_pb2
-from tensorboard.compat.proto.tensor_pb2 import TensorProto
-from tensorboard.compat.proto.tensor_shape_pb2 import TensorShapeProto
-from tensorboard.summary.writer.event_file_writer import EventFileWriter
-from tensorboard.plugins.core import profile_writer, color_sampler
+# TensorBored imports
+from tensorbored.compat.proto import event_pb2
+from tensorbored.compat.proto import summary_pb2
+from tensorbored.compat.proto.tensor_pb2 import TensorProto
+from tensorbored.compat.proto.tensor_shape_pb2 import TensorShapeProto
+from tensorbored.summary.writer.event_file_writer import EventFileWriter
+from tensorbored.plugins.core import profile_writer, color_sampler
 
 # ==============================================================================
 # Configuration
@@ -421,7 +421,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 # TensorBored extensions for dashboard configuration
-from tensorboard.plugins.core import profile_writer, color_sampler
+from tensorbored.plugins.core import profile_writer, color_sampler
 
 
 class SimpleNet(nn.Module):
