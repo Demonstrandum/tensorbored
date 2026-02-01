@@ -14,13 +14,11 @@
 # =============================================================================
 """A wrapper for TensorFlow SWIG-generated bindings."""
 
-
 import array
 import struct
 
 from . import errors
 from .io import gfile
-
 
 TFE_DEVICE_PLACEMENT_WARN = 0
 TFE_DEVICE_PLACEMENT_SILENT_FOR_INT32 = 0

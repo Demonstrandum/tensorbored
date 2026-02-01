@@ -26,7 +26,6 @@ from tensorbored.plugins.mesh import metadata
 from tensorbored.plugins.mesh import plugin_data_pb2
 from tensorbored.plugins.mesh import test_utils
 
-
 try:
     tf2.__version__  # Force lazy import to resolve
 except ImportError:

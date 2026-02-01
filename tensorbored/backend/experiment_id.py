@@ -14,9 +14,7 @@
 # ==============================================================================
 """Application-level experiment ID support."""
 
-
 import re
-
 
 # Value of the first path component that signals that the second path
 # component represents an experiment ID.

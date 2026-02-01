@@ -84,7 +84,7 @@ class CompressorTest(tf.test.TestCase):
             zip(*[bucket_limits[:-1], bucket_limits[1:], bucket_counts])
         )
         vals = compressor.compress_histogram(buckets, input_bps)
-        (bps, values) = zip(*vals)
+        bps, values = zip(*vals)
         self.assertSequenceEqual(bps, input_bps)
         self.assertAlmostEqual(values[0], -1.0)
         self.assertAlmostEqual(values[1], -0.86277993701301037)

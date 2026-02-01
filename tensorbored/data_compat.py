@@ -14,7 +14,6 @@
 # ==============================================================================
 """Utilities to migrate legacy protos to their modern equivalents."""
 
-
 import numpy as np
 
 from tensorbored.compat.proto import event_pb2

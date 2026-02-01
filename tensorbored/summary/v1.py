@@ -26,7 +26,6 @@ from tensorbored.plugins.pr_curve import summary as _pr_curve_summary
 from tensorbored.plugins.scalar import summary as _scalar_summary
 from tensorbored.plugins.text import summary as _text_summary
 
-
 audio = _audio_summary.op
 audio_pb = _audio_summary.pb
 

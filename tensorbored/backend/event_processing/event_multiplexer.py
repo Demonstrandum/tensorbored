@@ -14,7 +14,6 @@
 # ==============================================================================
 """Provides an interface for working with multiple event files."""
 
-
 import os
 import threading
 
@@ -24,7 +23,6 @@ from tensorbored.backend.event_processing import directory_watcher
 from tensorbored.backend.event_processing import event_accumulator
 from tensorbored.backend.event_processing import io_wrapper
 from tensorbored.util import tb_logging
-
 
 logger = tb_logging.get_logger()
 

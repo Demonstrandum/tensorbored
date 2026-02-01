@@ -14,7 +14,6 @@
 # ==============================================================================
 """Unit tests for `tensorboard.backend.event_processing.data_provider`."""
 
-
 import os
 
 import numpy as np
@@ -36,7 +35,6 @@ from tensorbored.plugins.image import summary_v2 as image_summary
 from tensorbored.util import tensor_util
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
-
 
 tf1.enable_eager_execution()
 

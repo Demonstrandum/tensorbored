@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for `wit_redirect_plugin`."""
 
-
 import contextlib
 import sys
 from unittest import mock
@@ -22,7 +21,6 @@ from unittest import mock
 from tensorbored.plugins import base_plugin
 from tensorbored.plugins.wit_redirect import wit_redirect_plugin
 from tensorbored import test as tb_test
-
 
 _DYNAMIC_PLUGIN_MODULE = "tensorboard_plugin_wit"
 

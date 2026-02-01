@@ -14,7 +14,6 @@
 # ==============================================================================
 """Information on the graph plugin."""
 
-
 # This name is used as the plugin prefix route and to identify this plugin
 # generally, and is also the `plugin_name` for run graphs after data-compat
 # transformations.

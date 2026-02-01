@@ -14,10 +14,8 @@
 # ==============================================================================
 """Text summaries and TensorFlow operations to create them."""
 
-
 from tensorbored.plugins.text import metadata
 from tensorbored.plugins.text import summary_v2
-
 
 # Export V2 versions.
 text = summary_v2.text

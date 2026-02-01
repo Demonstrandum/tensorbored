@@ -14,7 +14,6 @@
 # ==============================================================================
 """Unit tests for application package."""
 
-
 import json
 from unittest import mock
 

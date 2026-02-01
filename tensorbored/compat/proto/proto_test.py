@@ -19,13 +19,11 @@ as those available directly from TensorFlow. Local protos are used to
 build `tensorboard-notf` without a TensorFlow dependency.
 """
 
-
 import difflib
 import importlib
 
 import tensorflow as tf
 from google.protobuf import descriptor_pb2
-
 
 # Keep this list synced with BUILD in current directory
 PROTO_IMPORTS = [

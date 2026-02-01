@@ -35,7 +35,6 @@ from tensorbored.plugins.custom_scalar import metadata
 from tensorbored.plugins.scalar import metadata as scalars_metadata
 from tensorbored.plugins.scalar import scalars_plugin
 
-
 # The name of the property in the response for whether the regex is valid.
 _REGEX_VALID_PROPERTY = "regex_valid"
 

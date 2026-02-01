@@ -14,7 +14,6 @@
 # ==============================================================================
 """The TensorBoard metrics plugin."""
 
-
 import collections
 import json
 
@@ -30,7 +29,6 @@ from tensorbored.plugins.image import metadata as image_metadata
 from tensorbored.plugins.metrics import metadata
 from tensorbored.plugins.scalar import metadata as scalar_metadata
 from tensorbored.util import img_mime_type_detector
-
 
 _SINGLE_RUN_PLUGINS = frozenset(
     [histogram_metadata.PLUGIN_NAME, image_metadata.PLUGIN_NAME]
@@ -605,7 +603,7 @@ class MetricsPlugin(base_plugin.TBPlugin):
         if not blob_key:
             raise errors.InvalidArgumentError("Missing 'imageId' field")
 
-        (data, mime_type) = self._image_data_impl(ctx, blob_key)
+        data, mime_type = self._image_data_impl(ctx, blob_key)
         return http_util.Respond(request, data, mime_type)
 
     def _image_data_impl(self, ctx, blob_key):

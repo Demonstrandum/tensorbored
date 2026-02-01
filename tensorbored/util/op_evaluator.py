@@ -17,7 +17,6 @@
 Requires TensorFlow.
 """
 
-
 import threading
 
 

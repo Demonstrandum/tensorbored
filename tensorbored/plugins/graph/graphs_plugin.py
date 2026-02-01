@@ -14,7 +14,6 @@
 # ==============================================================================
 """The TensorBoard Graphs plugin."""
 
-
 import json
 from werkzeug import wrappers
 
@@ -118,7 +117,7 @@ class GraphsPlugin(base_plugin.TBPlugin):
                         "Ignoring unrecognizable version of RunMetadata."
                     )
                     continue
-                (_, tag_item) = add_row_item(run_name, tag)
+                _, tag_item = add_row_item(run_name, tag)
                 tag_item["op_graph"] = True
 
         # Tensors associated with plugin name metadata.PLUGIN_NAME_RUN_METADATA
@@ -135,7 +134,7 @@ class GraphsPlugin(base_plugin.TBPlugin):
                         "Ignoring unrecognizable version of RunMetadata."
                     )
                     continue
-                (_, tag_item) = add_row_item(run_name, tag)
+                _, tag_item = add_row_item(run_name, tag)
                 tag_item["profile"] = True
                 tag_item["op_graph"] = True
 
@@ -153,7 +152,7 @@ class GraphsPlugin(base_plugin.TBPlugin):
                         "Ignoring unrecognizable version of RunMetadata."
                     )
                     continue
-                (_, tag_item) = add_row_item(run_name, tag)
+                _, tag_item = add_row_item(run_name, tag)
                 tag_item["conceptual_graph"] = True
 
         mapping = self._data_provider.list_blob_sequences(
@@ -163,7 +162,7 @@ class GraphsPlugin(base_plugin.TBPlugin):
         )
         for run_name, tags in mapping.items():
             if metadata.RUN_GRAPH_NAME in tags:
-                (run_item, _) = add_row_item(run_name, None)
+                run_item, _ = add_row_item(run_name, None)
                 run_item["run_graph"] = True
 
         # Top level `Event.tagged_run_metadata` represents profile data only.
@@ -174,7 +173,7 @@ class GraphsPlugin(base_plugin.TBPlugin):
         )
         for run_name, tags in mapping.items():
             for tag in tags:
-                (_, tag_item) = add_row_item(run_name, tag)
+                _, tag_item = add_row_item(run_name, tag)
                 tag_item["profile"] = True
 
         return result
@@ -315,7 +314,7 @@ class GraphsPlugin(base_plugin.TBPlugin):
             )
         except ValueError as e:
             return http_util.Respond(request, e.message, "text/plain", code=400)
-        (body, mime_type) = result
+        body, mime_type = result
         return http_util.Respond(request, body, mime_type)
 
     @wrappers.Request.application
@@ -333,5 +332,5 @@ class GraphsPlugin(base_plugin.TBPlugin):
             return http_util.Respond(
                 request, 'query parameter "run" is required', "text/plain", 400
             )
-        (body, mime_type) = self.run_metadata_impl(ctx, experiment, run, tag)
+        body, mime_type = self.run_metadata_impl(ctx, experiment, run, tag)
         return http_util.Respond(request, body, mime_type)

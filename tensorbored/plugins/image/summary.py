@@ -21,13 +21,11 @@ NOTE: This module is in beta, and its API is subject to change, but the
 data that it stores to disk will be supported forever.
 """
 
-
 import numpy as np
 
 from tensorbored.plugins.image import metadata
 from tensorbored.plugins.image import summary_v2
 from tensorbored.util import encoder
-
 
 # Export V2 versions.
 image = summary_v2.image
@@ -139,7 +137,7 @@ def pb(name, images, max_outputs=3, display_name=None, description=None):
 
     limited_images = images[:max_outputs]
     encoded_images = [encoder.encode_png(image) for image in limited_images]
-    (width, height) = (images.shape[2], images.shape[1])
+    width, height = (images.shape[2], images.shape[1])
     content = [str(width), str(height)] + encoded_images
     tensor = tf.make_tensor_proto(content, dtype=tf.string)
 

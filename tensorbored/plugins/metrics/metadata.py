@@ -14,5 +14,4 @@
 # ==============================================================================
 """Internal information about the metrics plugin."""
 
-
 PLUGIN_NAME = "timeseries"

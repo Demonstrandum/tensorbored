@@ -18,7 +18,6 @@ import os.path
 
 from tensorbored.compat import tf
 
-
 _PLUGINS_DIR = "plugins"
 
 

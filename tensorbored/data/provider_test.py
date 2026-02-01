@@ -14,7 +14,6 @@
 # ==============================================================================
 """Unit tests for `tensorboard.data.provider`."""
 
-
 import numpy as np
 
 from tensorbored import test as tb_test
@@ -113,7 +112,7 @@ class ScalarTimeSeriesTest(tb_test.TestCase):
         x = provider.ScalarTimeSeries(
             max_step=77,
             max_wall_time=1234.5,
-            plugin_content=b"AB\xCD\xEF!\x00",
+            plugin_content=b"AB\xcd\xef!\x00",
             description="test test",
             display_name="one two",
             last_value=0.0001,
@@ -129,7 +128,7 @@ class ScalarTimeSeriesTest(tb_test.TestCase):
     def test_eq(self):
         x1 = self._scalar_time_series(77, 1234.5, b"\x12", "one", "two", 512)
         x2 = self._scalar_time_series(77, 1234.5, b"\x12", "one", "two", 512)
-        x3 = self._scalar_time_series(66, 4321.0, b"\x7F", "hmm", "hum", 1024)
+        x3 = self._scalar_time_series(66, 4321.0, b"\x7f", "hmm", "hum", 1024)
         self.assertEqual(x1, x2)
         self.assertNotEqual(x1, x3)
         self.assertNotEqual(x1, object())
@@ -137,7 +136,7 @@ class ScalarTimeSeriesTest(tb_test.TestCase):
     def test_hash(self):
         x1 = self._scalar_time_series(77, 1234.5, b"\x12", "one", "two", 512)
         x2 = self._scalar_time_series(77, 1234.5, b"\x12", "one", "two", 512)
-        x3 = self._scalar_time_series(66, 4321.0, b"\x7F", "hmm", "hum", 1024)
+        x3 = self._scalar_time_series(66, 4321.0, b"\x7f", "hmm", "hum", 1024)
         self.assertEqual(hash(x1), hash(x2))
         # The next check is technically not required by the `__hash__`
         # contract, but _should_ pass; failure on this assertion would at
@@ -189,7 +188,7 @@ class TensorTimeSeriesTest(tb_test.TestCase):
         x = provider.TensorTimeSeries(
             max_step=77,
             max_wall_time=1234.5,
-            plugin_content=b"AB\xCD\xEF!\x00",
+            plugin_content=b"AB\xcd\xef!\x00",
             description="test test",
             display_name="one two",
         )
@@ -203,7 +202,7 @@ class TensorTimeSeriesTest(tb_test.TestCase):
     def test_eq(self):
         x1 = self._tensor_time_series(77, 1234.5, b"\x12", "one", "two")
         x2 = self._tensor_time_series(77, 1234.5, b"\x12", "one", "two")
-        x3 = self._tensor_time_series(66, 4321.0, b"\x7F", "hmm", "hum")
+        x3 = self._tensor_time_series(66, 4321.0, b"\x7f", "hmm", "hum")
         self.assertEqual(x1, x2)
         self.assertNotEqual(x1, x3)
         self.assertNotEqual(x1, object())
@@ -211,7 +210,7 @@ class TensorTimeSeriesTest(tb_test.TestCase):
     def test_hash(self):
         x1 = self._tensor_time_series(77, 1234.5, b"\x12", "one", "two")
         x2 = self._tensor_time_series(77, 1234.5, b"\x12", "one", "two")
-        x3 = self._tensor_time_series(66, 4321.0, b"\x7F", "hmm", "hum")
+        x3 = self._tensor_time_series(66, 4321.0, b"\x7f", "hmm", "hum")
         self.assertEqual(hash(x1), hash(x2))
         # The next check is technically not required by the `__hash__`
         # contract, but _should_ pass; failure on this assertion would at
@@ -287,7 +286,7 @@ class BlobSequenceTimeSeriesTest(tb_test.TestCase):
             max_step=77,
             max_wall_time=1234.5,
             max_length=6,
-            plugin_content=b"AB\xCD\xEF!\x00",
+            plugin_content=b"AB\xcd\xef!\x00",
             description="test test",
             display_name="one two",
         )
@@ -307,7 +306,7 @@ class BlobSequenceTimeSeriesTest(tb_test.TestCase):
             77, 1234.5, 6, b"\x12", "one", "two"
         )
         x3 = self._blob_sequence_time_series(
-            66, 4321.0, 7, b"\x7F", "hmm", "hum"
+            66, 4321.0, 7, b"\x7f", "hmm", "hum"
         )
         self.assertEqual(x1, x2)
         self.assertNotEqual(x1, x3)
@@ -321,7 +320,7 @@ class BlobSequenceTimeSeriesTest(tb_test.TestCase):
             77, 1234.5, 6, b"\x12", "one", "two"
         )
         x3 = self._blob_sequence_time_series(
-            66, 4321.0, 7, b"\x7F", "hmm", "hum"
+            66, 4321.0, 7, b"\x7f", "hmm", "hum"
         )
         self.assertEqual(hash(x1), hash(x2))
         # The next check is technically not required by the `__hash__`

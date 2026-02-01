@@ -15,7 +15,6 @@
 # ==============================================================================
 """Tests HTTP utilities."""
 
-
 import gzip
 import io
 import struct

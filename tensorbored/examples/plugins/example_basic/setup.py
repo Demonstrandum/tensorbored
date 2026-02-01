@@ -16,7 +16,6 @@
 
 import setuptools
 
-
 setuptools.setup(
     name="tensorboard_plugin_example",
     version="0.1.0",

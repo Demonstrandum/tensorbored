@@ -14,7 +14,6 @@
 # ==============================================================================
 """Private utilities for managing multiple TensorBoard processes."""
 
-
 import base64
 import dataclasses
 import datetime
@@ -420,8 +419,8 @@ def start(arguments, timeout=datetime.timedelta(seconds=60)):
     if match:
         return StartReused(info=match)
 
-    (stdout_fd, stdout_path) = tempfile.mkstemp(prefix=".tensorboard-stdout-")
-    (stderr_fd, stderr_path) = tempfile.mkstemp(prefix=".tensorboard-stderr-")
+    stdout_fd, stdout_path = tempfile.mkstemp(prefix=".tensorboard-stdout-")
+    stderr_fd, stderr_path = tempfile.mkstemp(prefix=".tensorboard-stderr-")
     start_time_seconds = time.time()
     explicit_tb = os.environ.get("TENSORBOARD_BINARY", None)
     try:

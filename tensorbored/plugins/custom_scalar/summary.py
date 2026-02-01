@@ -14,7 +14,6 @@
 # ==============================================================================
 """Contains summaries related to laying out the custom scalars dashboard."""
 
-
 from tensorbored.plugins.custom_scalar import layout_pb2
 from tensorbored.plugins.custom_scalar import metadata
 

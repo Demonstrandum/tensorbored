@@ -14,7 +14,6 @@
 # ==============================================================================
 """API tests for the projector plugin in TensorBoard."""
 
-
 import os
 
 import tensorflow as tf

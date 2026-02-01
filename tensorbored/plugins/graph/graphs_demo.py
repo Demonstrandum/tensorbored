@@ -80,8 +80,8 @@ def keras():
     x = np.linspace(-1, 1, data_size)
     np.random.shuffle(x)
     y = 0.5 * x + 2 + np.random.normal(0, 0.05, (data_size,))
-    (x_train, y_train) = x[:train_size], y[:train_size]
-    (x_test, y_test) = x[train_size:], y[train_size:]
+    x_train, y_train = x[:train_size], y[:train_size]
+    x_test, y_test = x[train_size:], y[train_size:]
 
     layers = [
         tf.keras.layers.Dense(16, input_dim=1),

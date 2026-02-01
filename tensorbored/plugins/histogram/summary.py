@@ -28,12 +28,10 @@ NOTE: This module is in beta, and its API is subject to change, but the
 data that it stores to disk will be supported forever.
 """
 
-
 import numpy as np
 
 from tensorbored.plugins.histogram import metadata
 from tensorbored.plugins.histogram import summary_v2
-
 
 # Export V3 versions.
 histogram = summary_v2.histogram

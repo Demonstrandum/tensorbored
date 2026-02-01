@@ -22,7 +22,6 @@ sequences) via our pip package build script. But that script is run only in
 our external CI, whereas this python test can run anywhere our normal tests run.
 """
 
-
 import sys
 import unittest
 

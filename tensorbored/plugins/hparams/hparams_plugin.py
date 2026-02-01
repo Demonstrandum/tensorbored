@@ -38,7 +38,6 @@ from tensorbored.plugins import base_plugin
 from tensorbored.plugins.scalar import metadata as scalars_metadata
 from tensorbored.util import tb_logging
 
-
 logger = tb_logging.get_logger()
 
 

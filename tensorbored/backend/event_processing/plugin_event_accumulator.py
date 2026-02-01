@@ -35,7 +35,6 @@ from tensorbored.compat.proto import meta_graph_pb2
 from tensorbored.compat.proto import tensor_pb2
 from tensorbored.util import tb_logging
 
-
 logger = tb_logging.get_logger()
 
 

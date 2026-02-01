@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for list_session_groups."""
 
-
 import operator
 from unittest import mock
 
@@ -29,7 +28,6 @@ from tensorbored.plugins.hparams import backend_context
 from tensorbored.plugins.hparams import list_session_groups
 from tensorbored.plugins.hparams import metadata
 from tensorbored.plugins.hparams import plugin_data_pb2
-
 
 DATA_TYPE_EXPERIMENT = "experiment"
 DATA_TYPE_SESSION_START_INFO = "session_start_info"

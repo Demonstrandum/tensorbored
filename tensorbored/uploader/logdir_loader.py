@@ -14,14 +14,12 @@
 # ==============================================================================
 """Loader for event file data for an entire TensorBoard log directory."""
 
-
 import collections
 import os
 
 from tensorbored.backend.event_processing import directory_watcher
 from tensorbored.backend.event_processing import io_wrapper
 from tensorbored.util import tb_logging
-
 
 logger = tb_logging.get_logger()
 

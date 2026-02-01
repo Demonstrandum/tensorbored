@@ -15,7 +15,6 @@
 # ==============================================================================
 """Integration tests for the Embedding Projector."""
 
-
 import gzip
 import io
 import json

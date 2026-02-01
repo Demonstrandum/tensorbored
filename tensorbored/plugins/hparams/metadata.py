@@ -14,13 +14,11 @@
 # ==============================================================================
 """Constants used in the HParams plugin."""
 
-
 from tensorbored.compat.proto import summary_pb2
 from tensorbored.compat.proto import types_pb2
 from tensorbored.plugins.hparams import error
 from tensorbored.plugins.hparams import plugin_data_pb2
 from tensorbored.util import tensor_util
-
 
 PLUGIN_NAME = "hparams"
 PLUGIN_DATA_VERSION = 0

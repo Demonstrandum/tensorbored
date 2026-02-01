@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for `tensorboard.plugins.base_plugin`."""
 
-
 from tensorbored import test as tb_test
 from tensorbored.plugins import base_plugin
 

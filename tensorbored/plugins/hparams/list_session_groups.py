@@ -14,7 +14,6 @@
 # ==============================================================================
 """Classes and functions for handling the ListSessionGroups API call."""
 
-
 import collections
 import dataclasses
 import operator
@@ -250,7 +249,7 @@ class Handler:
         for session_name in session_names:
             for metric in metric_infos:
                 metric_name = metric.name
-                (run, tag) = metrics.run_tag_from_session_and_metric(
+                run, tag = metrics.run_tag_from_session_and_metric(
                     session_name, metric_name
                 )
                 metric_runs.add(run)
@@ -369,7 +368,7 @@ class Handler:
         result = []
         for metric_info in metric_infos:
             metric_name = metric_info.name
-            (run, tag) = metrics.run_tag_from_session_and_metric(
+            run, tag = metrics.run_tag_from_session_and_metric(
                 session_name, metric_name
             )
             datum = all_metric_evals.get(run, {}).get(tag)

@@ -18,7 +18,6 @@ This module is basically a dumpster for really generic succinct helper
 routines that exist solely for test code.
 """
 
-
 import threading
 
 import tensorflow as tf

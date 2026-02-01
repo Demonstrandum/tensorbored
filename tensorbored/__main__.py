@@ -14,7 +14,6 @@
 # ==============================================================================
 """Module that allows the user to run `python -m tensorboard`."""
 
-
 from tensorbored import main as _main
 
 run_main = _main.run_main

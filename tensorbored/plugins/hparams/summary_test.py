@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for summary."""
 
-
 import tensorflow as tf
 from google.protobuf import struct_pb2
 

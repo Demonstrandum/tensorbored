@@ -14,7 +14,6 @@
 # ==============================================================================
 """The Embedding Projector plugin."""
 
-
 import collections
 import functools
 import mimetypes

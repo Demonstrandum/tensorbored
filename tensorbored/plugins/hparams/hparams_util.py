@@ -39,7 +39,6 @@ hparams_util \
      --status=<A string containing a member of the Status protobuffer enum>
 """
 
-
 import getpass
 import time
 

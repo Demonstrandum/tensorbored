@@ -15,7 +15,6 @@
 # ==============================================================================
 """Tests the op that generates pr_curve summaries."""
 
-
 import numpy as np
 import tensorflow as tf
 

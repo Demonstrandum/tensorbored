@@ -14,7 +14,6 @@
 # ==============================================================================
 """Classes and functions for handling the DownloadData API call."""
 
-
 import csv
 import io
 import math

@@ -902,7 +902,7 @@ class TensorShape:
         ):
             return unknown_shape()
 
-        dims = [(Dimension(None))] * self.ndims
+        dims = [Dimension(None)] * self.ndims
         for i, (d1, d2) in enumerate(zip(self._dims, other.dims)):
             if d1 is not None and d2 is not None and d1 == d2:
                 dims[i] = d1

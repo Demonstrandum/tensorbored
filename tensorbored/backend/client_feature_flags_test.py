@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for `tensorboard.backend.client_feature_flags`."""
 
-
 import json
 from werkzeug import test as werkzeug_test
 from werkzeug import wrappers

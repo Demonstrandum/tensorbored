@@ -14,7 +14,6 @@
 # ==============================================================================
 """Used in genrule to convert dtype type info from Python to TypeScript."""
 
-
 import json
 import sys
 

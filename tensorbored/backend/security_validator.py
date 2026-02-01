@@ -14,7 +14,6 @@
 # ==============================================================================
 """Validates responses and their security features."""
 
-
 import dataclasses
 
 from typing import Collection

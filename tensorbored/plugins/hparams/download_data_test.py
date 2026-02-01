@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for download_data."""
 
-
 from unittest import mock
 
 from google.protobuf import text_format

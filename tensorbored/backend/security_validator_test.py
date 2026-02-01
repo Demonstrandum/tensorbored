@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for `tensorboard.backend.security_validator`."""
 
-
 from unittest import mock
 
 import werkzeug

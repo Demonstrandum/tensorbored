@@ -32,7 +32,6 @@ from tensorbored.data import provider
 
 from tensorbored.plugins.debugger_v2 import debug_data_multiplexer
 
-
 PLUGIN_NAME = "debugger-v2"
 
 ALERTS_BLOB_TAG_PREFIX = "alerts"

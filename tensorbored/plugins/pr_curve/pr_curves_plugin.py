@@ -22,7 +22,6 @@ from tensorbored.backend import http_util
 from tensorbored.plugins import base_plugin
 from tensorbored.plugins.pr_curve import metadata
 
-
 _DEFAULT_DOWNSAMPLING = 100  # PR curves per time series
 
 

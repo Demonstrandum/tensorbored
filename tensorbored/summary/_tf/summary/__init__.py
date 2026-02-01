@@ -78,7 +78,6 @@ with tf.compat.v1.Graph().as_default():
 ```
 """
 
-
 # Keep this import outside the function below for internal sync reasons.
 import tensorflow as tf
 

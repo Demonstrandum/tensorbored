@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for `tensorboard.util.grpc_util`."""
 
-
 import contextlib
 import hashlib
 import threading
@@ -283,7 +282,7 @@ class VersionMetadataTest(tb_test.TestCase):
         for kv in result:
             self.assertIsInstance(kv, tuple)
             self.assertLen(kv, 2)
-            (k, v) = kv
+            k, v = kv
             self.assertIsInstance(k, str)
             self.assertIsInstance(v, str)
 
@@ -295,7 +294,7 @@ class VersionMetadataTest(tb_test.TestCase):
 class ChannelCredsTypeTest(tb_test.TestCase):
     def test_all_variants_have_configs(self):
         for variant in grpc_util.ChannelCredsType.__members__.values():
-            (creds, options) = variant.channel_config()
+            creds, options = variant.channel_config()
             self.assertIsInstance(creds, grpc.ChannelCredentials)
             self.assertIsInstance(options, list)
 

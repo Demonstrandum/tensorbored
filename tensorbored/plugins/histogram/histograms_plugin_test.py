@@ -15,7 +15,6 @@
 # ==============================================================================
 """Integration tests for the Histograms Plugin."""
 
-
 import collections.abc
 import os.path
 
@@ -71,7 +70,7 @@ class HistogramsPluginTest(tf.test.TestCase):
         return (logdir, multiplexer)
 
     def load_plugin(self, run_names):
-        (logdir, multiplexer) = self.load_runs(run_names)
+        logdir, multiplexer = self.load_runs(run_names)
         provider = data_provider.MultiplexerDataProvider(multiplexer, logdir)
         ctx = base_plugin.TBContext(logdir=logdir, data_provider=provider)
         return histograms_plugin.HistogramsPlugin(ctx)
@@ -175,7 +174,7 @@ class HistogramsPluginTest(tf.test.TestCase):
             downsample_to = None
             expected_length = self._STEPS
 
-        (data, mime_type) = plugin.histograms_impl(
+        data, mime_type = plugin.histograms_impl(
             context.RequestContext(),
             tag_name,
             run_name,

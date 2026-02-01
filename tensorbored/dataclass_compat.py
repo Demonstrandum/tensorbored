@@ -21,7 +21,6 @@ field and makes any necessary transformations to the tensor value. For
 This should be effected after the `data_compat` transformation.
 """
 
-
 from tensorbored.compat.proto import event_pb2
 from tensorbored.compat.proto import summary_pb2
 from tensorbored.plugins.audio import metadata as audio_metadata

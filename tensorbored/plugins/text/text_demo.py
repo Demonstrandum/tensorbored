@@ -17,7 +17,6 @@ from absl import app
 from absl import logging
 import tensorflow as tf
 
-
 # Directory into which to write tensorboard data.
 LOGDIR = "/tmp/text_demo"
 

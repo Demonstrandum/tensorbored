@@ -18,7 +18,6 @@ Every plugin in TensorBoard must extend and implement the abstract
 methods of this base class.
 """
 
-
 from abc import ABCMeta
 from abc import abstractmethod
 

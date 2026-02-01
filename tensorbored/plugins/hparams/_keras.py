@@ -17,7 +17,6 @@
 Use `tensorboard.plugins.hparams.api` to access this module's contents.
 """
 
-
 import tensorflow as tf
 
 from tensorbored.plugins.hparams import api_pb2

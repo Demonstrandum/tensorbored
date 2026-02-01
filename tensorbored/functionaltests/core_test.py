@@ -14,7 +14,6 @@
 
 """Basic TensorBoard functional tests using WebDriver."""
 
-
 import collections
 import os
 import subprocess
@@ -27,7 +26,6 @@ from testing.web import webtest
 
 from tensorbored.plugins.scalar import scalars_demo
 from tensorbored.plugins.audio import audio_demo
-
 
 _BASE_PORT = 8000
 _PORT_OFFSETS = collections.defaultdict(lambda: len(_PORT_OFFSETS))

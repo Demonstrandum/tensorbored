@@ -99,7 +99,7 @@ def check(proto_packages):
 
 
 def main():
-    (mode, *proto_packages) = sys.argv[1:]
+    mode, *proto_packages = sys.argv[1:]
     if mode == "--update":
         return update(proto_packages)
     if mode == "--check":

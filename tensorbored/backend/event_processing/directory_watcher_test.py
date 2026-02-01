@@ -15,7 +15,6 @@
 
 """Tests for directory_watcher."""
 
-
 import os
 import shutil
 

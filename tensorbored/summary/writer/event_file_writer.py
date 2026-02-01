@@ -14,7 +14,6 @@
 # ==============================================================================
 """Writes events to disk in a logdir."""
 
-
 import os
 import queue
 import socket

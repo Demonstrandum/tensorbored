@@ -18,7 +18,6 @@ See `http_api.md` in this directory for specifications of the routes for
 this plugin.
 """
 
-
 from werkzeug import wrappers
 
 from tensorbored import errors
@@ -27,7 +26,6 @@ from tensorbored.backend import http_util
 from tensorbored.data import provider
 from tensorbored.plugins import base_plugin
 from tensorbored.plugins.histogram import metadata
-
 
 _DEFAULT_DOWNSAMPLING = 500  # histograms per time series
 
@@ -140,7 +138,7 @@ class HistogramsPlugin(base_plugin.TBPlugin):
         experiment = plugin_util.experiment_id(request.environ)
         tag = request.args.get("tag")
         run = request.args.get("run")
-        (body, mime_type) = self.histograms_impl(
+        body, mime_type = self.histograms_impl(
             ctx, tag, run, experiment=experiment, downsample_to=self.SAMPLE_SIZE
         )
         return http_util.Respond(request, body, mime_type)

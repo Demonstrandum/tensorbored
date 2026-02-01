@@ -14,7 +14,6 @@
 # ==============================================================================
 """Internal information about the scalar plugin."""
 
-
 from tensorbored.compat.proto import summary_pb2
 from tensorbored.plugins.scalar import plugin_data_pb2
 

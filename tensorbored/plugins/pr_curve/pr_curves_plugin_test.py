@@ -14,7 +14,6 @@
 # ==============================================================================
 """Integration tests for the pr_curves plugin."""
 
-
 import collections.abc
 import functools
 import os.path

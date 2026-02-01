@@ -14,7 +14,6 @@
 # ==============================================================================
 """Information about histogram summaries."""
 
-
 from tensorbored.compat.proto import summary_pb2
 from tensorbored.plugins.histogram import plugin_data_pb2
 

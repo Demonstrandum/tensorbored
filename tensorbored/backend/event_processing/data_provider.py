@@ -14,7 +14,6 @@
 # ==============================================================================
 """Bridge from event multiplexer storage to generic data APIs."""
 
-
 import base64
 import collections
 import json
@@ -438,9 +437,7 @@ def _decode_blob_key(key):
     """
     decoded = base64.urlsafe_b64decode(key + "==")  # pad past a multiple of 4.
     stringified = decoded.decode("ascii")
-    (experiment_id, plugin_name, run, tag, step, index) = json.loads(
-        stringified
-    )
+    experiment_id, plugin_name, run, tag, step, index = json.loads(stringified)
     return (experiment_id, plugin_name, run, tag, step, index)
 
 

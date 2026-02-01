@@ -14,7 +14,6 @@
 # ==============================================================================
 """Integration tests for the Graphs Plugin for TensorFlow v2."""
 
-
 import numpy as np
 import os.path
 
@@ -23,7 +22,6 @@ import tensorflow as tf
 
 from tensorbored.compat.proto import graph_pb2
 from tensorbored.plugins.graph import graphs_plugin_test
-
 
 # Graph plugin V2 Keras 3 is only supported in TensorFlow eager mode.
 tf.compat.v1.enable_eager_execution()
@@ -62,7 +60,7 @@ class GraphsPluginV2Test(
 
     def _get_graph(self, plugin, *args, **kwargs):
         """Fetch and return the graph as a proto."""
-        (graph_pbtxt, mime_type) = plugin.graph_impl(*args, **kwargs)
+        graph_pbtxt, mime_type = plugin.graph_impl(*args, **kwargs)
         self.assertEqual(mime_type, "text/x-protobuf")
         return text_format.Parse(graph_pbtxt, graph_pb2.GraphDef())
 

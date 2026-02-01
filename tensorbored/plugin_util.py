@@ -26,7 +26,6 @@ from tensorbored import context as _context
 from tensorbored.backend import experiment_id as _experiment_id
 from tensorbored.util import tb_logging
 
-
 logger = tb_logging.get_logger()
 
 _ALLOWED_ATTRIBUTES = {

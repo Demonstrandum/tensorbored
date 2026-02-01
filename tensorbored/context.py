@@ -16,7 +16,6 @@
 
 from tensorbored import auth as auth_lib
 
-
 # A `RequestContext` value is stored on WSGI environments under this key.
 _WSGI_KEY = "tensorbored.request_context"
 

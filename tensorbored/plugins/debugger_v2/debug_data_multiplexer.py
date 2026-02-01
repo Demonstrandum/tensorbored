@@ -14,7 +14,6 @@
 # ==============================================================================
 """A wrapper around DebugDataReader used for retrieving tfdbg v2 data."""
 
-
 import threading
 
 from tensorbored import errors

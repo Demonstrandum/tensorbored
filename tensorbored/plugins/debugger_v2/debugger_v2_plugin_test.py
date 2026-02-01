@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for Debugger V2 Plugin."""
 
-
 import collections
 import json
 import os

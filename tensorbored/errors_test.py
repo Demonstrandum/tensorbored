@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for tensorboard.errors."""
 
-
 from tensorbored import errors
 from tensorbored import test as tb_test
 

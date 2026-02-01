@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for the `tb_proto_library` build macro."""
 
-
 from tensorbored import test as tb_test
 from tensorbored.defs import test_base_pb2
 from tensorbored.defs import test_base_pb2_grpc

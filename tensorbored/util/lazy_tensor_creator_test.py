@@ -17,7 +17,6 @@ import tensorflow as tf
 
 from tensorbored.util import lazy_tensor_creator
 
-
 tf.compat.v1.enable_eager_execution()
 
 

@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for the `tensorboard.summary._output` module."""
 
-
 import numpy as np
 
 from tensorbored.compat.proto import summary_pb2

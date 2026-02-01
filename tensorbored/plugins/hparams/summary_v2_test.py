@@ -31,7 +31,6 @@ from tensorbored.plugins.hparams import metadata
 from tensorbored.plugins.hparams import plugin_data_pb2
 from tensorbored.plugins.hparams import summary_v2 as hp
 
-
 if tf.__version__ == "stub":
     tf = None
 

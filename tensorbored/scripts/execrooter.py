@@ -13,7 +13,6 @@
 # limitations under the License.
 """Utility for running programs in a symlinked execroot."""
 
-
 import json
 import os
 import shutil

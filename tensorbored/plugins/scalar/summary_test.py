@@ -15,7 +15,6 @@
 # ==============================================================================
 """Tests for the scalar plugin summary API."""
 
-
 import glob
 import os
 

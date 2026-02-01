@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests the Tensorboard images plugin."""
 
-
 import collections.abc
 import json
 import os
@@ -43,7 +42,7 @@ tf.compat.v1.disable_v2_behavior()
 class ImagesPluginTest(tf.test.TestCase):
     def setUp(self):
         super().setUp()
-        (logdir, multiplexer) = self._create_data()
+        logdir, multiplexer = self._create_data()
         provider = data_provider.MultiplexerDataProvider(multiplexer, logdir)
         ctx = base_plugin.TBContext(logdir=logdir, data_provider=provider)
         plugin = images_plugin.ImagesPlugin(ctx)

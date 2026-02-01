@@ -14,7 +14,6 @@
 # ==============================================================================
 """A sample plugin to demonstrate reading scalars."""
 
-
 import mimetypes
 import os
 

@@ -17,7 +17,6 @@ import setuptools
 
 import tensorboard_data_server
 
-
 setuptools.setup(
     name="tensorboard_data_server",
     version=tensorboard_data_server.__version__.replace("-", ""),

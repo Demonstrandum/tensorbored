@@ -14,5 +14,4 @@
 # ==============================================================================
 """Plugin-specific global metadata."""
 
-
 PLUGIN_NAME = "example_basic"

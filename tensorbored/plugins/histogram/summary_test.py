@@ -15,7 +15,6 @@
 # ==============================================================================
 """Tests for the histogram plugin summary generation functions."""
 
-
 import glob
 import os
 
@@ -27,7 +26,6 @@ from tensorbored.compat.proto import summary_pb2
 from tensorbored.plugins.histogram import metadata
 from tensorbored.plugins.histogram import summary
 from tensorbored.util import tensor_util
-
 
 try:
     tf2.__version__  # Force lazy import to resolve

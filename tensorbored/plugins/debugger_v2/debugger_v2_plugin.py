@@ -14,7 +14,6 @@
 # ==============================================================================
 """The TensorBoard Debugger V2 plugin."""
 
-
 import threading
 
 from werkzeug import wrappers

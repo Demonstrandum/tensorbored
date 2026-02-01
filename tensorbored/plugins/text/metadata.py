@@ -14,7 +14,6 @@
 # ==============================================================================
 """Internal information about the text plugin."""
 
-
 from tensorbored.compat.proto import summary_pb2
 from tensorbored.plugins.text import plugin_data_pb2
 

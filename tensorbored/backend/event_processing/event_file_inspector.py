@@ -108,7 +108,6 @@ histograms
    outoforder_steps     []
 """
 
-
 import dataclasses
 import itertools
 import os
@@ -120,7 +119,6 @@ from tensorbored.backend.event_processing import event_file_loader
 from tensorbored.backend.event_processing import io_wrapper
 from tensorbored.compat import tf
 from tensorbored.compat.proto import event_pb2
-
 
 # Map of field names within summary.proto to the user-facing names that this
 # script outputs.

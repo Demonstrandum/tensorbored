@@ -14,7 +14,6 @@
 # ==============================================================================
 """Information on the custom scalars plugin."""
 
-
 from tensorbored.compat.proto import summary_pb2
 
 # A special tag named used for the summary that stores the layout.

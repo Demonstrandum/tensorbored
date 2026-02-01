@@ -15,7 +15,6 @@
 
 """A key-value[] store that implements reservoir sampling on the values."""
 
-
 import collections
 import random
 import threading

@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for `tensorboard.backend.path_prefix`."""
 
-
 import json
 
 import werkzeug

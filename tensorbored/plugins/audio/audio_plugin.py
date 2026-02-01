@@ -14,7 +14,6 @@
 # ==============================================================================
 """The TensorBoard Audio plugin."""
 
-
 import urllib.parse
 
 from werkzeug import wrappers
@@ -25,7 +24,6 @@ from tensorbored.backend import http_util
 from tensorbored.data import provider
 from tensorbored.plugins import base_plugin
 from tensorbored.plugins.audio import metadata
-
 
 _DEFAULT_MIME_TYPE = "application/octet-stream"
 _DEFAULT_DOWNSAMPLING = 10  # audio clips per time series

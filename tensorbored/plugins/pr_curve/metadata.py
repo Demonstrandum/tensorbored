@@ -14,7 +14,6 @@
 # ==============================================================================
 """Internal information about the pr_curves plugin."""
 
-
 from tensorbored.compat.proto import summary_pb2
 from tensorbored.plugins.pr_curve import plugin_data_pb2
 

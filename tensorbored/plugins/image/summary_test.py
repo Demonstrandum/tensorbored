@@ -15,7 +15,6 @@
 # ==============================================================================
 """Tests for the image plugin summary generation functions."""
 
-
 import glob
 import os
 

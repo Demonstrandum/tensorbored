@@ -21,7 +21,6 @@ import absl.logging
 
 from tensorbored.compat import tf
 
-
 _TBDEV_SHUTDOWN_MESSAGE = """\
 ======================================================================
 ERROR: The `tensorboard dev` command is no longer available.

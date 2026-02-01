@@ -32,7 +32,6 @@ Some differences from `tar czf ARCHIVE [FILES]...`:
 See <https://reproducible-builds.org/docs/archives/>.
 """
 
-
 import argparse
 import gzip
 import os

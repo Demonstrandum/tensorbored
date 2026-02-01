@@ -14,7 +14,6 @@
 # ==============================================================================
 """Generate some standard test data for debugging TensorBoard."""
 
-
 import bisect
 import math
 import os
@@ -26,7 +25,6 @@ from absl import app
 from absl import flags
 import numpy as np
 import tensorflow as tf
-
 
 flags.DEFINE_string(
     "target",

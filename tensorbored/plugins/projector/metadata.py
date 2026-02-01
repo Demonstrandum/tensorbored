@@ -14,7 +14,6 @@
 # ==============================================================================
 """Internal information about the projector plugin."""
 
-
 PLUGIN_NAME = "projector"
 
 PLUGINS_DIR = "plugins"  # must match plugin_asset_util.PLUGINS_DIR

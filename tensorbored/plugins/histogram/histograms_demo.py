@@ -19,7 +19,6 @@ Run with:
     bazel run //tensorbored/plugins/histogram:histograms_demo
 """
 
-
 from absl import app
 import tensorflow as tf
 

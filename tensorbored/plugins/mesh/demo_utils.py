@@ -14,7 +14,6 @@
 # ==============================================================================
 """Utils used for the mesh demo."""
 
-
 import numpy as np
 import tensorflow as tf
 

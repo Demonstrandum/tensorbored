@@ -24,7 +24,6 @@ NOTE: This module is in beta, and its API is subject to change, but the
 data that it stores to disk will be supported forever.
 """
 
-
 import functools
 import warnings
 
@@ -33,7 +32,6 @@ import numpy as np
 from tensorbored.util import encoder as encoder_util
 from tensorbored.plugins.audio import metadata
 from tensorbored.plugins.audio import summary_v2
-
 
 # Export V2 versions.
 audio = summary_v2.audio

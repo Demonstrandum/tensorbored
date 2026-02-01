@@ -19,7 +19,6 @@ After installing the plugin (`python setup.py develop`), you can run TensorBoard
 with logdir set to the `demo_logs` directory.
 """
 
-
 import math
 
 from absl import app

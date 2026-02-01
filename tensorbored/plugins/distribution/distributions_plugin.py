@@ -18,7 +18,6 @@ See `http_api.md` in this directory for specifications of the routes for
 this plugin.
 """
 
-
 from werkzeug import wrappers
 
 from tensorbored import plugin_util
@@ -80,7 +79,7 @@ class DistributionsPlugin(base_plugin.TBPlugin):
         Raises:
           tensorboard.errors.PublicError: On invalid request.
         """
-        (histograms, mime_type) = self._histograms_plugin.histograms_impl(
+        histograms, mime_type = self._histograms_plugin.histograms_impl(
             ctx, tag, run, experiment=experiment, downsample_to=self.SAMPLE_SIZE
         )
         return (
@@ -89,7 +88,7 @@ class DistributionsPlugin(base_plugin.TBPlugin):
         )
 
     def _compress(self, histogram):
-        (wall_time, step, buckets) = histogram
+        wall_time, step, buckets = histogram
         converted_buckets = compressor.compress_histogram(buckets)
         return [wall_time, step, converted_buckets]
 
@@ -111,7 +110,7 @@ class DistributionsPlugin(base_plugin.TBPlugin):
         experiment = plugin_util.experiment_id(request.environ)
         tag = request.args.get("tag")
         run = request.args.get("run")
-        (body, mime_type) = self.distributions_impl(
+        body, mime_type = self.distributions_impl(
             ctx, tag, run, experiment=experiment
         )
         return http_util.Respond(request, body, mime_type)

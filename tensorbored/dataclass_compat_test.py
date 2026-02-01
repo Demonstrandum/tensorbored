@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for `tensorboard.dataclass_compat`."""
 
-
 import os
 
 import numpy as np

@@ -26,7 +26,6 @@ from tensorbored.plugins import base_plugin
 from tensorbored.plugins.image import metadata
 from tensorbored.util import img_mime_type_detector
 
-
 _DEFAULT_DOWNSAMPLING = 10  # images per time series
 
 

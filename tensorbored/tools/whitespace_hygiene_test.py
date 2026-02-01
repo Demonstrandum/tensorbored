@@ -24,7 +24,6 @@ import os
 import subprocess
 import sys
 
-
 exceptions = frozenset([])
 
 
@@ -83,7 +82,7 @@ def git_grep(pattern):
     """
     cmd = ["git", "grep", "-Izn", "--", pattern]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, stderr) = p.communicate()
+    stdout, stderr = p.communicate()
     if stderr:
         getattr(sys.stderr, "buffer", sys.stderr).write(
             stderr
@@ -93,7 +92,7 @@ def git_grep(pattern):
     for (
         line
     ) in stdout.splitlines():  # assumes no newline characters in filenames
-        (filename_raw, line_number_raw, line_raw) = line.split(b"\0", 2)
+        filename_raw, line_number_raw, line_raw = line.split(b"\0", 2)
         match = Match(
             filename=filename_raw.decode("utf-8", errors="replace"),
             line_number=int(line_number_raw),

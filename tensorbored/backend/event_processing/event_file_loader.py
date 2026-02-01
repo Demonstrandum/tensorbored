@@ -24,7 +24,6 @@ from tensorbored.compat.proto import event_pb2
 from tensorbored.util import platform_util
 from tensorbored.util import tb_logging
 
-
 logger = tb_logging.get_logger()
 
 

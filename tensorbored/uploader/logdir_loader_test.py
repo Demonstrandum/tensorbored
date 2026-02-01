@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for tensorboard.uploader.logdir_loader."""
 
-
 import os.path
 import shutil
 

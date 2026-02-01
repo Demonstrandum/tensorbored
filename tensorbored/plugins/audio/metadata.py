@@ -14,7 +14,6 @@
 # ==============================================================================
 """Internal information about the audio plugin."""
 
-
 from tensorbored.compat.proto import summary_pb2
 from tensorbored.plugins.audio import plugin_data_pb2
 

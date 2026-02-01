@@ -21,7 +21,6 @@ a binary string whose encoding is specified in the summary metadata, and
 `label` is a UTF-8 encoded Markdown string describing the audio clip.
 """
 
-
 import functools
 
 from tensorbored.compat import tf2 as tf

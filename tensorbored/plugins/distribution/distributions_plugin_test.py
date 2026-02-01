@@ -15,7 +15,6 @@
 # ==============================================================================
 """Integration tests for the Distributions Plugin."""
 
-
 import collections.abc
 import os.path
 
@@ -152,7 +151,7 @@ class DistributionsPluginTest(tf.test.TestCase):
             ]
         )
         if should_work:
-            (data, mime_type) = self.plugin.distributions_impl(
+            data, mime_type = self.plugin.distributions_impl(
                 context.RequestContext(), tag_name, run_name, experiment="exp"
             )
             self.assertEqual("application/json", mime_type)
@@ -160,7 +159,7 @@ class DistributionsPluginTest(tf.test.TestCase):
             for i in range(self._STEPS):
                 [_unused_wall_time, step, bps_and_icdfs] = data[i]
                 self.assertEqual(i, step)
-                (bps, _unused_icdfs) = zip(*bps_and_icdfs)
+                bps, _unused_icdfs = zip(*bps_and_icdfs)
                 self.assertEqual(bps, compressor.NORMAL_HISTOGRAM_BPS)
         else:
             with self.assertRaises(errors.NotFoundError):

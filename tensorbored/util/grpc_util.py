@@ -14,7 +14,6 @@
 # ==============================================================================
 """Utilities for working with python gRPC stubs."""
 
-
 import enum
 import functools
 import random

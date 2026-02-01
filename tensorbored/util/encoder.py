@@ -17,7 +17,6 @@
 Encoder depends on TensorFlow.
 """
 
-
 import numpy as np
 
 from tensorbored.util import op_evaluator

@@ -14,7 +14,6 @@
 # ==============================================================================
 """Text summaries and TensorFlow operations to create them, V2 versions."""
 
-
 import numpy as np
 
 from tensorbored.compat import tf2 as tf

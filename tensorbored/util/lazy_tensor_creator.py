@@ -18,7 +18,6 @@ import threading
 
 from tensorbored.compat import tf2 as tf
 
-
 # Sentinel used for LazyTensorCreator._tensor to indicate that a value is
 # currently being computed, in order to fail hard on reentrancy.
 _CALL_IN_PROGRESS_SENTINEL = object()

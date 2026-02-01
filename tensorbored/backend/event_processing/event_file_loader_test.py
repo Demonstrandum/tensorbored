@@ -15,7 +15,6 @@
 
 """Tests for event_file_loader."""
 
-
 import abc
 import io
 import os
@@ -27,7 +26,6 @@ from tensorbored.backend.event_processing import event_file_loader
 from tensorbored.compat import tf
 from tensorbored.compat.proto import event_pb2
 from tensorbored.summary.writer import record_writer
-
 
 FILENAME = "test.events"
 USING_STUB_TF = tf.__version__ == "stub"

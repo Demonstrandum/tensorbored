@@ -15,7 +15,6 @@
 # ==============================================================================
 """Integration tests for the Graphs Plugin."""
 
-
 import collections.abc
 import math
 import os.path
@@ -149,7 +148,7 @@ class GraphsPluginV1Test(GraphsPluginBaseTest, tf.test.TestCase):
 
     def _get_graph(self, plugin, run=None, **kwargs):
         """Set up runs, then fetch and return the graph as a proto."""
-        (graph_pbtxt, mime_type) = plugin.graph_impl(
+        graph_pbtxt, mime_type = plugin.graph_impl(
             context.RequestContext(),
             run if run is not None else _RUN_WITH_GRAPH_WITH_METADATA[0],
             **kwargs,
@@ -264,7 +263,7 @@ class GraphsPluginV1Test(GraphsPluginBaseTest, tf.test.TestCase):
         result = plugin.run_metadata_impl(
             ctx, "123", _RUN_WITH_GRAPH_WITH_METADATA[0], self._METADATA_TAG
         )
-        (metadata_pbtxt, mime_type) = result
+        metadata_pbtxt, mime_type = result
         self.assertEqual(mime_type, "text/x-protobuf")
         text_format.Parse(metadata_pbtxt, config_pb2.RunMetadata())
         # If it parses, we're happy.

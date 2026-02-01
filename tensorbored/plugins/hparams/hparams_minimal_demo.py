@@ -25,12 +25,10 @@ trains real MNIST models instead of using synthetic data, at the cost of
 taking much longer to run.
 """
 
-
 import hashlib
 import math
 import os.path
 import shutil
-
 
 # TODO(erez): This code currently does not support eager mode and can't
 # be run in tensorflow 2.0. Some of the issues are that it uses
@@ -46,7 +44,6 @@ from google.protobuf import struct_pb2
 from tensorbored.plugins.scalar import summary as scalar_summary
 from tensorbored.plugins.hparams import api_pb2
 from tensorbored.plugins.hparams import summary
-
 
 FLAGS = flags.FLAGS
 
@@ -238,7 +235,7 @@ def run(logdir, session_id, hparams, group_name):
         # change the value of the temperature variable. We don't actually
         # care about this value, so we discard it; instead, we grab the
         # summary data computed along the way.
-        (s, _) = sess.run([summ, update_step])
+        s, _ = sess.run([summ, update_step])
         if (step % FLAGS.summary_freq) == 0:
             writer.add_summary(s, global_step=step)
     writer.add_summary(summary.session_end_pb(api_pb2.STATUS_SUCCESS))

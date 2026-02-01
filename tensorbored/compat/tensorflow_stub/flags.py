@@ -24,7 +24,6 @@ import sys as _sys
 # go/tf-wildcard-import
 from absl.flags import *  # pylint: disable=wildcard-import
 
-
 # Since we wrap absl.flags DEFINE functions, we need to declare this module
 # does not affect key flags.
 disclaim_key_flags()  # pylint: disable=undefined-variable

@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for list_metric_evals."""
 
-
 from unittest import mock
 
 import tensorflow as tf
@@ -55,15 +54,13 @@ class ListMetricEvalsTest(tf.test.TestCase):
         return handler.run()
 
     def test_run(self):
-        result = self._run_handler(
-            """
+        result = self._run_handler("""
             session_name: '/this/is/a/session'
             metric_name: {
               tag: 'metric_tag'
               group: 'metric_group'
             }
-            """
-        )
+            """)
         self.assertEqual([(1, 1, 1.0), (2, 2, 2.0), (3, 3, 3.0)], result)
 
 

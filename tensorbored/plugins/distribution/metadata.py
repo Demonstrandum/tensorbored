@@ -14,7 +14,6 @@
 # ==============================================================================
 """Information on the distributions plugin."""
 
-
 # This name is used as the plugin prefix route and to identify this plugin
 # generally.
 PLUGIN_NAME = "distributions"

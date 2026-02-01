@@ -15,7 +15,6 @@
 # ==============================================================================
 """Tests for the text plugin summary API."""
 
-
 import glob
 import os
 
@@ -102,7 +101,7 @@ class SummaryBaseTest:
     def test_np_array_unicode_value(self):
         pb = self.text(
             "fa",
-            np.array([["A", "long", "long"], ["way", "to", "run \u203C"]]),
+            np.array([["A", "long", "long"], ["way", "to", "run \u203c"]]),
         )
         values = tensor_util.make_ndarray(pb.value[0].tensor).tolist()
         self.assertEqual(

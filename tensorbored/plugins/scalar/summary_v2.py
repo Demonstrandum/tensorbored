@@ -18,7 +18,6 @@ A scalar summary stores a single floating-point value, as a rank-0
 tensor.
 """
 
-
 import numpy as np
 
 from tensorbored.compat import tf2 as tf

@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for util functions to create/parse mesh plugin metadata."""
 
-
 import tensorflow as tf
 from tensorbored.plugins.mesh import metadata
 from tensorbored.plugins.mesh import plugin_data_pb2

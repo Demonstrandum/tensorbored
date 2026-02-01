@@ -14,7 +14,6 @@
 # ==============================================================================
 """Plugin that only displays a message with installation instructions."""
 
-
 from tensorbored.plugins import base_plugin
 
 

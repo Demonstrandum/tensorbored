@@ -18,12 +18,10 @@ A scalar summary stores a single floating-point value, as a rank-0
 tensor.
 """
 
-
 import numpy as np
 
 from tensorbored.plugins.scalar import metadata
 from tensorbored.plugins.scalar import summary_v2
-
 
 # Export V2 versions.
 scalar = summary_v2.scalar

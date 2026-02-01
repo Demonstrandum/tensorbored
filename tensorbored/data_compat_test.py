@@ -178,7 +178,7 @@ class MigrateValueTest(tf.test.TestCase):
         self.assertEqual(expected_metadata, new_value.metadata)
 
         self.assertTrue(new_value.HasField("tensor"))
-        (width, height, data) = tensor_util.make_ndarray(new_value.tensor)
+        width, height, data = tensor_util.make_ndarray(new_value.tensor)
         self.assertEqual(b"200", width)
         self.assertEqual(b"400", height)
         self.assertEqual(

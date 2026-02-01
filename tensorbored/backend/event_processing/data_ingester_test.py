@@ -24,7 +24,6 @@ from tensorbored import test as tb_test
 from tensorbored.backend.event_processing import data_ingester
 from tensorbored.compat import tf
 
-
 _ORIGINAL_IMPORT = __import__
 _TENSORFLOW_IO_MODULE = "tensorflow_io"
 

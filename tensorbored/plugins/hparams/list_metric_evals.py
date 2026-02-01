@@ -14,7 +14,6 @@
 # ==============================================================================
 """Classes and functions for handling the ListMetricEvals API call."""
 
-
 from tensorbored.plugins.hparams import metrics
 from tensorbored.plugins.scalar import scalars_plugin
 

@@ -14,7 +14,6 @@
 # ==============================================================================
 """A sample plugin to demonstrate dynamic loading."""
 
-
 import json
 import os
 

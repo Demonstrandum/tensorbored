@@ -20,7 +20,6 @@ import tensorflow as tf
 from tensorbored.plugins.custom_scalar import summary as cs_summary
 from tensorbored.plugins.custom_scalar import layout_pb2
 
-
 LOGDIR = "/tmp/custom_scalar_demo"
 
 

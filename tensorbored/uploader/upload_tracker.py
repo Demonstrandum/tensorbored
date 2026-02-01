@@ -14,7 +14,6 @@
 # ==============================================================================
 """Progress tracker for uploader."""
 
-
 import contextlib
 from datetime import datetime
 import sys

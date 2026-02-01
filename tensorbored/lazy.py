@@ -14,7 +14,6 @@
 # ==============================================================================
 """TensorBoard is a webapp for understanding TensorFlow runs and graphs."""
 
-
 import functools
 import threading
 import types

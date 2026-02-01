@@ -15,7 +15,6 @@
 
 """Tests for directory_loader."""
 
-
 import functools
 import glob
 import os

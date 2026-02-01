@@ -19,7 +19,6 @@ base64-encoded image content of the corresopnding .png files in the images/
 subdirectory.
 """
 
-
 import base64
 import os
 import sys

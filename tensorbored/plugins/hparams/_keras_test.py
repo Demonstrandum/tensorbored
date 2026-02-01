@@ -84,7 +84,7 @@ class CallbackTest(tf.test.TestCase):
             plugin_data.append(value.metadata.plugin_data.content)
 
         self.assertEqual(len(plugin_data), 2, plugin_data)
-        (start_plugin_data, end_plugin_data) = plugin_data
+        start_plugin_data, end_plugin_data = plugin_data
         start_pb = metadata.parse_session_start_info_plugin_data(
             start_plugin_data
         )

@@ -14,7 +14,6 @@
 # ==============================================================================
 """Package for histogram compression."""
 
-
 import dataclasses
 import numpy as np
 
@@ -118,7 +117,7 @@ def compress_histogram(buckets, bps=NORMAL_HISTOGRAM_BPS):
     buckets = np.array(buckets)
     if not buckets.size:
         return [CompressedHistogramValue(b, 0.0).as_tuple() for b in bps]
-    (minmin, maxmax) = (buckets[0][0], buckets[-1][1])
+    minmin, maxmax = (buckets[0][0], buckets[-1][1])
     counts = buckets[:, 2]
     right_edges = list(buckets[:, 1])
     weights = (counts * bps[-1] / (counts.sum() or 1.0)).cumsum()

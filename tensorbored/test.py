@@ -19,7 +19,6 @@ with some of the niceties of tf.test, while only requiring that Abseil
 be installed (`pip install absl-py`).
 """
 
-
 from absl.testing import absltest
 
 

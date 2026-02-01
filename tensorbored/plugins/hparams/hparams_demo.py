@@ -19,7 +19,6 @@ runs much faster, using synthetic data instead of actually training
 MNIST models.
 """
 
-
 import os.path
 import random
 import shutil
@@ -30,7 +29,6 @@ import numpy as np
 import tensorflow as tf
 
 from tensorbored.plugins.hparams import api as hp
-
 
 if int(tf.__version__.split(".")[0]) < 2:
     # The tag names emitted for Keras metrics changed from "acc" (in 1.x)
@@ -180,7 +178,7 @@ def run(data, base_logdir, session_id, hparams):
         profile_batch=0,  # workaround for issue #2084
     )
     hparams_callback = hp.KerasCallback(logdir, hparams)
-    ((x_train, y_train), (x_test, y_test)) = data
+    (x_train, y_train), (x_test, y_test) = data
     result = model.fit(
         x=x_train,
         y=y_train,
@@ -193,7 +191,7 @@ def run(data, base_logdir, session_id, hparams):
 
 def prepare_data():
     """Load and normalize data."""
-    ((x_train, y_train), (x_test, y_test)) = DATASET.load_data()
+    (x_train, y_train), (x_test, y_test) = DATASET.load_data()
     x_train = x_train.astype("float32")
     x_test = x_test.astype("float32")
     x_train /= 255.0

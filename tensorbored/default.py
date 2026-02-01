@@ -24,7 +24,6 @@ automatically inherit the centrally-maintained list of standard plugins,
 for less repetition.
 """
 
-
 import logging
 
 import pkg_resources
@@ -45,7 +44,6 @@ from tensorbored.plugins.scalar import scalars_plugin
 from tensorbored.plugins.text import text_plugin
 from tensorbored.plugins.mesh import mesh_plugin
 from tensorbored.plugins.wit_redirect import wit_redirect_plugin
-
 
 logger = logging.getLogger(__name__)
 

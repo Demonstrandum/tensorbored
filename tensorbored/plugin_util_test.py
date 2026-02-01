@@ -92,8 +92,7 @@ class MarkdownToSafeHTMLTest(tb_test.TestCase):
 
     def test_table_formatting(self):
         self._test(
-            textwrap.dedent(
-                """\
+            textwrap.dedent("""\
                 Here is some data:
 
                 TensorBoard usage | Happiness
@@ -103,10 +102,8 @@ class MarkdownToSafeHTMLTest(tb_test.TestCase):
                               1.0 |       1.0
 
                 Wouldn't you agree?
-                """
-            ),
-            textwrap.dedent(
-                """\
+                """),
+            textwrap.dedent("""\
                 <p>Here is some data:</p>
                 <table>
                 <thead>
@@ -131,8 +128,7 @@ class MarkdownToSafeHTMLTest(tb_test.TestCase):
                 </tbody>
                 </table>
                 <p>Wouldn't you agree?</p>
-                """.rstrip()
-            ),
+                """.rstrip()),
         )
 
     def test_whitelisted_tags_and_attributes_allowed(self):

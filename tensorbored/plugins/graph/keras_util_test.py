@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for Keras Utility."""
 
-
 import json
 
 import tensorflow as tf

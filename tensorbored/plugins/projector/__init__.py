@@ -21,7 +21,6 @@
 @@SpriteMetadata
 """
 
-
 import os
 
 from google.protobuf import text_format as _text_format

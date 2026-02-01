@@ -109,10 +109,8 @@ for API specifications. Consult the `hparams_demo.py` script in the
 TensorBoard repository for an end-to-end MNIST example.
 """
 
-
 from tensorbored.plugins.hparams import _keras
 from tensorbored.plugins.hparams import summary_v2
-
 
 Discrete = summary_v2.Discrete
 Domain = summary_v2.Domain

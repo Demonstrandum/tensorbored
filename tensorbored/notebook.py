@@ -16,7 +16,6 @@
 These APIs are experimental and subject to change.
 """
 
-
 import datetime
 import errno
 import html
@@ -28,7 +27,6 @@ import textwrap
 import time
 
 from tensorbored import manager
-
 
 # Return values for `_get_context` (see that function's docs for
 # details).

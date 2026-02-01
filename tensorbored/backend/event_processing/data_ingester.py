@@ -32,7 +32,6 @@ from tensorbored.plugins.pr_curve import metadata as pr_curve_metadata
 from tensorbored.plugins.scalar import metadata as scalar_metadata
 from tensorbored.util import tb_logging
 
-
 DEFAULT_SIZE_GUIDANCE = {
     tag_types.TENSORS: 10,
 }

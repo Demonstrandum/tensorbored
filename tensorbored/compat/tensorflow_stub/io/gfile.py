@@ -50,7 +50,6 @@ if sys.version_info < (3, 0):
 
 from tensorbored.compat.tensorflow_stub import compat, errors
 
-
 # A good default block size depends on the system in question.
 # A somewhat conservative default chosen here.
 _DEFAULT_BLOCK_SIZE = 16 * 1024 * 1024
@@ -733,7 +732,7 @@ class GFile:
 
         # read from filesystem
         read_size = max(self.buff_chunk_size, n) if n is not None else None
-        (self.buff, self.continuation_token) = self.fs.read(
+        self.buff, self.continuation_token = self.fs.read(
             self.filename, self.binary_mode, read_size, self.continuation_token
         )
         self.buff_offset = 0

@@ -23,7 +23,6 @@ from tensorbored.compat import tf
 from tensorbored.util import io_util
 from tensorbored.util import tb_logging
 
-
 logger = tb_logging.get_logger()
 
 _ESCAPE_GLOB_CHARACTERS_REGEX = re.compile("([*?[])")

@@ -14,7 +14,6 @@
 # ==============================================================================
 """End-to-end tests for the `deterministic_tar_gz` tool."""
 
-
 import gzip
 import os
 import subprocess

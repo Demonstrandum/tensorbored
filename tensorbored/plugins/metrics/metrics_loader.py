@@ -14,7 +14,6 @@
 # ==============================================================================
 """The TensorBoard metrics plugin loader."""
 
-
 from tensorbored.plugins import base_plugin
 from tensorbored.plugins import metrics_plugin
 

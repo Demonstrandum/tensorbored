@@ -15,12 +15,10 @@
 
 """Implementation for a multi-file directory loader."""
 
-
 from tensorbored.backend.event_processing import directory_watcher
 from tensorbored.backend.event_processing import io_wrapper
 from tensorbored.compat import tf
 from tensorbored.util import tb_logging
-
 
 logger = tb_logging.get_logger()
 

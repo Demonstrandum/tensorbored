@@ -17,7 +17,6 @@
 These are porcelain on top of `api_pb2` (`api.proto`) and `summary.py`.
 """
 
-
 import abc
 import hashlib
 import json

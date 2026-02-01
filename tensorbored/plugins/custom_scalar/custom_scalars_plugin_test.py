@@ -15,7 +15,6 @@
 # ==============================================================================
 """Integration tests for the Custom Scalars Plugin."""
 
-
 import csv
 import io
 import json

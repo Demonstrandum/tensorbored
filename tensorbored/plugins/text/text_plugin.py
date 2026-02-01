@@ -14,7 +14,6 @@
 # ==============================================================================
 """The TensorBoard Text plugin."""
 
-
 import textwrap
 
 # pylint: disable=g-bad-import-order
@@ -36,11 +35,9 @@ TAGS_ROUTE = "/tags"
 TEXT_ROUTE = "/text"
 
 
-WARNING_TEMPLATE = textwrap.dedent(
-    """\
+WARNING_TEMPLATE = textwrap.dedent("""\
   **Warning:** This text summary contained data of dimensionality %d, but only \
-  2d tables are supported. Showing a 2d slice of the data instead."""
-)
+  2d tables are supported. Showing a 2d slice of the data instead.""")
 
 _DEFAULT_DOWNSAMPLING = 100  # text tensors per time series
 

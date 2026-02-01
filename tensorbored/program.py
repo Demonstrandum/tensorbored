@@ -25,7 +25,6 @@ This module does not depend on first-party plugins or the default web
 server assets. Those are defined in `tensorboard.default`.
 """
 
-
 from abc import ABCMeta
 from abc import abstractmethod
 import argparse
@@ -55,7 +54,6 @@ from tensorbored.backend.event_processing import event_file_inspector as efi
 from tensorbored.data import server_ingester
 from tensorbored.plugins.core import core_plugin
 from tensorbored.util import tb_logging
-
 
 logger = tb_logging.get_logger()
 
@@ -465,7 +463,7 @@ class TensorBoard:
 
     def _make_server(self):
         """Constructs the TensorBoard WSGI app and instantiates the server."""
-        (data_provider, deprecated_multiplexer) = self._make_data_provider()
+        data_provider, deprecated_multiplexer = self._make_data_provider()
         app = application.TensorBoardWSGIApp(
             self.flags,
             self.plugin_loaders,

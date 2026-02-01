@@ -22,7 +22,6 @@ import tensorflow as tf
 from tensorbored.plugins.mesh import summary_v2 as mesh_summary
 from tensorbored.plugins.mesh import demo_utils
 
-
 flags.DEFINE_string(
     "logdir", "/tmp/mesh_demo", "Directory to write event logs to."
 )

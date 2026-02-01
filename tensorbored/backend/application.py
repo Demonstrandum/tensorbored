@@ -44,7 +44,6 @@ from tensorbored.plugins import base_plugin
 from tensorbored.plugins.core import core_plugin
 from tensorbored.util import tb_logging
 
-
 DATA_PREFIX = "/data"
 PLUGIN_PREFIX = "/plugin"
 PLUGINS_LISTING_ROUTE = "/plugins_listing"
@@ -381,13 +380,11 @@ class TensorBoardWSGI:
         digest = hashlib.sha256(script_content.encode("utf-8")).digest()
         script_sha = base64.b64encode(digest).decode("ascii")
 
-        html = textwrap.dedent(
-            """
+        html = textwrap.dedent("""
             <!DOCTYPE html>
             <head><base href="plugin/{name}/" /></head>
             <body><script type="module">{script_content}</script></body>
-            """
-        ).format(name=name, script_content=script_content)
+            """).format(name=name, script_content=script_content)
         return http_util.Respond(
             request,
             html,

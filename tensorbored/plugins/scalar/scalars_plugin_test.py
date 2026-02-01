@@ -15,7 +15,6 @@
 # ==============================================================================
 """Integration tests for the Scalars Plugin."""
 
-
 import csv
 import io
 import json
@@ -35,7 +34,6 @@ from tensorbored.plugins import base_plugin
 from tensorbored.plugins.scalar import scalars_plugin
 from tensorbored.plugins.scalar import summary
 from tensorbored.util import test_util
-
 
 tf.compat.v1.enable_eager_execution()
 

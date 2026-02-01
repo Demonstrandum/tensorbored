@@ -26,7 +26,6 @@ corner of the color triangle - RGB), we then compute the probability that each
 color belongs to the class. We use those probabilities to generate PR curves.
 """
 
-
 import os.path
 
 from absl import app

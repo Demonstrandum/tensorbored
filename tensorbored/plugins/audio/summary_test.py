@@ -15,7 +15,6 @@
 # ==============================================================================
 """Tests for the audio plugin summary generation functions."""
 
-
 import glob
 import os
 
@@ -26,7 +25,6 @@ from tensorbored.compat import tf2
 from tensorbored.plugins.audio import metadata
 from tensorbored.plugins.audio import summary
 from tensorbored.util import tensor_util
-
 
 try:
     tf2.__version__  # Force lazy import to resolve

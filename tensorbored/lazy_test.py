@@ -14,7 +14,6 @@
 # ==============================================================================
 """Unit tests for the `tensorboard.lazy` module."""
 
-
 import unittest
 
 from tensorbored import lazy

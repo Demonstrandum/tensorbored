@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for tensorboard.uploader.util."""
 
-
 from unittest import mock
 
 from tensorbored.uploader import util

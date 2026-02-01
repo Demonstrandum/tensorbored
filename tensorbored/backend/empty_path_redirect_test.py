@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for `tensorboard.backend.empty_path_redirect`."""
 
-
 import werkzeug
 from werkzeug import test as werkzeug_test
 

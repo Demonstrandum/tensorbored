@@ -27,7 +27,6 @@ The compatibility module also provides the following types:
 * `real_types`
 """
 
-
 import numbers as _numbers
 import numpy as _np
 

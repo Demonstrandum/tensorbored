@@ -41,7 +41,6 @@ twelve threads.
 The above numbers are consistent across runs, within about 5%.
 """
 
-
 import datetime
 import threading
 import time
@@ -53,7 +52,6 @@ import numpy as np
 
 from tensorbored.util import encoder
 from tensorbored.util import tb_logging
-
 
 logger = tb_logging.get_logger()
 

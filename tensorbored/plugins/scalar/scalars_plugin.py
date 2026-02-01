@@ -18,7 +18,6 @@ See `http_api.md` in this directory for specifications of the routes for
 this plugin.
 """
 
-
 import csv
 import io
 
@@ -158,7 +157,7 @@ class ScalarsPlugin(base_plugin.TBPlugin):
         ctx = plugin_util.context(request.environ)
         experiment = plugin_util.experiment_id(request.environ)
         output_format = request.args.get("format")
-        (body, mime_type) = self.scalars_impl(
+        body, mime_type = self.scalars_impl(
             ctx, tag, run, experiment, output_format
         )
         return http_util.Respond(request, body, mime_type)
@@ -178,7 +177,5 @@ class ScalarsPlugin(base_plugin.TBPlugin):
 
         ctx = plugin_util.context(request.environ)
         experiment = plugin_util.experiment_id(request.environ)
-        (body, mime_type) = self.scalars_multirun_impl(
-            ctx, tag, runs, experiment
-        )
+        body, mime_type = self.scalars_multirun_impl(ctx, tag, runs, experiment)
         return http_util.Respond(request, body, mime_type)

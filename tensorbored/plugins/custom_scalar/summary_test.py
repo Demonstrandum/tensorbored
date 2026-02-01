@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for the layout module."""
 
-
 import tensorflow as tf
 
 from tensorbored.backend.event_processing import (

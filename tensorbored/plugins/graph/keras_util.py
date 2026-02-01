@@ -41,10 +41,10 @@ Sequential:
 Please refer to https://github.com/tensorflow/tfjs-layers/blob/master/src/keras_format/model_serialization.ts
 for more complete definition.
 """
+
 from tensorbored.compat.proto.graph_pb2 import GraphDef
 from tensorbored.compat.tensorflow_stub import dtypes
 from tensorbored.util import tb_logging
-
 
 logger = tb_logging.get_logger()
 

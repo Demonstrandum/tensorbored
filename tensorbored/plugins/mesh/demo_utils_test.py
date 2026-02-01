@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for demo utils functions."""
 
-
 import os
 
 import tensorflow as tf

@@ -23,10 +23,8 @@ Neither subclassing JSONEncoder nor passing a function in the |default|
 keyword argument overrides this.
 """
 
-
 import collections
 import math
-
 
 _INFINITY = float("inf")
 _NEGATIVE_INFINITY = float("-inf")

@@ -14,7 +14,6 @@
 # ==============================================================================
 """Unit tests for program package."""
 
-
 import argparse
 import io
 import sys

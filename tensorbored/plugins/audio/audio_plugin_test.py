@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests the Tensorboard audio plugin."""
 
-
 import collections.abc
 import json
 import os

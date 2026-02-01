@@ -34,7 +34,6 @@ from tensorbored.plugins.histogram import metadata
 from tensorbored.util import lazy_tensor_creator
 from tensorbored.util import tensor_util
 
-
 DEFAULT_BUCKET_COUNT = 30
 
 

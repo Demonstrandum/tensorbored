@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for tensorboard.uploader.upload_tracker."""
 
-
 import sys
 
 from unittest import mock
@@ -131,7 +130,7 @@ class UploadStatsTest(tb_test.TestCase):
         stats = upload_tracker.UploadStats()
         stats.add_scalars(1234)
         self.assertEqual(stats.has_new_data_since_last_summarize(), True)
-        (uploaded_summary, skipped_summary) = stats.summarize()
+        uploaded_summary, skipped_summary = stats.summarize()
         self.assertEqual(
             uploaded_summary,
             "1234 scalars, 0 tensors, 0 binary objects",

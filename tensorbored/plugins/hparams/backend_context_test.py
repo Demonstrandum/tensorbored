@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for backend_context."""
 
-
 import operator
 from unittest import mock
 

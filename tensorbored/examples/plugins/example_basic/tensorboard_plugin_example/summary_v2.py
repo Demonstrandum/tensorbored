@@ -14,7 +14,6 @@
 # ==============================================================================
 """Summaries for the example_basic plugin."""
 
-
 import tensorflow.compat.v2 as tf
 from tensorbored.compat.proto import summary_pb2
 

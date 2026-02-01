@@ -91,7 +91,6 @@ from tensorbored.compat.proto.summary_pb2 import Summary
 from tensorbored.summary.writer.event_file_writer import EventFileWriter
 from tensorbored.util import tensor_util
 
-
 # Constants for expected format of output directory.
 _BLOBS_DIR = "blobs"
 _BLOBS_FILE = "blob_sequences.json"

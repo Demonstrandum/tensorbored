@@ -14,7 +14,6 @@
 # ==============================================================================
 """Integration tests for the Metrics Plugin."""
 
-
 import argparse
 import collections.abc
 import os.path
@@ -615,7 +614,7 @@ class MetricsPluginTest(tf.test.TestCase):
         image_id = self._get_image_blob_key(
             "run1", "images/tagA", step=0, sample=0
         )
-        (data, content_type) = self._plugin._image_data_impl(
+        data, content_type = self._plugin._image_data_impl(
             context.RequestContext(), image_id
         )
 
@@ -679,7 +678,7 @@ class MetricsPluginTest(tf.test.TestCase):
         )
 
         image_id = original_response[0]["runToSeries"]["run1"][0]["imageId"]
-        (data, content_type) = self._plugin._image_data_impl(
+        data, content_type = self._plugin._image_data_impl(
             context.RequestContext(), image_id
         )
 

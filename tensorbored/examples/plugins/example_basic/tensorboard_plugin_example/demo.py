@@ -14,7 +14,6 @@
 # ==============================================================================
 """Demo code."""
 
-
 from absl import app
 import tensorflow as tf
 
