@@ -15,13 +15,3 @@ tf_ts_library(
         "@npm//@ngrx/store",
     ],
 )
-
-tf_ts_library(
-    name = "index",
-    srcs = [
-        "index.ts",
-    ],
-    deps = [
-        ":actions",
-    ],
-)
