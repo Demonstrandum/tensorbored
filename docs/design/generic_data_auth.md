@@ -21,7 +21,7 @@ The main purpose of this document is the “Alternatives considered” section.
 
 [data-apis]: ./generic_data_apis.md
 [data-ingestion]: ./generic_data_ingestion.md
-[tbdev]: https://tensorboard.dev/
+[tbdev]: https://tensorbored.dev/
 
 ## Credential sources
 

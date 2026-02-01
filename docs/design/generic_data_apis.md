@@ -21,7 +21,7 @@ data.
 This document proposes the read side of that API, and describes at a high level
 how it can be implemented in each backend of interest.
 
-[tbdev]: https://tensorboard.dev
+[tbdev]: https://tensorbored.dev
 
 ## Ontology
 

@@ -132,7 +132,7 @@ use case is a line magic that looks just like a command-line invocation. For
 instance,
 
 ```
-%tensorboard --logdir ./logs/
+%tensorbored --logdir ./logs/
 ```
 
 will show a TensorBoard instance at the given logdir. Arbitrary arguments are
@@ -157,17 +157,17 @@ denotes cell contents. Roman text denotes output. Italic text denotes comments.
 > […] \
 > ValueError: A logdir or db must be specified. […]
 
-> **%tensorboard --logdir ./logs** \
+> **%tensorbored --logdir ./logs** \
 > Starting TensorBoard… \
 > *[above line is removed after the instance successfully starts]* \
 > *[TensorBoard output frame appears here after the instance starts]*
 
-> **%tensorboard --logdir ./logs** \
+> **%tensorbored --logdir ./logs** \
 > Reusing TensorBoard on port 6006 (pid 659), started 0:01:28 ago. (Use “!kill
 > 659” to kill it.) \
 > *[TensorBoard output frame appears here]*
 
-> **%tensorboard --logdir ./exponents** \
+> **%tensorbored --logdir ./exponents** \
 > Starting TensorBoard… \
 > *[above line is removed after the instance fails to start]* \
 > ERROR: TensorBoard could not bind to port 6006, it was already in use \
@@ -177,7 +177,7 @@ denotes cell contents. Roman text denotes output. Italic text denotes comments.
 > Use “!kill SOME_PID” to kill the running TensorBoard instance with pid
 > SOME_PID.
 
-> **%tensorboard --logdir ./exponents --port 6007** \
+> **%tensorbored --logdir ./exponents --port 6007** \
 > [as in the first success case]
 
 > **import tensorboard as tb; tb.colab.display()** \
@@ -414,7 +414,7 @@ implement and probably just fine in practice.
 
 ##### Interpretation of command-line arguments
 
-When the line magic is invoked as `%tensorboard --logdir="my logs" --port 6006`,
+When the line magic is invoked as `%tensorbored --logdir="my logs" --port 6006`,
 it is provided the contents of the line as a Python string: `"--logdir=\"my
 logs\" --port 6006"`. To be properly passed to the `tensorboard`(1) binary,
 these must undergo some kind of shell-like word splitting.
@@ -431,13 +431,13 @@ receive “`~/data/`” as an argument.
 Assuming that we want to support logdirs with spaces, an alternative would be to
 actually use the underlying shell to parse the arguments. It’s not clear that
 there’s a good way to do this without allowing arbitrary code execution as in
-“`%tensorboard --logdir foo & touch bad.txt`”. As an attack vector, this isn’t
+“`%tensorbored --logdir foo & touch bad.txt`”. As an attack vector, this isn’t
 too bad for the line magic itself: anyone who can inject malicious code into the
 input cell can already execute arbitrary Python code. But the line magic is
 backed by a Python API, and it’s less clear that we want to provide a Python API
 that opens a subprocess with `shell=True`.
 
-It seems reasonable to simply say “things like ‘`%tensorboard --logdir
+It seems reasonable to simply say “things like ‘`%tensorbored --logdir
 ./logs_$((x + 1))`’ are not supported use cases”. This certainly suffices for
 the 99% use case. Users who really want to do something like this can use
 `%%bash --bg` and `tensorboard.notebook.display()` manually.
@@ -460,7 +460,7 @@ Usage:
 
 ```
 %%bash --bg
-tensorboard --logdir ./logs/ --port 6006
+tensorbored --logdir ./logs/ --port 6006
 ```
 
 ```python
@@ -501,7 +501,7 @@ capture the backgrounded output as a stream in Python-land, like
 
 ```
 %%bash --bg --err tb_stderr
-tensorboard --logdir ./logs/ --port 6006
+tensorbored --logdir ./logs/ --port 6006
 ```
 
 ```python
@@ -577,7 +577,7 @@ without using Colab.
 -   Regardless of whether we invoke stop, restarting the runtime (`C-m .`) will
     clear the Python state but leave any backgrounded subprocesses running.
     There’s no obvious way to keep track of these from within this Python API.
-    (We could do things like invoking with `sh -c "tensorboard --logdir foo
+    (We could do things like invoking with `sh -c "tensorbored --logdir foo
     && : # tensorboard.colab"` and then filter for processes that contain
     `tensorboard.colab` in their cmdline, but nothing about this seems like a
     good idea.) (Note that while _restarting_ the runtime leaves subprocesses

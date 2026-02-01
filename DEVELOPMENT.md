@@ -28,7 +28,7 @@ TensorBoard builds are done with [Bazel](https://bazel.build), so you may need t
 You can build and run TensorBoard via Bazel (from within the TensorFlow nightly virtualenv) as follows:
 
 ```sh
-(tf)$ bazel run //tensorboard -- --logdir /path/to/logs
+(tf)$ bazel run //tensorbored -- --logdir /path/to/logs
 ```
 
 For any changes to the frontend, you’ll need to install [Yarn][yarn] to lint your code (`yarn lint`, `yarn fix-lint`). You’ll also need Yarn to add or remove any NPM dependencies.
@@ -40,7 +40,7 @@ You may wish to configure your editor to automatically run Prettier and Black on
 To generate fake log data for a plugin, run its demo script. For instance, this command generates fake scalar data in `/tmp/scalars_demo`:
 
 ```sh
-(tf)$ bazel run //tensorboard/plugins/scalar:scalars_demo
+(tf)$ bazel run //tensorbored/plugins/scalar:scalars_demo
 ```
 
 If you have Bazel≥0.16 and want to build any commit of TensorBoard prior to 2018-08-07, then you must first cherry-pick [pull request #1334][pr-1334] onto your working tree:
@@ -143,7 +143,7 @@ compatibility with other platforms (i.e. OSX)
 
 ### Debugging Polymer UI Tests Locally
 
-Our UI tests (e.g., //tensorboard/components/vz_sorting/test) for our polymer code base
+Our UI tests (e.g., //tensorbored/components/vz_sorting/test) for our polymer code base
 use HTML import which is now deprecated from all browsers (Chrome 79- had the native
 support)and is run without any polyfills. In order to debug tests, you may want to
 run a a Chromium used by our CI that supports HTML import. It can be found in
@@ -180,14 +180,14 @@ Here is a short summary of the various commands and their primary function. Plea
     supported. Not handy on debugging.
 
     ```sh
-    (tf)$ bazel test //tensorboard/webapp/...
+    (tf)$ bazel test //tensorbored/webapp/...
     ```
 
 2.  Using `ibazel` to auto detect the file changes and use target
     `karma_test_chromium-local` for running on _webapp_ tests.
 
     ```sh
-    (tf)$ ibazel test //tensorboard/webapp/... --test_output=all
+    (tf)$ ibazel test //tensorbored/webapp/... --test_output=all
     ```
 
     - `--test_output=all`: for displaying number of tests if using '`fit`'.
@@ -197,17 +197,17 @@ Here is a short summary of the various commands and their primary function. Plea
 
     ```sh
     //  Run webapp tests on `karma_test` target
-    (tf)$ ibazel test //tensorboard/webapp:karma_test_chromium-local
+    (tf)$ ibazel test //tensorbored/webapp:karma_test_chromium-local
 
     //  Run notification center tests on `notification_center_test` target
-    (tf)$ ibazel test //tensorboard/webapp/notification_center:notification_center_test_chromium-local
+    (tf)$ ibazel test //tensorbored/webapp/notification_center:notification_center_test_chromium-local
     ```
 
 4.  For running a karma console to set break points for debugging purpose, use
     `bazel run`. Access the karma console at port `9876` (For example, `http://<YOUR_SERVER_ADDRESS>:9876/`) and click 'DEBUG' button, it pops up another page, where you have to use browser developer console for better debugging.
 
     ```sh
-    (tf)$ bazel run //tensorboard/webapp:karma_test_chromium-local
+    (tf)$ bazel run //tensorbored/webapp:karma_test_chromium-local
     ```
 
     However, you cannot use `ibazel run` in this case. The file watcher is glitchy on running the tests
@@ -247,7 +247,7 @@ to be edited by hand.
 
 4.  Rebuild and test TensorBoard to make sure it works:
     * `rm -rf node_modules; bazel clean --expunge; yarn`
-    * `bazel run tensorboard -- --logdir <your favorite logdir>`
+    * `bazel run tensorbored -- --logdir <your favorite logdir>`
     * `bazel test --test_output=errors tensorboard/webapp/... tensorboard/components/... tensorboard/plugins/...`
 
 ## Updating rules_nodejs
@@ -293,7 +293,7 @@ Sample upgrade: https://github.com/tensorflow/tensorboard/pull/5977
 
 6.  Attempt to rebuild and test TensorBoard to make sure it works:
     * `rm -rf node_modules; bazel clean --expunge; yarn`
-    * `bazel run tensorboard --logdir <your favorite logdir>`
+    * `bazel run tensorbored --logdir <your favorite logdir>`
     * `bazel test --test_output=errors tensorboard/webapp/... tensorboard/components/... tensorboard/plugins/...`
 
 7.  The first attempt to rebuild and test TensorBoard rarely works. Investigate

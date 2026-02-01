@@ -1,0 +1,94 @@
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+@use '@angular/material' as mat;
+@use '@angular/material' as matm2;
+@use '@angular/material' as matm2var;
+@import 'tensorbored/webapp/theme/tb_theme';
+
+$_accent: map-get(matm2.get-color-config($tb-theme), accent);
+$_icon_size: 12px;
+$_icon_padding: 4px;
+
+:host {
+  display: table-cell;
+  vertical-align: bottom;
+
+  &:hover {
+    .show-on-hover {
+      opacity: 0.3;
+    }
+  }
+
+  .show-on-hover {
+    &:hover {
+      opacity: 1;
+    }
+
+    &:focus {
+      opacity: 1;
+    }
+  }
+}
+
+.cell {
+  align-items: center;
+  display: flex;
+
+  mat-icon {
+    height: $_icon_size;
+    width: $_icon_size;
+    line-height: 1;
+  }
+
+  button[mat-icon-button].mat-mdc-icon-button {
+    &.sorting-icon-container,
+    &.context-menu-container {
+      width: $_icon_size + $_icon_padding;
+      height: $_icon_size + $_icon_padding;
+      --tb-icon-width: #{$_icon_size};
+      --tb-icon-height: #{$_icon_size};
+      border-radius: 5px;
+      font-size: 12px;
+      padding: $_icon_padding;
+    }
+  }
+
+  .sorting-icon-container {
+    ::ng-deep path {
+      fill: unset;
+    }
+  }
+}
+
+.show {
+  opacity: 1;
+}
+
+.show-on-hover {
+  opacity: 0;
+}
+
+.highlight {
+  background-color: matm2.get-color-from-palette(matm2var.$grey-palette, 200);
+}
+
+.highlight-border-right {
+  border-right: 2px solid matm2.get-color-from-palette($_accent);
+}
+
+.highlight-border-left {
+  border-left: 2px solid matm2.get-color-from-palette($_accent);
+}

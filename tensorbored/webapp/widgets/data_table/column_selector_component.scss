@@ -1,0 +1,107 @@
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+@use '@angular/material' as mat;
+@use '@angular/material' as matm2;
+@use '@angular/material' as matm2var;
+@import 'tensorbored/webapp/theme/tb_theme';
+
+.contents {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px;
+
+  border-radius: 4px;
+  border: 1px solid;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+  border-color: matm2.get-color-from-palette($tb-foreground, border);
+  background-color: matm2.get-color-from-palette($tb-background, background);
+
+  @include tb-dark-theme {
+    border-color: matm2.get-color-from-palette($tb-dark-foreground, border);
+    background-color: matm2.get-color-from-palette(
+      $tb-dark-background,
+      'background'
+    );
+  }
+
+  .search-area {
+    margin-bottom: 12px;
+  }
+
+  .column-load-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+
+  .load-more-columns {
+    color: matm2.get-color-from-palette($tb-warn, 600);
+    display: flex;
+    flex-direction: column;
+    margin-top: 6px;
+
+    button {
+      color: inherit;
+      font-size: inherit;
+      height: 24px;
+      margin-top: 8px;
+    }
+  }
+
+  .column-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .column-button {
+    // Don't allow buttons to shrink when there are many of them.
+    flex-shrink: 0;
+    // Match height of button touch target to avoid unnecessary scrollbar.
+    height: 48px;
+    justify-content: left;
+    width: 100%;
+
+    &.selected {
+      background-color: matm2.get-color-from-palette(
+        matm2var.$grey-palette,
+        200
+      );
+
+      @include tb-dark-theme {
+        background-color: matm2.get-color-from-palette(
+          matm2var.$grey-palette,
+          400
+        );
+      }
+    }
+  }
+
+  .tag {
+    background-color: matm2.get-color-from-palette($tb-primary, 500);
+    border-radius: 8px;
+    font-size: 12px;
+    font-style: italic;
+    font-weight: normal;
+    padding: 4px;
+  }
+}

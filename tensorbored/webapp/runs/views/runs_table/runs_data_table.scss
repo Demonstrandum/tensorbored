@@ -1,0 +1,73 @@
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+@use '@angular/material' as mat;
+@use '@angular/material' as matm2;
+@use '@angular/material' as matm2var;
+@import 'tensorbored/webapp/theme/tb_theme';
+$_circle-size: 20px;
+
+:host {
+  min-width: 100%;
+}
+
+.color-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.run-color-swatch {
+  border-radius: 100%;
+  border: 1px solid matm2.get-color-from-palette($tb-foreground, border);
+  height: $_circle-size;
+  width: $_circle-size;
+  outline: none;
+}
+
+.group-menu-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+tb-data-table-content-row,
+tb-data-table-header-cell {
+  // Match the size of the touch targets for the checkbox.
+  height: 48px;
+}
+
+tb-data-table-content-cell,
+tb-data-table-header-cell {
+  padding: 0 4px;
+  vertical-align: middle;
+  @include tb-theme-foreground-prop(border-bottom, border, 1px solid);
+}
+
+.table-column-selected,
+.table-column-color {
+  width: 40px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  width: 100%;
+
+  tb-filter-input {
+    padding-left: 16px;
+    flex-grow: 1;
+  }
+}

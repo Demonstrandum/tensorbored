@@ -12,8 +12,8 @@ to the Internet. For instance, this may be on your local machine, behind a
 corporate firewall, or in a datacenter.
 
 [TensorBoard: Getting Started]: https://www.tensorflow.org/tensorboard/get_started
-[TensorBoard.dev]: https://tensorboard.dev
-[This experiment]: https://tensorboard.dev/experiment/EDZb7XgKSBKo6Gznh3i8hg/#scalars
+[TensorBoard.dev]: https://tensorbored.dev
+[This experiment]: https://tensorbored.dev/experiment/EDZb7XgKSBKo6Gznh3i8hg/#scalars
 
 # Usage
 
@@ -32,24 +32,24 @@ Once you have event files, run TensorBored and provide the log directory. If
 you're using a precompiled TensorFlow package (e.g. you installed via pip), run:
 
 ```
-tensorboard --logdir path/to/logs
+tensorbored --logdir path/to/logs
 ```
 
 Or, if you are building from source:
 
 ```bash
-bazel build tensorboard:tensorboard
-./bazel-bin/tensorboard/tensorboard --logdir path/to/logs
+bazel build tensorbored:tensorbored
+./bazel-bin/tensorbored/tensorbored --logdir path/to/logs
 
 # or even more succinctly
-bazel run tensorboard -- --logdir path/to/logs
+bazel run tensorbored -- --logdir path/to/logs
 ```
 
 This should print that TensorBored has started. Next, connect to
 http://localhost:6006.
 
 TensorBored requires a `logdir` to read logs from. For info on configuring
-it, run `tensorboard --help`.
+it, run `tensorbored --help`.
 
 TensorBored can be used in Google Chrome or Firefox. Other browsers might
 work, but there may be bugs or performance issues.
@@ -84,7 +84,7 @@ Set up default dashboard configurations from your training code using the
 ### Basic Usage
 
 ```python
-from tensorboard.plugins.core import profile_writer
+from tensorbored.plugins.core import profile_writer
 
 # Set a default profile for your experiment
 profile_writer.set_default_profile(
@@ -110,7 +110,7 @@ profile_writer.set_default_profile(
 Use the `color_sampler` module to generate perceptually uniform, distinguishable colors:
 
 ```python
-from tensorboard.plugins.core import profile_writer, color_sampler
+from tensorbored.plugins.core import profile_writer, color_sampler
 
 run_ids = ['baseline', 'experiment_v1', 'experiment_v2', 'ablation_a', 'ablation_b']
 
@@ -398,7 +398,7 @@ Use **Export/Import** to transfer profiles between browsers or share with teamma
 
 ```python
 # In your training script (train.py)
-from tensorboard.plugins.core import profile_writer
+from tensorbored.plugins.core import profile_writer
 
 def setup_tensorbored_profile(logdir):
     """Configure TensorBored for this experiment."""
@@ -439,7 +439,7 @@ setup_tensorbored_profile('/experiments/resnet50/logs')
 
 ```python
 # Create a shareable profile JSON programmatically
-from tensorboard.plugins.core import profile_writer
+from tensorbored.plugins.core import profile_writer
 import json
 
 profile = profile_writer.create_profile(
@@ -463,7 +463,7 @@ with open('team_profile.json', 'w') as f:
 
 ```python
 # In your CI pipeline
-from tensorboard.plugins.core import profile_writer
+from tensorbored.plugins.core import profile_writer
 
 def configure_ci_tensorboard(logdir, experiment_name):
     """Standard CI TensorBored configuration."""
@@ -560,7 +560,7 @@ For example, here is a well-organized TensorBored log directory, with two runs,
 /some/path/mnist_experiments/run1/events.out.tfevents.1456525585.name
 /some/path/mnist_experiments/run2/
 /some/path/mnist_experiments/run2/events.out.tfevents.1456525385.name
-/tensorboard --logdir /some/path/mnist_experiments
+/tensorbored --logdir /some/path/mnist_experiments
 ```
 
 #### Logdir & Logdir_spec (Legacy Mode)
@@ -570,7 +570,7 @@ will watch each directory. You can also assign names to individual log
 directories by putting a colon between the name and the path, as in
 
 ```
-tensorboard --logdir_spec name1:/path/to/logs/1,name2:/path/to/logs/2
+tensorbored --logdir_spec name1:/path/to/logs/1,name2:/path/to/logs/2
 ```
 
 _This flag (`--logdir_spec`) is discouraged and can usually be avoided_. TensorBored walks log directories recursively; for finer-grained control, prefer using a symlink tree. _Some features may not work when using `--logdir_spec` instead of `--logdir`._
@@ -699,7 +699,7 @@ under a subdirectory. Ensure the following shows at least one result:
 You can also check that the event files actually have data by running
 tensorboard in inspect mode to inspect the contents of your event files.
 
-`tensorboard --inspect --logdir DIRECTORY_PATH`
+`tensorbored --inspect --logdir DIRECTORY_PATH`
 
 The output for an event file corresponding to a blank TensorBored may
 still sometimes show a few steps, representing a few initial events that
@@ -826,12 +826,12 @@ Once satisfied with your own groundbreaking new plugin, see the
 [distribution section][plugin-distribution] on how to publish to PyPI and share
 it with the community.
 
-[plugin-examples]: ./tensorboard/examples/plugins
+[plugin-examples]: ./tensorbored/examples/plugins
 [plugin-distribution]: ./ADDING_A_PLUGIN.md#distribution
 
 ### Can I customize which lines appear in a plot?
 
-Using the [custom scalars plugin](tensorboard/plugins/custom_scalar), you can
+Using the [custom scalars plugin](tensorbored/plugins/custom_scalar), you can
 create scalar plots with lines for custom run-tag pairs. However, within the
 original scalars dashboard, each scalar plot corresponds to data for a specific
 tag and contains lines for each run that includes that tag.
@@ -839,7 +839,7 @@ tag and contains lines for each run that includes that tag.
 ### Can I visualize margins above and below lines?
 
 Margin plots (that visualize lower and upper bounds) may be created with the
-[custom scalars plugin](tensorboard/plugins/custom_scalar). The original
+[custom scalars plugin](tensorbored/plugins/custom_scalar). The original
 scalars plugin does not support visualizing margins.
 
 ### Can I create scatterplots (or other custom plots)?
@@ -894,7 +894,7 @@ should go to [Stack Overflow][stack-overflow].
 If you have found a bug in TensorBored, please [file a GitHub issue](
 https://github.com/tensorflow/tensorboard/issues/new) with as much supporting
 information as you can provide (e.g. attaching events files, including the output
-of `tensorboard --inspect`, etc.).
+of `tensorbored --inspect`, etc.).
 
 [stack-overflow]: https://stackoverflow.com/questions/tagged/tensorboard
 [pr-1867]: https://github.com/tensorflow/tensorboard/pull/1867

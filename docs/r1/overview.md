@@ -34,24 +34,24 @@ Once you have event files, run TensorBoard and provide the log directory. If
 you're using a precompiled TensorFlow package (e.g. you installed via pip), run:
 
 ```
-tensorboard --logdir path/to/logs
+tensorbored --logdir path/to/logs
 ```
 
 Or, if you are building from source:
 
 ```bash
 bazel build tensorboard:tensorboard
-./bazel-bin/tensorboard/tensorboard --logdir path/to/logs
+./bazel-bin/tensorboard/tensorbored --logdir path/to/logs
 
 # or even more succinctly
-bazel run tensorboard -- --logdir path/to/logs
+bazel run tensorbored -- --logdir path/to/logs
 ```
 
 This should print that TensorBoard has started. Next, connect to
 http://localhost:6006.
 
 TensorBoard requires a `logdir` to read logs from. For info on configuring
-TensorBoard, run `tensorboard --help`.
+TensorBoard, run `tensorbored --help`.
 
 TensorBoard can be used in Google Chrome or Firefox. Other browsers might
 work, but there may be bugs or performance issues.
@@ -126,7 +126,7 @@ For example, here is a well-organized TensorBoard log directory, with two runs,
 /some/path/mnist_experiments/run1/events.out.tfevents.1456525585.name
 /some/path/mnist_experiments/run2/
 /some/path/mnist_experiments/run2/events.out.tfevents.1456525385.name
-/tensorboard --logdir /some/path/mnist_experiments
+/tensorbored --logdir /some/path/mnist_experiments
 ```
 
 You may also pass a comma separated list of log directories, and TensorBoard
@@ -134,7 +134,7 @@ will watch each directory. You can also assign names to individual log
 directories by putting a colon between the name and the path, as in
 
 ```
-tensorboard --logdir name1:/path/to/logs/1,name2:/path/to/logs/2
+tensorbored --logdir name1:/path/to/logs/1,name2:/path/to/logs/2
 ```
 
 # The Visualizations
@@ -239,7 +239,7 @@ under a subdirectory. Ensure the following shows at least one result:
 You can also check that the event files actually have data by running
 tensorboard in inspect mode to inspect the contents of your event files.
 
-`tensorboard --inspect --logdir DIRECTORY_PATH`
+`tensorbored --inspect --logdir DIRECTORY_PATH`
 
 ### TensorBoard is showing only some of my data, or isn't properly updating!
 
@@ -360,6 +360,6 @@ should go to [Stack Overflow][stack-overflow].
 If you have found a bug in TensorBoard, please [file a GitHub issue](
 https://github.com/tensorflow/tensorboard/issues/new) with as much supporting
 information as you can provide (e.g. attaching events files, including the output
-of `tensorboard --inspect`, etc.).
+of `tensorbored --inspect`, etc.).
 
 [stack-overflow]: https://stackoverflow.com/questions/tagged/tensorboard

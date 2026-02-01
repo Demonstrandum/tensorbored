@@ -48,7 +48,7 @@ Once that code runs, we can load the data into TensorBoard via the command line:
 
 
 ```sh
-tensorboard --logdir=/tmp/histogram_example
+tensorbored --logdir=/tmp/histogram_example
 ```
 
 Once TensorBoard is running, load it in Chrome or Firefox and navigate to the

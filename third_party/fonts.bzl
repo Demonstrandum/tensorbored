@@ -17,7 +17,7 @@ load("@io_bazel_rules_closure//closure:defs.bzl", "filegroup_external")
 def tensorboard_fonts_workspace():
     """Downloads TensorBoard fonts."""
 
-    # bazel run //tensorboard/tools:import_google_fonts -- --url='https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,500,500italic,700,700italic;https://fonts.googleapis.com/css?family=Roboto+Mono:400,700'
+    # bazel run //tensorbored/tools:import_google_fonts -- --url='https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,500,500italic,700,700italic;https://fonts.googleapis.com/css?family=Roboto+Mono:400,700'
     filegroup_external(
         name = "com_google_fonts_roboto",
         licenses = ["notice"],  # Apache 2.0

@@ -10,8 +10,8 @@
     "postinstall": "patch-package",
     "build": "bazel build //...",
     "test": "ibazel test //...",
-    "lint": "prettier --check 'tensorboard/**/*.'{css,html,js,ts,scss} .github/**/*.yml",
-    "fix-lint": "prettier --write 'tensorboard/**/*.'{css,html,js,ts,scss} .github/**/*.yml"
+    "lint": "prettier --check 'tensorbored/**/*.'{css,html,js,ts,scss} .github/**/*.yml",
+    "fix-lint": "prettier --write 'tensorbored/**/*.'{css,html,js,ts,scss} .github/**/*.yml"
   },
   "repository": {
     "type": "git",

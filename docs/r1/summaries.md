@@ -82,7 +82,7 @@ every `n` steps.
 The code example below is a modification of the
 [simple MNIST tutorial](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/tutorials/mnist/mnist.py),
 in which we have added some summary ops, and run them every ten steps. If you
-run this and then launch `tensorboard --logdir=/tmp/tensorflow/mnist`, you'll be able
+run this and then launch `tensorbored --logdir=/tmp/tensorflow/mnist`, you'll be able
 to visualize statistics, such as how the weights or accuracy varied during
 training. The code below is an excerpt; full source is
 [here](https://www.tensorflow.org/code/tensorflow/examples/tutorials/mnist/mnist_with_summaries.py).
@@ -204,7 +204,7 @@ To run TensorBoard, use the following command (alternatively `python -m
 tensorboard.main`)
 
 ```bash
-tensorboard --logdir=path/to/log-directory
+tensorbored --logdir=path/to/log-directory
 ```
 
 where `logdir` points to the directory where the `FileWriter` serialized its

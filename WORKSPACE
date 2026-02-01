@@ -1,4 +1,4 @@
-workspace(name = "org_tensorflow_tensorboard")
+workspace(name = "org_tensorbored")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
