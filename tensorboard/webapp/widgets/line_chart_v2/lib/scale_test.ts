@@ -409,8 +409,9 @@ describe('line_chart_v2/lib/scale test', () => {
     describe('#forward and #reverse', () => {
       it('converts value from domain space to range space', () => {
         // For symlog, forward(domain, range, x) should use sign(x)*log10(|x|+1)
-        expect(scale.forward([0, 1], [-100, 100], 0)).toBe(-100);
-        expect(scale.forward([0, 1], [-100, 100], 1)).toBe(100);
+        // Use toBeCloseTo due to floating-point precision issues
+        expect(scale.forward([0, 1], [-100, 100], 0)).toBeCloseTo(-100, 5);
+        expect(scale.forward([0, 1], [-100, 100], 1)).toBeCloseTo(100, 5);
 
         // Test with positive domain including larger values
         expect(scale.forward([1, 1000], [0, 1], 100)).toBeCloseTo(0.698, 2);
@@ -419,7 +420,7 @@ describe('line_chart_v2/lib/scale test', () => {
 
       it('handles zero correctly', () => {
         // symlog(0) = sign(0) * log10(|0| + 1) = 0 * log10(1) = 0
-        expect(scale.forward([-10, 10], [0, 100], 0)).toBe(50);
+        expect(scale.forward([-10, 10], [0, 100], 0)).toBeCloseTo(50, 5);
       });
 
       it('handles negative values correctly', () => {
