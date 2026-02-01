@@ -20,19 +20,13 @@ ENV PATH="/home/user/.local/bin:$PATH"
 # Set working directory
 WORKDIR /app
 
-# Install base Python dependencies (excluding tensorboard - we use our wheel)
+# Install TensorBored from PyPI (includes numpy, protobuf, etc.)
 RUN pip install --no-cache-dir --user \
-    numpy>=1.24.0 \
-    pillow>=10.0.0 \
-    protobuf>=3.20.0
-
-# Copy and install TensorBored wheel (built by CI)
-COPY --chown=user wheel/*.whl /tmp/
-RUN pip install --no-cache-dir --user /tmp/*.whl && rm /tmp/*.whl
+    tensorbored \
+    pillow>=10.0.0
 
 # Copy TensorBored custom modules (profile_writer, color_sampler)
 # These override the packaged versions to ensure we have the latest
-# Note: Find the actual site-packages path dynamically at runtime if needed
 COPY --chown=user tensorbored_plugins_core/ /tmp/tensorbored_plugins_core/
 RUN SITE_PACKAGES=$(python -c "import site; print(site.getusersitepackages())") && \
     mkdir -p "$SITE_PACKAGES/tensorbored/plugins/core" && \

@@ -30,29 +30,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download wheel from triggering workflow
-        if: github.event_name == 'workflow_run'
-        uses: actions/download-artifact@v4
-        with:
-          name: tensorbored-rc-wheel
-          path: wheel
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ github.token }}
-
-      - name: Download wheel from latest CI run
-        if: github.event_name != 'workflow_run'
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          workflow: wheel-prerelease.yml
-          name: tensorbored-rc-wheel
-          path: wheel
-          branch: master
-          check_artifacts: true
-          search_artifacts: true
-
-      - name: List wheel files
-        run: ls -la wheel/
-
       - name: Setup Git
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -68,10 +45,6 @@ jobs:
 
       - name: Copy files to Space
         run: |
-          # Copy wheel
-          mkdir -p hf-space/wheel
-          cp wheel/*.whl hf-space/wheel/
-
           # Copy demo files
           cp demo/Dockerfile hf-space/
           cp demo/README.md hf-space/
