@@ -368,7 +368,7 @@ jobs:
       - name: clang-format lint
         uses: DoozyX/clang-format-lint-action@0138140a2adaafd3032a3ff37f66366fd7dc88e0
         with:
-          source: ./tensorboard
+          source: ./tensorbored
           # Exclude tensorbored/compat because the source of truth is TensorFlow.
           exclude: ./tensorbored/compat/proto
           extensions: 'proto'

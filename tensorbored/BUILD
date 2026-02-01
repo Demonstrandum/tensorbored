@@ -19,9 +19,9 @@ package_group(
     packages = ["//tensorbored/..."],
 )
 
-# The standard TensorBoard binary that serves the webapp.
+# The standard TensorBored binary that serves the webapp.
 py_binary(
-    name = "tensorboard",
+    name = "tensorbored",
     srcs = ["main.py"],
     main = "main.py",
     srcs_version = "PY3",
@@ -230,7 +230,7 @@ py_test(
     timeout = "moderate",
     srcs = ["manager_e2e_test.py"],
     data = [
-        ":tensorboard",
+        ":tensorbored",
     ],
     # On Python 2, this test fails about 0.5% of the time when run with
     # high parallelism; TensorBoard subprocess time out instead of
