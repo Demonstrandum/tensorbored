@@ -120,6 +120,7 @@ tf_ts_library(
     deps = [
         ":saved_pins_data_source",
         "//tensorboard/webapp/angular:expect_angular_core_testing",
+        "//tensorboard/webapp/metrics:internal_types",
         "@npm//@types/jasmine",
     ],
 )

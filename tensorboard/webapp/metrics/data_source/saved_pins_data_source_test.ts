@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 import {TestBed} from '@angular/core/testing';
 import {SavedPinsDataSource} from './saved_pins_data_source';
-import {CardUniqueInfo} from '../types';
+import {CardUniqueInfo} from '../internal_types';
 
 const SAVED_SCALAR_PINS_KEY = 'tb-saved-scalar-pins';
 const SAVED_PINS_KEY = 'tb-saved-pins';
