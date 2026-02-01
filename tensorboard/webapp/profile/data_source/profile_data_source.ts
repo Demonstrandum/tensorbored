@@ -272,7 +272,7 @@ export class ProfileDataSource {
     }
 
     try {
-      const parsed = JSON.parse(stored);
+      const parsed = JSON.parse(stored) as unknown;
       if (Array.isArray(parsed)) {
         return parsed.filter((item) => typeof item === 'string');
       }
