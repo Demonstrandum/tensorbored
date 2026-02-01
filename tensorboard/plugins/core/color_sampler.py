@@ -42,7 +42,6 @@ Example usage:
 import math
 from typing import List, Optional, Tuple
 
-
 # =============================================================================
 # OKLCH Color Space Implementation
 # =============================================================================
@@ -62,7 +61,9 @@ def _oklch_to_oklab(L: float, C: float, H: float) -> Tuple[float, float, float]:
     return (L, a, b)
 
 
-def _oklab_to_linear_srgb(L: float, a: float, b: float) -> Tuple[float, float, float]:
+def _oklab_to_linear_srgb(
+    L: float, a: float, b: float
+) -> Tuple[float, float, float]:
     """Convert OKLAB to linear sRGB."""
     # OKLAB to LMS (approximate)
     l_ = L + 0.3963377774 * a + 0.2158037573 * b
@@ -333,7 +334,9 @@ def palette_sequential(n: int, hue: float = 250) -> List[str]:
     return colors
 
 
-def palette_diverging(n: int, hue_low: float = 250, hue_high: float = 30) -> List[str]:
+def palette_diverging(
+    n: int, hue_low: float = 250, hue_high: float = 30
+) -> List[str]:
     """Generate a diverging palette for data with a meaningful midpoint.
 
     Goes from one hue through neutral to another hue.

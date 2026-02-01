@@ -34,4 +34,4 @@ This package provides utilities for configuring TensorBoard from training script
 from tensorboard.plugins.core import color_sampler
 from tensorboard.plugins.core import profile_writer
 
-__all__ = ['color_sampler', 'profile_writer']
+__all__ = ["color_sampler", "profile_writer"]

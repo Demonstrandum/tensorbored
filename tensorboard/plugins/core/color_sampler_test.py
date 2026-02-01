@@ -40,7 +40,7 @@ class SampleColorsTest(unittest.TestCase):
     def test_returns_valid_hex_colors(self):
         """All colors should be valid hex format."""
         colors = color_sampler.sample_colors(10)
-        hex_pattern = re.compile(r'^#[0-9a-f]{6}$')
+        hex_pattern = re.compile(r"^#[0-9a-f]{6}$")
         for color in colors:
             self.assertRegex(color, hex_pattern)
 
@@ -87,7 +87,7 @@ class SampleColorsVariedTest(unittest.TestCase):
     def test_returns_valid_hex_colors(self):
         """All colors should be valid hex format."""
         colors = color_sampler.sample_colors_varied(10)
-        hex_pattern = re.compile(r'^#[0-9a-f]{6}$')
+        hex_pattern = re.compile(r"^#[0-9a-f]{6}$")
         for color in colors:
             self.assertRegex(color, hex_pattern)
 
@@ -98,8 +98,8 @@ class ColorMapTest(unittest.TestCase):
     def test_callable_returns_colors(self):
         """ColorMap should be callable and return colors."""
         cm = color_sampler.ColorMap(5)
-        self.assertRegex(cm(0), r'^#[0-9a-f]{6}$')
-        self.assertRegex(cm(4), r'^#[0-9a-f]{6}$')
+        self.assertRegex(cm(0), r"^#[0-9a-f]{6}$")
+        self.assertRegex(cm(4), r"^#[0-9a-f]{6}$")
 
     def test_index_wraps_around(self):
         """Out-of-bounds indices should wrap around."""
@@ -142,21 +142,21 @@ class ColorsForRunsTest(unittest.TestCase):
 
     def test_returns_dict_with_correct_keys(self):
         """Should return dict with all run IDs as keys."""
-        run_ids = ['train', 'eval', 'test']
+        run_ids = ["train", "eval", "test"]
         colors = color_sampler.colors_for_runs(run_ids)
         self.assertEqual(set(colors.keys()), set(run_ids))
 
     def test_values_are_valid_hex(self):
         """All values should be valid hex colors."""
-        run_ids = ['a', 'b', 'c']
+        run_ids = ["a", "b", "c"]
         colors = color_sampler.colors_for_runs(run_ids)
-        hex_pattern = re.compile(r'^#[0-9a-f]{6}$')
+        hex_pattern = re.compile(r"^#[0-9a-f]{6}$")
         for color in colors.values():
             self.assertRegex(color, hex_pattern)
 
     def test_auto_varied_for_many_runs(self):
         """Should automatically use varied mode for >8 runs."""
-        run_ids = [f'run{i}' for i in range(12)]
+        run_ids = [f"run{i}" for i in range(12)]
         colors = color_sampler.colors_for_runs(run_ids)
         self.assertEqual(len(colors), 12)
         # All colors should be unique
@@ -170,7 +170,7 @@ class PaletteTest(unittest.TestCase):
         """palette_categorical should return valid colors."""
         colors = color_sampler.palette_categorical(5)
         self.assertEqual(len(colors), 5)
-        hex_pattern = re.compile(r'^#[0-9a-f]{6}$')
+        hex_pattern = re.compile(r"^#[0-9a-f]{6}$")
         for color in colors:
             self.assertRegex(color, hex_pattern)
 
@@ -194,27 +194,27 @@ class ColorUtilitiesTest(unittest.TestCase):
         lighter = color_sampler.lighten(original, 0.2)
         self.assertNotEqual(original, lighter)
         # Parse and verify lightness increased
-        self.assertRegex(lighter, r'^#[0-9a-f]{6}$')
+        self.assertRegex(lighter, r"^#[0-9a-f]{6}$")
 
     def test_darken(self):
         """darken should produce darker colors."""
         original = "#808080"
         darker = color_sampler.darken(original, 0.2)
         self.assertNotEqual(original, darker)
-        self.assertRegex(darker, r'^#[0-9a-f]{6}$')
+        self.assertRegex(darker, r"^#[0-9a-f]{6}$")
 
     def test_lighten_clamps_at_white(self):
         """lighten should not exceed white."""
         very_light = "#f0f0f0"
         result = color_sampler.lighten(very_light, 0.5)
-        self.assertRegex(result, r'^#[0-9a-f]{6}$')
+        self.assertRegex(result, r"^#[0-9a-f]{6}$")
 
     def test_darken_clamps_at_black(self):
         """darken should not go below black."""
         very_dark = "#101010"
         result = color_sampler.darken(very_dark, 0.5)
-        self.assertRegex(result, r'^#[0-9a-f]{6}$')
+        self.assertRegex(result, r"^#[0-9a-f]{6}$")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

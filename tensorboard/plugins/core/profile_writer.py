@@ -54,7 +54,6 @@ import os
 import time
 from typing import Any, Dict, List, Optional
 
-
 # Profile format version
 PROFILE_VERSION = 1
 
