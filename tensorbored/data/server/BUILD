@@ -9,8 +9,8 @@ licenses(["notice"])
 # Protocol buffer packages (as in `package foo.bar;` directives) that we need
 # to compile to Rust bindings.
 _proto_packages = [
-    "tensorboard",
-    "tensorboard.data",
+    "tensorbored",
+    "tensorbored.data",
 ]
 
 # Generated files with Rust protobuf bindings. These only exist in the build
