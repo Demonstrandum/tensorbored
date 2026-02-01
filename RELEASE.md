@@ -289,7 +289,7 @@ The 2.9 minor series tracks TensorFlow 2.9.
 -  Fix histogram tooltips that bleed out of content box. (#5631)
 -  Fix for run table overlapping text in npmi plugin (#5468)
 -  Numerous internal fixes & refactorings related to navigation & state management
--  Removes dependency on org_tensorflow (#5528)
+-  Removes dependency on org_tensorbored (#5528)
 
 # Release 2.8.0
 

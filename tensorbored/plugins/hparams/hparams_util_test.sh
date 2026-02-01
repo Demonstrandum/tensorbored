@@ -27,7 +27,7 @@ die () {
 # Run binary with various actions and make sure they succeed.
 # We currently don't test the actual event file output.
 LOGDIR="${TEST_TMPDIR}"/logdir
-BINARY="${TEST_SRCDIR}"/org_tensorflow_tensorbored/tensorbored/plugins/hparams/hparams_util
+BINARY="${TEST_SRCDIR}"/org_tensorbored/tensorbored/plugins/hparams/hparams_util
 
 # Test --action=create_experiment
 "${BINARY}" \

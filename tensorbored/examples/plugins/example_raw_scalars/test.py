@@ -56,22 +56,22 @@ class UrlSafetyTest(unittest.TestCase):
             self.assertFalse(is_path_safe("%2e%2e%2findex.js"))
             self.assertFalse(
                 is_path_safe(
-                    "static/../..\\org_tensorflow_tensorboard\\static\\index.js"
+                    "static/../..\\org_tensorbored\\static\\index.js"
                 )
             )
             self.assertFalse(
                 is_path_safe(
-                    "static/../../org_tensorflow_tensorboard/static/index.js"
+                    "static/../../org_tensorbored/static/index.js"
                 )
             )
             self.assertFalse(
                 is_path_safe(
-                    "static/%2e%2e%2f%2e%2e%5corg_tensorflow_tensorboard%5cstatic%5cindex.js"
+                    "static/%2e%2e%2f%2e%2e%5corg_tensorbored%5cstatic%5cindex.js"
                 )
             )
             self.assertFalse(
                 is_path_safe(
-                    "static/%2e%2e%2f%2e%2e%2forg_tensorflow_tensorboard%2fstatic%2findex.js"
+                    "static/%2e%2e%2f%2e%2e%2forg_tensorbored%2fstatic%2findex.js"
                 )
             )
 

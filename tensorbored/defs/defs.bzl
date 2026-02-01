@@ -215,7 +215,7 @@ def tf_ng_web_test_suite(name, deps = [], **kwargs):
     spec_bundle(
         name = "%s_bundle" % name,
         deps = ["%s_devmode_deps" % name],
-        workspace_name = "org_tensorflow_tensorboard",
+        workspace_name = "org_tensorbored",
         run_angular_linker = False,
         platform = "browser",
     )

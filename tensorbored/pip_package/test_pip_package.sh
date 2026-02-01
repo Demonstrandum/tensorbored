@@ -89,7 +89,7 @@ initialize_workdir() {
 # Extract '*.whl' files from runfiles and put them into "${wheels}".
 extract_wheels() {
   tar xzvf \
-      "${RUNFILES}/org_tensorflow_tensorbored/tensorbored/pip_package/pip_packages.tar.gz" \
+      "${RUNFILES}/org_tensorbored/tensorbored/pip_package/pip_packages.tar.gz" \
       -C "${wheels}"
 }
 

@@ -71,7 +71,7 @@ build() (
   command -v virtualenv >/dev/null
   [ -d "${RUNFILES}" ]
 
-  cp -LR "${RUNFILES}/org_tensorflow_tensorbored/tensorboard" .
+  cp -LR "${RUNFILES}/org_tensorbored/tensorbored" .
   mv -f "tensorbored/pip_package/LICENSE" .
   mv -f "tensorbored/pip_package/MANIFEST.in" .
   mv -f "tensorbored/pip_package/README.rst" .
@@ -80,7 +80,7 @@ build() (
   mv -f "tensorbored/pip_package/setup.py" .
   rm -rf "tensorbored/pip_package"
 
-  rm -f tensorbored/tensorboard  # bazel py_binary sh wrapper
+  rm -f tensorbored/tensorbored  # bazel py_binary sh wrapper
   chmod -x LICENSE  # bazel symlinks confuse cp
   find . -name __init__.py -exec chmod -x {} +  # which goes for all genfiles
 
@@ -119,7 +119,7 @@ build() (
   case "${output}" in
     *.tar.gz)
       mkdir -p "$(dirname "${output}")"
-      "${RUNFILES}/org_tensorflow_tensorbored/tensorbored/pip_package/deterministic_tar_gz" \
+      "${RUNFILES}/org_tensorbored/tensorbored/pip_package/deterministic_tar_gz" \
           "${output}" "${workdir}"/dist/*.whl
       ;;
     *)

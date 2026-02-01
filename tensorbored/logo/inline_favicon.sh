@@ -22,7 +22,7 @@ set -eu
 # Usage is like `awk(1)`: provide standard input or pass file paths as
 # arguments, and expect results to stdout.
 
-favicon_file="$0.runfiles/org_tensorflow_tensorbored/tensorbored/logo/favicon.png"
+favicon_file="$0.runfiles/org_tensorbored/tensorbored/logo/favicon.png"
 stat -- "${favicon_file}" >/dev/null  # ensure exists, with nice error text
 
 mime_type=image/png

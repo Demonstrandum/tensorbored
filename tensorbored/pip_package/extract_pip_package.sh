@@ -26,7 +26,7 @@ path and contents printed to stdout.
 EOF
 }
 
-tarball="$0.runfiles/org_tensorflow_tensorbored/tensorbored/pip_package/pip_packages.tar.gz"
+tarball="$0.runfiles/org_tensorbored/tensorbored/pip_package/pip_packages.tar.gz"
 
 case $# in
     0)

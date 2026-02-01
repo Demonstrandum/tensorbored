@@ -18,7 +18,7 @@
 PLUGIN_NAME = "projector"
 
 PLUGINS_DIR = "plugins"  # must match plugin_asset_util.PLUGINS_DIR
-PLUGIN_ASSETS_NAME = "org_tensorflow_tensorboard_projector"
+PLUGIN_ASSETS_NAME = "org_tensorbored_projector"
 
 # FYI - the PROJECTOR_FILENAME is hardcoded in the visualize_embeddings
 # method in tf.contrib.tensorboard.plugins.projector module.
