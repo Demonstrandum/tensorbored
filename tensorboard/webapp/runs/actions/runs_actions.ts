@@ -145,3 +145,17 @@ export const runsTableSortingInfoChanged = createAction(
   '[Runs] Runs Table Sorting Info Changed',
   props<{sortingInfo: SortingInfo}>()
 );
+
+/**
+ * Action to apply profile settings to runs state.
+ * Dispatched when a profile is activated.
+ */
+export const profileRunsSettingsApplied = createAction(
+  '[Runs] Profile Settings Applied',
+  props<{
+    runColors: Array<{runId: string; color: string}>;
+    groupColors: Array<{groupKey: string; colorId: number}>;
+    groupBy: GroupBy | null;
+    runFilter: string;
+  }>()
+);

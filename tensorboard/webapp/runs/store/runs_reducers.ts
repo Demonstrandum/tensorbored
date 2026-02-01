@@ -450,7 +450,45 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
       ...state,
       regexFilter: action.regexString,
     };
-  })
+  }),
+  on(
+    runsActions.profileRunsSettingsApplied,
+    (state, {runColors, groupColors, groupBy, runFilter}) => {
+      // Apply run colors from profile
+      const nextRunColorOverride = new Map<string, string>();
+      for (const {runId, color} of runColors) {
+        nextRunColorOverride.set(runId, color);
+      }
+
+      // Apply group colors from profile
+      const nextGroupKeyToColorId = new Map<string, number>();
+      for (const {groupKey, colorId} of groupColors) {
+        nextGroupKeyToColorId.set(groupKey, colorId);
+      }
+
+      // Apply groupBy settings
+      let userSetGroupByKey = state.userSetGroupByKey;
+      let colorGroupRegexString = state.colorGroupRegexString;
+      if (groupBy) {
+        userSetGroupByKey = groupBy.key;
+        if (
+          groupBy.key === GroupByKey.REGEX ||
+          groupBy.key === GroupByKey.REGEX_BY_EXP
+        ) {
+          colorGroupRegexString = groupBy.regexString || '';
+        }
+      }
+
+      return {
+        ...state,
+        runColorOverrideForGroupBy: nextRunColorOverride,
+        groupKeyToColorId: nextGroupKeyToColorId,
+        userSetGroupByKey,
+        colorGroupRegexString,
+        regexFilter: runFilter,
+      };
+    }
+  )
 );
 
 const dataReducers = composeReducers(

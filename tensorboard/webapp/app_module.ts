@@ -35,6 +35,7 @@ import {MatIconModule} from './mat_icon_module';
 import {OssPluginsModule} from './oss_plugins_module';
 import {PersistentSettingsModule} from './persistent_settings';
 import {PluginsModule} from './plugins/plugins_module';
+import {ProfileModule} from './profile';
 import {routesFactory} from './routes';
 import {RunsModule} from './runs/runs_module';
 import {SettingsModule} from './settings/settings_module';
@@ -66,6 +67,7 @@ import {TensorBoardWrapperModule} from './tb_wrapper/tb_wrapper_module';
     PersistentSettingsModule,
     PluginApiHostModule,
     PluginsModule,
+    ProfileModule,
     RunsModule,
     SettingsModule,
     StoreModule,

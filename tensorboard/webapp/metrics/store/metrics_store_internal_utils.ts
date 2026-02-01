@@ -406,20 +406,25 @@ export function generateScalarCardMinMaxStep(
 }
 
 /**
- * The maximum number of pins we allow the user to create. This is intentionally
- * finite at the moment to mitigate super long URL lengths, until there is more
- * durable value storage for pins.
- * https://github.com/tensorflow/tensorboard/issues/4242
+ * The maximum number of pins we allow the user to create.
+ *
+ * Previously this was limited to 10 due to URL length constraints
+ * (https://github.com/tensorflow/tensorboard/issues/4242).
+ * With the move to localStorage-based profiles, we can support many more pins.
+ * The limit is now based on practical UI/UX concerns rather than URL length.
  */
 const util = {
-  MAX_PIN_COUNT: 10,
+  MAX_PIN_COUNT: 1000,
 };
 
 export function canCreateNewPins(state: MetricsState) {
-  const pinCountInURL =
+  // With localStorage-based storage, we're no longer limited by URL length.
+  // The limit now exists primarily to prevent UI performance issues with
+  // extremely large numbers of pinned cards.
+  const pinCount =
     state.pinnedCardToOriginal.size +
     state.unresolvedImportedPinnedCards.length;
-  return pinCountInURL < util.MAX_PIN_COUNT;
+  return pinCount < util.MAX_PIN_COUNT;
 }
 /**
  * Sets cardStepIndex for image card based on linked time selection.

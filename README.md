@@ -57,6 +57,447 @@ TensorBoard, run `tensorboard --help`.
 TensorBoard can be used in Google Chrome or Firefox. Other browsers might
 work, but there may be bugs or performance issues.
 
+# Dashboard Profiles
+
+TensorBoard supports **Dashboard Profiles** - a system for saving, loading, and
+sharing your dashboard configurations. This includes pinned cards, run colors,
+filters, smoothing settings, and more.
+
+## Why Profiles?
+
+Previously, TensorBoard stored dashboard state in the URL, which caused several
+issues:
+
+- **URL length limits**: Browsers have URL length limits (~2000-8000 characters),
+  restricting you to only ~10 pinned cards
+- **Unwieldy URLs**: Long URLs with encoded JSON were difficult to share and manage
+- **No persistence**: Refreshing the page or closing the browser lost your setup
+
+The profile system solves these problems by storing configurations in:
+1. **Browser localStorage** - for automatic persistence across sessions
+2. **JSON files** - for sharing and programmatic configuration from training scripts
+
+## Configuring from Training Scripts (Python API)
+
+You can set up default dashboard configurations directly from your training code
+using the `profile_writer` module. This is ideal for:
+
+- Pre-configuring dashboards for specific experiments
+- Ensuring team members see the same default view
+- Automating dashboard setup in MLOps pipelines
+
+### Basic Usage
+
+```python
+from tensorboard.plugins.core import profile_writer
+
+# Set a default profile for your experiment
+profile_writer.set_default_profile(
+    logdir='/path/to/logs',
+    name='Training Monitor',
+    pinned_cards=[
+        profile_writer.pin_scalar('train/loss'),
+        profile_writer.pin_scalar('train/accuracy'),
+        profile_writer.pin_scalar('eval/loss'),
+        profile_writer.pin_scalar('eval/accuracy'),
+    ],
+    run_colors={
+        'train': '#2196F3',  # Blue
+        'eval': '#4CAF50',   # Green
+    },
+    smoothing=0.8,
+    tag_filter='loss|accuracy',
+)
+```
+
+### Automatic Color Generation (`color_sampler`)
+
+Instead of manually picking hex colors, use the `color_sampler` module to
+automatically generate perceptually uniform colors that are easy to distinguish:
+
+```python
+from tensorboard.plugins.core import profile_writer, color_sampler
+
+run_ids = ['baseline', 'experiment_v1', 'experiment_v2', 'ablation_a', 'ablation_b']
+
+# Option 1: One-liner with colors_for_runs()
+run_colors = color_sampler.colors_for_runs(run_ids)
+
+# Option 2: Use ColorMap for more control
+cm = color_sampler.ColorMap(len(run_ids))
+run_colors = {rid: cm(i) for i, rid in enumerate(run_ids)}
+
+# Option 3: Get a list of colors directly
+colors = color_sampler.sample_colors(5)
+run_colors = dict(zip(run_ids, colors))
+
+# Use with profile_writer
+profile_writer.set_default_profile(
+    logdir='/path/to/logs',
+    run_colors=run_colors,
+    pinned_cards=[profile_writer.pin_scalar('loss')],
+)
+```
+
+The colors are generated in the **OKLCH color space**, which is perceptually
+uniform - meaning equal steps in the color space correspond to equal perceived
+differences. This ensures all colors are equally distinguishable.
+
+#### `color_sampler` API
+
+| Function | Description |
+|----------|-------------|
+| `sample_colors(n)` | Generate n evenly-spaced colors |
+| `sample_colors_varied(n)` | Generate n colors with varied lightness (better for >8 colors) |
+| `colors_for_runs(run_ids)` | Create a `{run_id: color}` dict directly |
+| `ColorMap(n)` | Callable object: `cm(i)` returns color at index i |
+| `palette_categorical(n)` | High-contrast colors for categorical data |
+| `palette_sequential(n)` | Light-to-dark gradient (single hue) |
+| `palette_diverging(n)` | Two-ended palette for data with midpoint |
+| `lighten(hex, amount)` | Lighten a hex color |
+| `darken(hex, amount)` | Darken a hex color |
+
+#### Parameters
+
+```python
+# Customize the color generation
+colors = color_sampler.sample_colors(
+    n=10,
+    lightness=0.7,    # 0-1, higher = lighter (default 0.7)
+    chroma=0.15,      # 0-0.4, higher = more saturated (default 0.15)
+    hue_start=0.0,    # 0-360, rotate the palette (default 0)
+)
+
+# For many runs (>8), use varied mode for maximum distinction
+colors = color_sampler.sample_colors_varied(15)
+
+# ColorMap with varied mode
+cm = color_sampler.ColorMap(15, varied=True)
+```
+
+#### Examples
+
+```python
+# 5 colors for a small experiment
+>>> color_sampler.sample_colors(5)
+['#dc8a78', '#a4b93e', '#40c4aa', '#7aa6f5', '#d898d5']
+
+# Sequential palette for ordered data (e.g., epochs)
+>>> color_sampler.palette_sequential(5, hue=250)  # Blue gradient
+['#e5e5f7', '#b5b5e5', '#8585d3', '#5555c1', '#2525af']
+
+# Diverging palette for metrics with a meaningful center
+>>> color_sampler.palette_diverging(5)  # Blue → White → Orange
+['#4d7ec7', '#a5c0e2', '#f5f5f5', '#e5b99b', '#c76341']
+```
+
+### API Reference
+
+#### `profile_writer.set_default_profile()`
+
+Creates and writes a default profile to the log directory.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `logdir` | `str` | Path to TensorBoard log directory |
+| `name` | `str` | Display name for the profile (default: "Default Profile") |
+| `pinned_cards` | `list` | List of cards to pin (use helper functions below) |
+| `run_colors` | `dict` | Mapping of run names to hex color codes |
+| `group_colors` | `dict` | Mapping of group keys to color IDs |
+| `smoothing` | `float` | Scalar smoothing value, 0.0-0.999 (default: 0.6) |
+| `tag_filter` | `str` | Regex to filter displayed tags |
+| `run_filter` | `str` | Regex to filter displayed runs |
+| `group_by` | `dict` | Run grouping configuration |
+
+#### Pin Helper Functions
+
+```python
+# Pin a scalar chart (multi-run, shows all runs)
+profile_writer.pin_scalar('loss')
+
+# Pin a histogram for a specific run
+profile_writer.pin_histogram('weights/layer1', run_id='experiment_1')
+
+# Pin an image with specific sample index
+profile_writer.pin_image('generated/samples', run_id='gan_run', sample=0)
+```
+
+#### Superimposed Cards (Custom Plots)
+
+Create custom comparison charts with multiple metrics:
+
+```python
+profile_writer.set_default_profile(
+    logdir='/path/to/logs',
+    superimposed_cards=[
+        profile_writer.create_superimposed_card(
+            title='Loss Comparison',
+            tags=['train/loss', 'eval/loss', 'test/loss'],
+        ),
+        profile_writer.create_superimposed_card(
+            title='Per-Run Accuracy',
+            tags=['accuracy'],
+            run_id='best_model',
+        ),
+    ],
+)
+```
+
+#### Advanced: Group By Configuration
+
+```python
+# Group runs by experiment
+profile_writer.set_default_profile(
+    logdir='/path/to/logs',
+    group_by={'key': 'experiment'},
+)
+
+# Group runs by regex pattern
+profile_writer.set_default_profile(
+    logdir='/path/to/logs',
+    group_by={
+        'key': 'regex',
+        'regex_string': r'(train|eval)_.*',
+    },
+)
+```
+
+### Storage Location
+
+The profile is written to:
+```
+<logdir>/.tensorboard/default_profile.json
+```
+
+This file is automatically loaded when TensorBoard starts with that log directory.
+
+## Frontend Profile Management
+
+The TensorBoard web interface provides a profile management menu for interactive
+configuration.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Save Profile** | Save current dashboard state with a custom name |
+| **Load Profile** | Switch to a previously saved profile |
+| **Delete Profile** | Remove profiles you no longer need |
+| **Export Profile** | Download profile as JSON file for sharing |
+| **Import Profile** | Load a profile from a JSON file |
+| **Load Default** | Load the default profile from the log directory (if set by training script) |
+
+### What Gets Saved
+
+A profile captures:
+
+- **Pinned Cards**: All your pinned scalar, histogram, and image cards
+- **Superimposed Cards**: Custom comparison charts you've created
+- **Run Colors**: Custom colors assigned to runs
+- **Group Colors**: Colors for run groups
+- **Smoothing**: Scalar smoothing setting
+- **Tag Filter**: Current tag filter regex
+- **Run Filter**: Current run filter regex
+- **Group By**: Run grouping configuration
+
+### Storage
+
+Frontend profiles are stored in **browser localStorage**, which means:
+
+- ✅ Persists across browser sessions
+- ✅ No URL length limitations
+- ✅ Supports up to 1000 pinned cards
+- ⚠️ Per-browser (not synced across devices)
+- ⚠️ Cleared if you clear browser data
+
+Use **Export/Import** to transfer profiles between browsers or share with teammates.
+
+## Data Flow: Frontend ↔ Backend
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           TRAINING SCRIPT                               │
+│                                                                         │
+│   profile_writer.set_default_profile(logdir, ...)                       │
+│                              │                                          │
+│                              ▼                                          │
+│              <logdir>/.tensorboard/default_profile.json                 │
+└─────────────────────────────────────────────────────────────────────────┘
+                               │
+                               │ (TensorBoard reads on startup)
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         TENSORBOARD BACKEND                             │
+│                                                                         │
+│   GET /data/profile  →  Returns default_profile.json contents           │
+│   POST /data/profile →  Saves new default profile (optional)            │
+└─────────────────────────────────────────────────────────────────────────┘
+                               │
+                               │ (HTTP API)
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          TENSORBOARD FRONTEND                           │
+│                                                                         │
+│   localStorage['tb-profile-*']  ←→  User profiles                       │
+│   localStorage['tb-saved-pins'] ←→  Auto-saved pinned cards             │
+│                                                                         │
+│   Profile Menu:                                                         │
+│   • Save/Load/Delete profiles                                           │
+│   • Export/Import JSON                                                  │
+│   • Load Default (from backend)                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Configuration Reference
+
+### Profile JSON Schema
+
+```json
+{
+  "version": 1,
+  "name": "My Profile",
+  "lastModifiedTimestamp": 1706745600000,
+  "pinnedCards": [
+    {"plugin": "scalars", "tag": "train/loss"},
+    {"plugin": "images", "tag": "samples", "runId": "exp1", "sample": 0}
+  ],
+  "runColors": [
+    {"runId": "train", "color": "#2196F3"},
+    {"runId": "eval", "color": "#4CAF50"}
+  ],
+  "groupColors": [
+    {"groupKey": "experiment:exp1", "colorId": 0}
+  ],
+  "superimposedCards": [
+    {
+      "id": "custom-card-1",
+      "title": "Loss Comparison",
+      "tags": ["train/loss", "eval/loss"],
+      "runId": null
+    }
+  ],
+  "tagFilter": "loss|accuracy",
+  "runFilter": "",
+  "smoothing": 0.8,
+  "groupBy": null
+}
+```
+
+### localStorage Keys
+
+| Key | Description |
+|-----|-------------|
+| `tb-saved-pins` | Auto-saved pinned cards (all types) |
+| `tb-profile-index` | List of saved profile names |
+| `tb-profile-<name>` | Individual profile data |
+| `tb-active-profile` | Currently active profile name |
+
+### Backwards Compatibility
+
+- **Old URLs with pins**: Still work! TensorBoard can read pinned cards from
+  URL parameters for backwards compatibility with shared links.
+- **Legacy scalar pins**: The old `tb-saved-scalar-pins` localStorage key is
+  automatically migrated to the new format on first load.
+
+## Examples
+
+### Example 1: Research Experiment Setup
+
+```python
+# In your training script (train.py)
+from tensorboard.plugins.core import profile_writer
+
+def setup_tensorboard_profile(logdir):
+    """Configure TensorBoard for this experiment."""
+    profile_writer.set_default_profile(
+        logdir=logdir,
+        name='ResNet-50 Training',
+        pinned_cards=[
+            # Loss curves
+            profile_writer.pin_scalar('loss/total'),
+            profile_writer.pin_scalar('loss/classification'),
+            profile_writer.pin_scalar('loss/regularization'),
+            # Metrics
+            profile_writer.pin_scalar('metrics/accuracy'),
+            profile_writer.pin_scalar('metrics/top5_accuracy'),
+            # Learning rate
+            profile_writer.pin_scalar('learning_rate'),
+        ],
+        superimposed_cards=[
+            profile_writer.create_superimposed_card(
+                title='Train vs Eval Loss',
+                tags=['train/loss', 'eval/loss'],
+            ),
+        ],
+        run_colors={
+            'baseline': '#9E9E9E',
+            'experiment_v1': '#2196F3',
+            'experiment_v2': '#4CAF50',
+        },
+        smoothing=0.9,
+        tag_filter='loss|accuracy|learning_rate',
+    )
+
+# Call during training setup
+setup_tensorboard_profile('/experiments/resnet50/logs')
+```
+
+### Example 2: Team Dashboard Template
+
+```python
+# Create a shareable profile JSON programmatically
+from tensorboard.plugins.core import profile_writer
+import json
+
+profile = profile_writer.create_profile(
+    name='Team Standard View',
+    pinned_cards=[
+        profile_writer.pin_scalar('train/loss'),
+        profile_writer.pin_scalar('eval/loss'),
+        profile_writer.pin_scalar('eval/accuracy'),
+    ],
+    smoothing=0.6,
+)
+
+# Save to a shared location
+with open('team_profile.json', 'w') as f:
+    json.dump(profile, f, indent=2)
+
+# Team members can import this via the TensorBoard UI
+```
+
+### Example 3: CI/CD Integration
+
+```python
+# In your CI pipeline
+from tensorboard.plugins.core import profile_writer
+
+def configure_ci_tensorboard(logdir, experiment_name):
+    """Standard CI TensorBoard configuration."""
+    profile_writer.set_default_profile(
+        logdir=logdir,
+        name=f'CI: {experiment_name}',
+        pinned_cards=[
+            profile_writer.pin_scalar('loss'),
+            profile_writer.pin_scalar('accuracy'),
+            profile_writer.pin_scalar('throughput'),
+        ],
+        tag_filter='loss|accuracy|throughput',
+        smoothing=0.0,  # No smoothing for CI metrics
+    )
+```
+
+## Migration from URL-based Storage
+
+If you're upgrading from an older TensorBoard version:
+
+1. **Existing URL bookmarks**: Still work for loading, but new pins won't be
+   added to the URL
+2. **Legacy scalar pins**: Automatically migrated to new format
+3. **Pin limit**: Increased from 10 to 1000
+
+No action required - migration happens automatically on first use.
+
 # Key Concepts
 
 ### Summary Ops: How TensorBoard gets data from TensorFlow

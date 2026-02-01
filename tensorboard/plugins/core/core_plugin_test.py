@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests the TensorBoard core endpoints."""
 
-
 import collections.abc
 import contextlib
 import io
@@ -391,6 +390,121 @@ class CorePluginTest(tf.test.TestCase):
         self.assertEqual(
             "../notifications_note.json", response.headers.get("Location")
         )
+
+
+class CorePluginProfileTest(tf.test.TestCase):
+    """Tests for the /data/profile endpoint."""
+
+    def setUp(self):
+        super().setUp()
+        self.multiplexer = event_multiplexer.EventMultiplexer()
+        self.logdir = self.get_temp_dir()
+        provider = data_provider.MultiplexerDataProvider(
+            self.multiplexer, self.logdir
+        )
+        context = base_plugin.TBContext(
+            assets_zip_provider=get_test_assets_zip_provider(),
+            logdir=self.logdir,
+            data_provider=provider,
+            window_title="title foo",
+        )
+        self.plugin = core_plugin.CorePlugin(context)
+        app = application.TensorBoardWSGI([self.plugin])
+        self.server = werkzeug_test.Client(app, wrappers.Response)
+
+    def _get_json(self, path):
+        response = self.server.get(path)
+        if response.status_code == 200:
+            return json.loads(response.get_data().decode("utf-8"))
+        return None
+
+    def _post_json(self, path, data):
+        response = self.server.post(
+            path,
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        return response
+
+    def testProfileGet_returnsNotFoundWhenNoProfile(self):
+        """Test GET /data/profile returns 404 when no profile exists."""
+        response = self.server.get("/data/profile")
+        self.assertEqual(404, response.status_code)
+
+    def testProfilePost_savesProfile(self):
+        """Test POST /data/profile saves and returns the profile."""
+        profile_data = {
+            "version": 1,
+            "data": {
+                "name": "Test Profile",
+                "pinnedCards": [{"plugin": "scalars", "tag": "loss"}],
+                "runColors": [{"runId": "run1", "color": "#ff0000"}],
+                "groupColors": [],
+                "superimposedCards": [],
+                "tagFilter": "train",
+                "runFilter": "",
+                "smoothing": 0.6,
+                "groupBy": None,
+                "lastModifiedTimestamp": 12345,
+            },
+        }
+        response = self._post_json("/data/profile", profile_data)
+        self.assertEqual(200, response.status_code)
+
+        # Verify we can read it back
+        get_response = self.server.get("/data/profile")
+        self.assertEqual(200, get_response.status_code)
+        result = json.loads(get_response.get_data().decode("utf-8"))
+        self.assertEqual(result["version"], 1)
+        self.assertEqual(result["data"]["name"], "Test Profile")
+        self.assertEqual(result["data"]["tagFilter"], "train")
+
+    def testProfilePost_requiresVersion(self):
+        """Test POST /data/profile requires version field."""
+        response = self._post_json("/data/profile", {"data": {}})
+        self.assertEqual(400, response.status_code)
+        self.assertIn(b"missing version", response.get_data())
+
+    def testProfilePost_requiresValidJson(self):
+        """Test POST /data/profile requires valid JSON."""
+        response = self.server.post(
+            "/data/profile",
+            data="not valid json",
+            content_type="application/json",
+        )
+        self.assertEqual(400, response.status_code)
+
+    def testProfilePost_requiresObject(self):
+        """Test POST /data/profile requires an object, not an array."""
+        response = self._post_json("/data/profile", [1, 2, 3])
+        self.assertEqual(400, response.status_code)
+
+    def testProfilePath_returnsNoneForLogdirSpec(self):
+        """Test that _profile_path returns None for logdir_spec format."""
+        # Plugin with logdir_spec (comma-separated)
+        context = base_plugin.TBContext(
+            assets_zip_provider=get_test_assets_zip_provider(),
+            logdir="run1:/path1,run2:/path2",
+            data_provider=data_provider.MultiplexerDataProvider(
+                self.multiplexer, self.logdir
+            ),
+        )
+        plugin = core_plugin.CorePlugin(context)
+        self.assertIsNone(plugin._profile_path())
+
+    def testProfileFileLocation(self):
+        """Test that profile is written to .tensorboard directory."""
+        profile_data = {"version": 1, "name": "test"}
+        self._post_json("/data/profile", profile_data)
+
+        expected_path = os.path.join(
+            self.logdir, ".tensorboard", "default_profile.json"
+        )
+        self.assertTrue(os.path.exists(expected_path))
+
+        with open(expected_path, "r") as f:
+            saved = json.load(f)
+        self.assertEqual(saved["version"], 1)
 
 
 class CorePluginPathPrefixTest(tf.test.TestCase):

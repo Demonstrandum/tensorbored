@@ -22,3 +22,4 @@ export * from './notification_center/_redux/notification_center_selectors';
 export * from './runs/store/runs_selectors';
 export * from './util/ui_selectors';
 export * from './persistent_settings/_redux/persistent_settings_selectors';
+export * from './profile/store/profile_selectors';

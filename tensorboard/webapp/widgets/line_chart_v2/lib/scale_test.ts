@@ -409,17 +409,24 @@ describe('line_chart_v2/lib/scale test', () => {
     describe('#forward and #reverse', () => {
       it('converts value from domain space to range space', () => {
         // For symlog, forward(domain, range, x) should use sign(x)*log10(|x|+1)
-        expect(scale.forward([0, 1], [-100, 100], 0)).toBe(-100);
-        expect(scale.forward([0, 1], [-100, 100], 1)).toBe(100);
+        // Use toBeCloseTo due to floating-point precision issues
+        expect(scale.forward([0, 1], [-100, 100], 0)).toBeCloseTo(-100, 5);
+        expect(scale.forward([0, 1], [-100, 100], 1)).toBeCloseTo(100, 5);
 
         // Test with positive domain including larger values
-        expect(scale.forward([1, 1000], [0, 1], 100)).toBeCloseTo(0.698, 2);
-        expect(scale.forward([0.00001, 1], [0, 5], 0.01)).toBeCloseTo(0.022, 1);
+        // symlog(100) = log10(101) ≈ 2.004
+        // symlog(1) = log10(2) ≈ 0.301
+        // symlog(1000) = log10(1001) ≈ 3.0004
+        // forward = (2.004 - 0.301) / (3.0004 - 0.301) ≈ 0.631
+        expect(scale.forward([1, 1000], [0, 1], 100)).toBeCloseTo(0.631, 2);
+        // symlog(0.01) = log10(1.01) ≈ 0.00432
+        // forward ≈ 0.072
+        expect(scale.forward([0.00001, 1], [0, 5], 0.01)).toBeCloseTo(0.072, 2);
       });
 
       it('handles zero correctly', () => {
         // symlog(0) = sign(0) * log10(|0| + 1) = 0 * log10(1) = 0
-        expect(scale.forward([-10, 10], [0, 100], 0)).toBe(50);
+        expect(scale.forward([-10, 10], [0, 100], 0)).toBeCloseTo(50, 5);
       });
 
       it('handles negative values correctly', () => {

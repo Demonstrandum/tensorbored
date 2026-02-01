@@ -90,6 +90,7 @@ class CorePlugin(base_plugin.TBPlugin):
             "/data/logdir": self._serve_logdir,
             "/data/runs": self._serve_runs,
             "/data/run_colors": self._serve_run_colors,
+            "/data/profile": self._serve_profile,
             "/data/experiments": self._serve_experiments,
             "/data/experiment_runs": self._serve_experiment_runs,
             "/data/notifications": self._serve_notifications,
@@ -375,6 +376,118 @@ class CorePlugin(base_plugin.TBPlugin):
             )
 
         return http_util.Respond(request, mapping, "application/json")
+
+    def _profile_path(self):
+        """Returns a path to the default profile file, or None if unavailable.
+
+        We only support reading/writing when `--logdir` points to a local
+        filesystem directory. For `--logdir_spec` or non-local data providers,
+        this is not guaranteed.
+        """
+        logdir = self._logdir or ""
+        # Basic guard against `--logdir_spec`/multi-logdir strings.
+        if not logdir or ("," in logdir) or (":" in logdir):
+            return None
+        if not os.path.isdir(logdir):
+            return None
+        return os.path.join(logdir, ".tensorboard", "default_profile.json")
+
+    def _read_profile(self):
+        """Reads the default profile from the logdir.
+
+        Returns:
+            The profile data as a dict, or None if no profile exists or is
+            invalid.
+        """
+        path = self._profile_path()
+        if not path or not os.path.exists(path):
+            return None
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            # Basic validation - must be a dict with version and data fields
+            if not isinstance(data, dict):
+                return None
+            if "version" not in data:
+                return None
+            return data
+        except Exception:
+            return None
+
+    def _write_profile(self, profile_data):
+        """Writes a profile to the default profile file.
+
+        Args:
+            profile_data: The profile data dict to write.
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        path = self._profile_path()
+        if not path:
+            return False
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(profile_data, f, indent=2)
+        return True
+
+    @wrappers.Request.application
+    def _serve_profile(self, request):
+        """Serve and update the default dashboard profile.
+
+        GET returns the default profile JSON object, or 404 if none exists.
+        The profile contains pinned cards, run colors, superimposed cards,
+        and other dashboard settings.
+
+        POST accepts a profile JSON object to save as the default profile.
+        The profile is stored under `<logdir>/.tensorboard/default_profile.json`.
+
+        This endpoint enables training harnesses to set default dashboard
+        configurations that users will see when they first load TensorBoard.
+        """
+        if request.method == "GET":
+            profile = self._read_profile()
+            if profile is None:
+                return http_util.Respond(
+                    request, "No default profile found", "text/plain", code=404
+                )
+            return http_util.Respond(request, profile, "application/json")
+
+        if request.method != "POST":
+            return http_util.Respond(
+                request, "Method not allowed", "text/plain", code=405
+            )
+
+        try:
+            payload = json.loads(request.data or b"{}")
+        except Exception:
+            return http_util.Respond(
+                request, "Invalid JSON", "text/plain", code=400
+            )
+
+        if not isinstance(payload, dict):
+            return http_util.Respond(
+                request, "Invalid profile format", "text/plain", code=400
+            )
+
+        # Basic validation - require version field
+        if "version" not in payload:
+            return http_util.Respond(
+                request,
+                "Invalid profile: missing version field",
+                "text/plain",
+                code=400,
+            )
+
+        if not self._write_profile(payload):
+            return http_util.Respond(
+                request,
+                "Profile persistence is unavailable for this logdir",
+                "text/plain",
+                code=400,
+            )
+
+        return http_util.Respond(request, payload, "application/json")
 
     @wrappers.Request.application
     def _serve_experiments(self, request):

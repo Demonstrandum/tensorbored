@@ -788,12 +788,12 @@ describe('metrics effects', () => {
     });
 
     describe('addOrRemovePin', () => {
-      let saveScalarPinSpy: jasmine.Spy;
-      let removeScalarPinSpy: jasmine.Spy;
+      let savePinSpy: jasmine.Spy;
+      let removePinSpy: jasmine.Spy;
 
       beforeEach(() => {
-        saveScalarPinSpy = spyOn(savedPinsDataSource, 'saveScalarPin');
-        removeScalarPinSpy = spyOn(savedPinsDataSource, 'removeScalarPin');
+        savePinSpy = spyOn(savedPinsDataSource, 'savePin');
+        removePinSpy = spyOn(savedPinsDataSource, 'removePin');
 
         store.overrideSelector(selectors.getEnableGlobalPins, true);
         store.overrideSelector(TEST_ONLY.getCardFetchInfo, {
@@ -810,7 +810,7 @@ describe('metrics effects', () => {
         store.refreshState();
       });
 
-      it('removes scalar pin if the given card was pinned', () => {
+      it('removes pin if the given card was pinned', () => {
         actions$.next(
           actions.cardPinStateToggled({
             cardId: 'card1',
@@ -819,8 +819,11 @@ describe('metrics effects', () => {
           })
         );
 
-        expect(removeScalarPinSpy).toHaveBeenCalledWith('tagA');
-        expect(saveScalarPinSpy).not.toHaveBeenCalled();
+        expect(removePinSpy).toHaveBeenCalledWith({
+          plugin: PluginType.SCALARS,
+          tag: 'tagA',
+        });
+        expect(savePinSpy).not.toHaveBeenCalled();
       });
 
       it('pins the card if the given card was not pinned and canCreateNewPins is true', () => {
@@ -832,8 +835,11 @@ describe('metrics effects', () => {
           })
         );
 
-        expect(saveScalarPinSpy).toHaveBeenCalledWith('tagA');
-        expect(removeScalarPinSpy).not.toHaveBeenCalled();
+        expect(savePinSpy).toHaveBeenCalledWith({
+          plugin: PluginType.SCALARS,
+          tag: 'tagA',
+        });
+        expect(removePinSpy).not.toHaveBeenCalled();
       });
 
       it('does not pin the card if the given card was not pinned and canCreateNewPins is false', () => {
@@ -845,11 +851,11 @@ describe('metrics effects', () => {
           })
         );
 
-        expect(saveScalarPinSpy).not.toHaveBeenCalled();
-        expect(removeScalarPinSpy).not.toHaveBeenCalled();
+        expect(savePinSpy).not.toHaveBeenCalled();
+        expect(removePinSpy).not.toHaveBeenCalled();
       });
 
-      it('does not pin the card if the plugin type is not a scalar', () => {
+      it('pins the card for non-scalar plugin types', () => {
         store.overrideSelector(TEST_ONLY.getCardFetchInfo, {
           id: 'card2',
           plugin: PluginType.HISTOGRAMS,
@@ -871,8 +877,12 @@ describe('metrics effects', () => {
           })
         );
 
-        expect(saveScalarPinSpy).not.toHaveBeenCalled();
-        expect(removeScalarPinSpy).not.toHaveBeenCalled();
+        // Now supports all plugin types, not just scalars
+        expect(savePinSpy).toHaveBeenCalledWith({
+          plugin: PluginType.HISTOGRAMS,
+          tag: 'tagA',
+        });
+        expect(removePinSpy).not.toHaveBeenCalled();
       });
 
       it('does not pin the card if there is no matching card', () => {
@@ -884,8 +894,8 @@ describe('metrics effects', () => {
           })
         );
 
-        expect(saveScalarPinSpy).not.toHaveBeenCalled();
-        expect(removeScalarPinSpy).not.toHaveBeenCalled();
+        expect(savePinSpy).not.toHaveBeenCalled();
+        expect(removePinSpy).not.toHaveBeenCalled();
       });
 
       it('does not pin the card if getEnableGlobalPins is false', () => {
@@ -900,8 +910,8 @@ describe('metrics effects', () => {
           })
         );
 
-        expect(saveScalarPinSpy).not.toHaveBeenCalled();
-        expect(removeScalarPinSpy).not.toHaveBeenCalled();
+        expect(savePinSpy).not.toHaveBeenCalled();
+        expect(removePinSpy).not.toHaveBeenCalled();
       });
 
       it('does not pin the card if getShouldPersistSettings is false', () => {
@@ -916,8 +926,8 @@ describe('metrics effects', () => {
           })
         );
 
-        expect(saveScalarPinSpy).not.toHaveBeenCalled();
-        expect(removeScalarPinSpy).not.toHaveBeenCalled();
+        expect(savePinSpy).not.toHaveBeenCalled();
+        expect(removePinSpy).not.toHaveBeenCalled();
       });
 
       it('does not pin the card if getMetricsSavingPinsEnabled is false', () => {
@@ -932,32 +942,34 @@ describe('metrics effects', () => {
           })
         );
 
-        expect(saveScalarPinSpy).not.toHaveBeenCalled();
-        expect(removeScalarPinSpy).not.toHaveBeenCalled();
+        expect(savePinSpy).not.toHaveBeenCalled();
+        expect(removePinSpy).not.toHaveBeenCalled();
       });
     });
 
     describe('loadSavedPins', () => {
-      const fakeTagList = ['tagA', 'tagB'];
-      const fakeUniqueCardInfos = fakeTagList.map((tag) => ({
-        plugin: PluginType.SCALARS,
-        tag: tag,
-      }));
-      let getSavedScalarPinsSpy: jasmine.Spy;
+      const fakeUniqueCardInfos = [
+        {plugin: PluginType.SCALARS, tag: 'tagA'},
+        {plugin: PluginType.SCALARS, tag: 'tagB'},
+      ];
+      let getSavedPinsSpy: jasmine.Spy;
+      let migrateLegacyPinsSpy: jasmine.Spy;
 
       beforeEach(() => {
         store.overrideSelector(selectors.getEnableGlobalPins, true);
+        migrateLegacyPinsSpy = spyOn(savedPinsDataSource, 'migrateLegacyPins');
         store.refreshState();
       });
 
-      it('dispatches unresolvedPinnedCards action if tag is given', () => {
-        getSavedScalarPinsSpy = spyOn(
+      it('dispatches unresolvedPinnedCards action if pins are saved', () => {
+        getSavedPinsSpy = spyOn(
           savedPinsDataSource,
-          'getSavedScalarPins'
-        ).and.returnValue(['tagA', 'tagB']);
+          'getSavedPins'
+        ).and.returnValue(fakeUniqueCardInfos);
 
         actions$.next(TEST_ONLY.initAction());
 
+        expect(migrateLegacyPinsSpy).toHaveBeenCalled();
         expect(actualActions).toEqual([
           actions.metricsUnresolvedPinnedCardsFromLocalStorageAdded({
             cards: fakeUniqueCardInfos,
@@ -965,10 +977,10 @@ describe('metrics effects', () => {
         ]);
       });
 
-      it('does not dispatch unresolvedPinnedCards action if tag is an empty list', () => {
-        getSavedScalarPinsSpy = spyOn(
+      it('does not dispatch unresolvedPinnedCards action if pins is an empty list', () => {
+        getSavedPinsSpy = spyOn(
           savedPinsDataSource,
-          'getSavedScalarPins'
+          'getSavedPins'
         ).and.returnValue([]);
 
         actions$.next(TEST_ONLY.initAction());
@@ -977,10 +989,10 @@ describe('metrics effects', () => {
       });
 
       it('does not load saved pins if getEnableGlobalPins is false', () => {
-        getSavedScalarPinsSpy = spyOn(
+        getSavedPinsSpy = spyOn(
           savedPinsDataSource,
-          'getSavedScalarPins'
-        ).and.returnValue(['tagA', 'tagB']);
+          'getSavedPins'
+        ).and.returnValue(fakeUniqueCardInfos);
         store.overrideSelector(selectors.getEnableGlobalPins, false);
         store.refreshState();
 
@@ -990,10 +1002,10 @@ describe('metrics effects', () => {
       });
 
       it('does not load saved pins if getShouldPersistSettings is false', () => {
-        getSavedScalarPinsSpy = spyOn(
+        getSavedPinsSpy = spyOn(
           savedPinsDataSource,
-          'getSavedScalarPins'
-        ).and.returnValue(['tagA', 'tagB']);
+          'getSavedPins'
+        ).and.returnValue(fakeUniqueCardInfos);
         store.overrideSelector(selectors.getShouldPersistSettings, false);
         store.refreshState();
 
@@ -1003,10 +1015,10 @@ describe('metrics effects', () => {
       });
 
       it('does not load saved pins if getMetricsSavingPinsEnabled is false', () => {
-        getSavedScalarPinsSpy = spyOn(
+        getSavedPinsSpy = spyOn(
           savedPinsDataSource,
-          'getSavedScalarPins'
-        ).and.returnValue(['tagA', 'tagB']);
+          'getSavedPins'
+        ).and.returnValue(fakeUniqueCardInfos);
         store.overrideSelector(selectors.getMetricsSavingPinsEnabled, false);
         store.refreshState();
 
@@ -1017,21 +1029,18 @@ describe('metrics effects', () => {
     });
 
     describe('removeAllPins', () => {
-      let removeAllScalarPinsSpy: jasmine.Spy;
+      let removeAllPinsSpy: jasmine.Spy;
 
       beforeEach(() => {
-        removeAllScalarPinsSpy = spyOn(
-          savedPinsDataSource,
-          'removeAllScalarPins'
-        );
+        removeAllPinsSpy = spyOn(savedPinsDataSource, 'removeAllPins');
         store.overrideSelector(selectors.getEnableGlobalPins, true);
         store.refreshState();
       });
 
-      it('removes all pins by calling removeAllScalarPins method', () => {
+      it('removes all pins by calling removeAllPins method', () => {
         actions$.next(actions.metricsClearAllPinnedCards());
 
-        expect(removeAllScalarPinsSpy).toHaveBeenCalled();
+        expect(removeAllPinsSpy).toHaveBeenCalled();
       });
 
       it('does not remove pins if getEnableGlobalPins is false', () => {
@@ -1040,7 +1049,7 @@ describe('metrics effects', () => {
 
         actions$.next(actions.metricsClearAllPinnedCards());
 
-        expect(removeAllScalarPinsSpy).not.toHaveBeenCalled();
+        expect(removeAllPinsSpy).not.toHaveBeenCalled();
       });
 
       it('does not remove pins if getShouldPersistSettings is false', () => {
@@ -1049,7 +1058,7 @@ describe('metrics effects', () => {
 
         actions$.next(actions.metricsClearAllPinnedCards());
 
-        expect(removeAllScalarPinsSpy).not.toHaveBeenCalled();
+        expect(removeAllPinsSpy).not.toHaveBeenCalled();
       });
 
       it('does not remove pins if getMetricsSavingPinsEnabled is false', () => {
@@ -1058,20 +1067,22 @@ describe('metrics effects', () => {
 
         actions$.next(actions.metricsClearAllPinnedCards());
 
-        expect(removeAllScalarPinsSpy).not.toHaveBeenCalled();
+        expect(removeAllPinsSpy).not.toHaveBeenCalled();
       });
     });
 
     describe('addOrRemovePinsOnToggle', () => {
+      let removeAllPinsSpy: jasmine.Spy;
       let removeAllScalarPinsSpy: jasmine.Spy;
-      let saveScalarPinsSpy: jasmine.Spy;
+      let setSavedPinsSpy: jasmine.Spy;
 
       beforeEach(() => {
+        removeAllPinsSpy = spyOn(savedPinsDataSource, 'removeAllPins');
         removeAllScalarPinsSpy = spyOn(
           savedPinsDataSource,
           'removeAllScalarPins'
         );
-        saveScalarPinsSpy = spyOn(savedPinsDataSource, 'saveScalarPins');
+        setSavedPinsSpy = spyOn(savedPinsDataSource, 'setSavedPins');
         store.overrideSelector(selectors.getPinnedCardsWithMetadata, [
           {
             cardId: 'card1',
@@ -1097,18 +1108,25 @@ describe('metrics effects', () => {
       it('removes all pins if getMetricsSavingPinsEnabled is false', () => {
         actions$.next(actions.metricsEnableSavingPinsToggled());
 
+        expect(removeAllPinsSpy).toHaveBeenCalled();
         expect(removeAllScalarPinsSpy).toHaveBeenCalled();
-        expect(saveScalarPinsSpy).not.toHaveBeenCalled();
+        expect(setSavedPinsSpy).not.toHaveBeenCalled();
       });
 
-      it('add existing pins if getMetricsSavingPinsEnabled is true', () => {
+      it('saves all pinned cards if getMetricsSavingPinsEnabled is true', () => {
         store.overrideSelector(selectors.getMetricsSavingPinsEnabled, true);
         store.refreshState();
 
         actions$.next(actions.metricsEnableSavingPinsToggled());
 
-        expect(saveScalarPinsSpy).toHaveBeenCalledWith(['tag1', 'tag3']);
-        expect(removeAllScalarPinsSpy).not.toHaveBeenCalled();
+        // All pinned cards are saved, not just scalars
+        // Images cards include runId and sample from createCardMetadata
+        expect(setSavedPinsSpy).toHaveBeenCalledWith([
+          {plugin: PluginType.SCALARS, tag: 'tag1'},
+          {plugin: PluginType.IMAGES, tag: 'tag2', runId: 'run1', sample: 999},
+          {plugin: PluginType.SCALARS, tag: 'tag3'},
+        ]);
+        expect(removeAllPinsSpy).not.toHaveBeenCalled();
       });
 
       it('does not add or remove pins if getEnableGlobalPins is false', () => {
@@ -1117,8 +1135,8 @@ describe('metrics effects', () => {
 
         actions$.next(actions.metricsEnableSavingPinsToggled());
 
-        expect(removeAllScalarPinsSpy).not.toHaveBeenCalled();
-        expect(saveScalarPinsSpy).not.toHaveBeenCalled();
+        expect(removeAllPinsSpy).not.toHaveBeenCalled();
+        expect(setSavedPinsSpy).not.toHaveBeenCalled();
       });
 
       it('does not add or remove pins if getShouldPersistSettings is false', () => {
@@ -1127,8 +1145,8 @@ describe('metrics effects', () => {
 
         actions$.next(actions.metricsEnableSavingPinsToggled());
 
-        expect(removeAllScalarPinsSpy).not.toHaveBeenCalled();
-        expect(saveScalarPinsSpy).not.toHaveBeenCalled();
+        expect(removeAllPinsSpy).not.toHaveBeenCalled();
+        expect(setSavedPinsSpy).not.toHaveBeenCalled();
       });
     });
   });

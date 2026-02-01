@@ -22,6 +22,7 @@ import {State as HparamsState} from './hparams/types';
 import {State as MetricsState} from './metrics/store/metrics_types';
 import {State as NotificationState} from './notification_center/_redux/notification_center_types';
 import {State as PersistentSettingsState} from './persistent_settings/_redux/persistent_settings_types';
+import {State as ProfileState} from './profile/store/profile_types';
 import {State as RunsState} from './runs/store/runs_types';
 import {State as SettingsState} from './settings';
 
@@ -31,6 +32,7 @@ export type State = AppRoutingState &
   FeatureFlagState &
   HparamsState &
   MetricsState &
+  ProfileState &
   RunsState &
   SettingsState &
   NotificationState &

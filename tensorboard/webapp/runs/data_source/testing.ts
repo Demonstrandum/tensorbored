@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 import {Injectable} from '@angular/core';
 import {Observable, of} from 'rxjs';
+import {TBRunColorDataSource} from './run_color_data_source';
 import {Run, RunsDataSource} from './runs_data_source_types';
 
 @Injectable()
@@ -23,9 +24,18 @@ export class TestingRunsDataSource implements RunsDataSource {
   }
 }
 
+@Injectable()
+export class TestingRunColorDataSource {
+  fetchRunColors(experimentId: string): Observable<Record<string, string>> {
+    return of({});
+  }
+}
+
 export function provideTestingRunsDataSource() {
   return [
     TestingRunsDataSource,
     {provide: RunsDataSource, useExisting: TestingRunsDataSource},
+    TestingRunColorDataSource,
+    {provide: TBRunColorDataSource, useExisting: TestingRunColorDataSource},
   ];
 }

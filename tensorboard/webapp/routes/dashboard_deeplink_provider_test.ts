@@ -140,7 +140,12 @@ describe('core deeplink provider', () => {
     });
 
     describe('pinned state', () => {
-      it('serializes pinned card state when store updates', () => {
+      // Note: Pinned cards are NO LONGER serialized to the URL.
+      // They are stored in localStorage to avoid URL length limitations.
+      // See https://github.com/tensorflow/tensorboard/issues/4242
+
+      it('does NOT serialize pinned cards to URL (stored in localStorage instead)', () => {
+        // Set up pinned cards state
         store.overrideSelector(selectors.getPinnedCardsWithMetadata, [
           {
             cardId: 'card1',
@@ -155,62 +160,49 @@ describe('core deeplink provider', () => {
             tag: 'loss',
           },
         ]);
+        // Trigger an emission by changing a serialized selector (tag filter)
+        store.overrideSelector(selectors.getMetricsTagFilter, 'test');
         store.refreshState();
 
-        expect(queryParamsSerialized[queryParamsSerialized.length - 1]).toEqual(
-          [
-            {
-              key: 'pinnedCards',
-              value:
-                '[{"plugin":"scalars","tag":"accuracy"},{"plugin":"scalars","tag":"loss"}]',
-            },
-          ]
-        );
-
-        store.overrideSelector(selectors.getPinnedCardsWithMetadata, [
-          {
-            cardId: 'card1',
-            plugin: PluginType.SCALARS,
-            tag: 'accuracy2',
-            runId: null,
-          },
-        ]);
-        store.overrideSelector(selectors.getUnresolvedImportedPinnedCards, [
-          {
-            plugin: PluginType.SCALARS,
-            tag: 'loss2',
-          },
-        ]);
-        store.refreshState();
-
-        expect(queryParamsSerialized[queryParamsSerialized.length - 1]).toEqual(
-          [
-            {
-              key: 'pinnedCards',
-              value:
-                '[{"plugin":"scalars","tag":"accuracy2"},{"plugin":"scalars","tag":"loss2"}]',
-            },
-          ]
-        );
+        // Verify emission occurred and does NOT contain pinned cards
+        const lastEmission =
+          queryParamsSerialized[queryParamsSerialized.length - 1];
+        expect(lastEmission).toBeDefined();
+        expect(
+          lastEmission.find((p: {key: string}) => p.key === 'pinnedCards')
+        ).toBeUndefined();
       });
 
       it('serializes nothing when states are empty', () => {
         store.overrideSelector(selectors.getPinnedCardsWithMetadata, []);
         store.overrideSelector(selectors.getUnresolvedImportedPinnedCards, []);
+        // Trigger an emission by changing a serialized selector (smoothing)
+        store.overrideSelector(selectors.getMetricsSettingOverrides, {
+          scalarSmoothing: 0.5,
+        });
         store.refreshState();
 
-        expect(queryParamsSerialized[queryParamsSerialized.length - 1]).toEqual(
-          []
-        );
+        // Verify emission occurred and does NOT contain pinned cards
+        const lastEmission =
+          queryParamsSerialized[queryParamsSerialized.length - 1];
+        expect(lastEmission).toBeDefined();
+        // Should only have smoothing, no pinnedCards
+        expect(
+          lastEmission.find((p: {key: string}) => p.key === 'pinnedCards')
+        ).toBeUndefined();
+        expect(
+          lastEmission.find((p: {key: string}) => p.key === 'smoothing')
+        ).toBeDefined();
       });
 
+      // Deserialization still works for backwards compatibility with old URLs
       it('deserializes empty pinned cards', () => {
         const state = provider.deserializeQueryParams([]);
 
         expect(state.metrics.pinnedCards).toEqual([]);
       });
 
-      it('deserializes valid pinned cards', () => {
+      it('deserializes valid pinned cards (backwards compatibility)', () => {
         const state = provider.deserializeQueryParams([
           {
             key: 'pinnedCards',
@@ -237,7 +229,7 @@ describe('core deeplink provider', () => {
         });
       });
 
-      it('sanitizes pinned cards on deserialization', () => {
+      it('sanitizes pinned cards on deserialization (backwards compatibility)', () => {
         const cases = [
           {
             // malformed URL value
