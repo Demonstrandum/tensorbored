@@ -12,7 +12,7 @@ tf_ng_module(
     ],
     deps = [
         "//tensorboard/webapp:app_state",
-        "//tensorboard/webapp/app_routing:actions",
+        "//tensorboard/webapp/app_routing/actions",
         "//tensorboard/webapp/metrics:types",
         "//tensorboard/webapp/metrics/actions",
         "//tensorboard/webapp/metrics/data_source:types",
