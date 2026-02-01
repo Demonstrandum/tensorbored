@@ -21,11 +21,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python dependencies
+# Note: tensorbored is our fork - for now use tensorboard and copy custom modules
 RUN pip install --no-cache-dir \
     tensorboard>=2.15.0 \
     numpy>=1.24.0 \
     pillow>=10.0.0 \
     protobuf>=3.20.0
+
+# Create tensorbored alias (our fork uses the same binary for now)
+RUN ln -s $(which tensorboard) /usr/local/bin/tensorbored || true
 
 # Create directory for TensorBored extensions
 RUN mkdir -p /usr/local/lib/python3.11/site-packages/tensorboard/plugins/core

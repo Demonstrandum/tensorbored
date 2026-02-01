@@ -3,7 +3,7 @@
 # 
 # This script:
 # 1. Generates demo data if it doesn't exist
-# 2. Starts TensorBoard on port 7860 (HuggingFace Spaces default)
+# 2. Starts TensorBored on port 7860 (HuggingFace Spaces default)
 
 set -e
 
@@ -22,17 +22,17 @@ if [ ! -d "$LOGDIR" ] || [ -z "$(ls -A $LOGDIR 2>/dev/null)" ]; then
     echo ""
 fi
 
-echo "Starting TensorBoard..."
+echo "Starting TensorBored..."
 echo "  Log directory: $LOGDIR"
 echo "  Port: 7860"
 echo ""
 echo "=============================================="
 
-# Start TensorBoard
+# Start TensorBored
 # - Bind to all interfaces (required for Docker/HuggingFace Spaces)
 # - Port 7860 is HuggingFace Spaces default
 # - Disable reload for static demo
-exec tensorboard \
+exec tensorbored \
     --logdir="$LOGDIR" \
     --host=0.0.0.0 \
     --port=7860 \

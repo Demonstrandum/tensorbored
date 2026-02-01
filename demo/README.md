@@ -91,16 +91,16 @@ Each run logs:
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-org/tensorboard.git
-cd tensorboard/demo
+git clone https://github.com/your-org/tensorbored.git
+cd tensorbored/demo
 
 # Generate demo data
 pip install numpy pillow
 python generate_demo_data.py
 
-# Start TensorBoard
-pip install tensorboard
-tensorboard --logdir=./logs
+# Start TensorBored
+pip install tensorbored
+tensorbored --logdir=./logs
 ```
 
 ## 📦 Docker
