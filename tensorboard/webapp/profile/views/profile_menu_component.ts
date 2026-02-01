@@ -56,7 +56,7 @@ import {ProfileMetadata} from '../types';
         </button>
       </div>
 
-      <mat-divider></mat-divider>
+      <div class="menu-divider"></div>
 
       <!-- Load Section -->
       <div class="menu-section" *ngIf="profiles.length > 0">
@@ -81,7 +81,7 @@ import {ProfileMetadata} from '../types';
         <span class="empty-message">No saved profiles</span>
       </div>
 
-      <mat-divider></mat-divider>
+      <div class="menu-divider"></div>
 
       <!-- Import/Export Section -->
       <div class="menu-section">
@@ -96,7 +96,7 @@ import {ProfileMetadata} from '../types';
         </button>
       </div>
 
-      <mat-divider></mat-divider>
+      <div class="menu-divider"></div>
 
       <!-- Manage Section -->
       <div class="menu-section">
@@ -201,6 +201,12 @@ import {ProfileMetadata} from '../types';
 
       .danger-item {
         color: var(--tb-error);
+      }
+
+      .menu-divider {
+        height: 1px;
+        margin: 8px 0;
+        background-color: var(--tb-divider, rgba(0, 0, 0, 0.12));
       }
 
       ::ng-deep .profile-menu {
