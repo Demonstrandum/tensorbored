@@ -30,37 +30,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest prerelease wheel URL
-        id: wheel
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # Get the latest prerelease
-          RELEASE_INFO=$(gh release list --limit 10 --json tagName,isPrerelease \
-            | jq -r '.[] | select(.isPrerelease == true) | .tagName' | head -1)
+      - name: Download wheel from triggering workflow
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: tensorbored-rc-wheel
+          path: wheel
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
 
-          if [ -z "$RELEASE_INFO" ]; then
-            echo "No prerelease found, using latest release"
-            RELEASE_INFO=$(gh release list --limit 1 --json tagName \
-              | jq -r '.[0].tagName')
-          fi
+      - name: Download wheel from latest CI run
+        if: github.event_name != 'workflow_run'
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: wheel-prerelease.yml
+          name: tensorbored-rc-wheel
+          path: wheel
+          branch: master
+          check_artifacts: true
+          search_artifacts: true
 
-          echo "Using release: $RELEASE_INFO"
-
-          # Get the wheel URL from the release
-          WHEEL_URL=$(gh release view "$RELEASE_INFO" --json assets \
-            | jq -r '.assets[] | select(.name | endswith(".whl")) | .url' \
-            | head -1)
-          WHEEL_NAME=$(gh release view "$RELEASE_INFO" --json assets \
-            | jq -r '.assets[] | select(.name | endswith(".whl")) | .name' \
-            | head -1)
-
-          echo "wheel_url=$WHEEL_URL" >> "$GITHUB_OUTPUT"
-          echo "wheel_name=$WHEEL_NAME" >> "$GITHUB_OUTPUT"
-          echo "release_tag=$RELEASE_INFO" >> "$GITHUB_OUTPUT"
-
-          echo "Wheel URL: $WHEEL_URL"
-          echo "Wheel Name: $WHEEL_NAME"
+      - name: List wheel files
+        run: ls -la wheel/
 
       - name: Setup Git
         run: |
@@ -75,24 +66,19 @@ jobs:
             "https://user:${HF_TOKEN}@huggingface.co/spaces/Demonstrandum/tensorbored-sample" \
             hf-space
 
-      - name: Download wheel artifact
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Copy files to Space
         run: |
+          # Copy wheel
           mkdir -p hf-space/wheel
-          gh release download "${{ steps.wheel.outputs.release_tag }}" \
-            --pattern "*.whl" --dir hf-space/wheel
-          ls -la hf-space/wheel/
+          cp wheel/*.whl hf-space/wheel/
 
-      - name: Copy demo files to Space
-        run: |
           # Copy demo files
           cp demo/Dockerfile hf-space/
           cp demo/README.md hf-space/
           cp demo/generate_demo_data.py hf-space/
           cp demo/start.sh hf-space/
 
-          # Copy TensorBored custom modules (in case wheel doesn't have latest)
+          # Copy TensorBored custom modules
           mkdir -p hf-space/tensorbored_plugins_core
           cp tensorbored/plugins/core/profile_writer.py \
             hf-space/tensorbored_plugins_core/
@@ -108,7 +94,6 @@ jobs:
           cd hf-space
           git add -A
 
-          # Only commit and push if there are changes
           if git diff --staged --quiet; then
             echo "No changes to deploy"
           else
