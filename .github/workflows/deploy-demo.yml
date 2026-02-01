@@ -1,0 +1,61 @@
+name: Deploy Demo to HuggingFace Spaces
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'demo/**'
+      - 'tensorboard/plugins/core/profile_writer.py'
+      - 'tensorboard/plugins/core/color_sampler.py'
+      - 'tensorboard/plugins/core/__init__.py'
+      - '.github/workflows/deploy-demo.yml'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Clone HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git clone https://user:${HF_TOKEN}@huggingface.co/spaces/Demonstrandum/tensorbored-sample hf-space
+
+      - name: Copy demo files to Space
+        run: |
+          # Copy demo files
+          cp demo/Dockerfile hf-space/
+          cp demo/README.md hf-space/
+          cp demo/generate_demo_data.py hf-space/
+          cp demo/start.sh hf-space/
+          
+          # Copy TensorBored custom modules
+          mkdir -p hf-space/tensorboard_plugins_core
+          cp tensorboard/plugins/core/profile_writer.py hf-space/tensorboard_plugins_core/
+          cp tensorboard/plugins/core/color_sampler.py hf-space/tensorboard_plugins_core/
+          cp tensorboard/plugins/core/__init__.py hf-space/tensorboard_plugins_core/
+
+      - name: Push to HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd hf-space
+          git add -A
+          
+          # Only commit and push if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy from GitHub Actions ($(date -u +%Y-%m-%d))"
+            git push
+            echo "Deployed successfully!"
+          fi

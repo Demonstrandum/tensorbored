@@ -3,59 +3,49 @@
 # This Dockerfile creates a demo instance of TensorBored with pre-generated
 # training data showcasing all the new features.
 #
-# Build and run locally:
-#   docker build -t tensorbored-demo .
-#   docker run -p 7860:7860 tensorbored-demo
-#
-# For HuggingFace Spaces, this is deployed automatically.
+# For HuggingFace Spaces, this is deployed automatically via GitHub Actions.
 
 FROM python:3.11-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user (required by HuggingFace Spaces)
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
 
 # Set working directory
 WORKDIR /app
 
 # Install Python dependencies
-# Note: tensorbored is our fork - for now use tensorboard and copy custom modules
-RUN pip install --no-cache-dir \
+RUN pip install --no-cache-dir --user \
     tensorboard>=2.15.0 \
     numpy>=1.24.0 \
     pillow>=10.0.0 \
     protobuf>=3.20.0
 
-# Create tensorbored alias (our fork uses the same binary for now)
-RUN ln -s $(which tensorboard) /usr/local/bin/tensorbored || true
+# Create tensorbored alias
+RUN ln -s /home/user/.local/bin/tensorboard /home/user/.local/bin/tensorbored
 
-# Create directory for TensorBored extensions
-RUN mkdir -p /usr/local/lib/python3.11/site-packages/tensorboard/plugins/core
-
-# Copy the TensorBored source (profile_writer, color_sampler, etc.)
-# These are the new features that make TensorBored special
-COPY tensorboard/plugins/core/profile_writer.py /usr/local/lib/python3.11/site-packages/tensorboard/plugins/core/profile_writer.py
-COPY tensorboard/plugins/core/color_sampler.py /usr/local/lib/python3.11/site-packages/tensorboard/plugins/core/color_sampler.py
-COPY tensorboard/plugins/core/__init__.py /usr/local/lib/python3.11/site-packages/tensorboard/plugins/core/__init__.py
+# Copy TensorBored custom modules (profile_writer, color_sampler)
+# These are copied by the GitHub Actions workflow
+COPY --chown=user tensorboard_plugins_core/ /home/user/.local/lib/python3.11/site-packages/tensorboard/plugins/core/
 
 # Copy demo files
-COPY demo/generate_demo_data.py /app/generate_demo_data.py
-COPY demo/start.sh /app/start.sh
+COPY --chown=user generate_demo_data.py /app/generate_demo_data.py
+COPY --chown=user start.sh /app/start.sh
 
 # Make startup script executable
 RUN chmod +x /app/start.sh
 
-# Generate demo data at build time for faster startup
+# Generate demo data at build time
 RUN python /app/generate_demo_data.py
 
 # HuggingFace Spaces uses port 7860
 EXPOSE 7860
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860/ || exit 1
-
-# Start TensorBoard
+# Start TensorBored
 CMD ["/app/start.sh"]
