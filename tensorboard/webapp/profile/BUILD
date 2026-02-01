@@ -48,5 +48,6 @@ tf_ts_library(
     ],
     deps = [
         ":types",
+        "@npm//@types/jasmine",
     ],
 )
