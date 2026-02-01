@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests the TensorBoard core endpoints."""
 
-
 import collections.abc
 import contextlib
 import io
