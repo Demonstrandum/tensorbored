@@ -718,7 +718,7 @@ Must specify one of `logdir` or `event_file` flag.
 Example usage:
   `tensorbored --inspect --logdir mylogdir --tag loss`
 
-See tensorboard/backend/event_processing/event_file_inspector.py for more info.\
+See tensorbored/backend/event_processing/event_file_inspector.py for more info.\
 """,
         )
 

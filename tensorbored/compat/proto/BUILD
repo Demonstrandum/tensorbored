@@ -30,7 +30,7 @@ py_test(
 )
 
 # DO NOT EDIT: This line and rest of file are AUTOMATICALLY GENERATED
-# by tensorboard/compat/proto/update.sh.
+# by tensorbored/compat/proto/update.sh.
 
 tb_proto_library(
     name = "allocation_description",
