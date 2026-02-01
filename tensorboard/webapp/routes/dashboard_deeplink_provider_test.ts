@@ -176,14 +176,23 @@ describe('core deeplink provider', () => {
       it('serializes nothing when states are empty', () => {
         store.overrideSelector(selectors.getPinnedCardsWithMetadata, []);
         store.overrideSelector(selectors.getUnresolvedImportedPinnedCards, []);
-        // Trigger an emission by changing a serialized selector
-        store.overrideSelector(selectors.getMetricsTagFilter, '');
+        // Trigger an emission by changing a serialized selector (smoothing)
+        store.overrideSelector(selectors.getMetricsSettingOverrides, {
+          scalarSmoothing: 0.5,
+        });
         store.refreshState();
 
-        // When tag filter is empty, result should be empty (no pinnedCards param)
+        // Verify emission occurred and does NOT contain pinned cards
         const lastEmission =
           queryParamsSerialized[queryParamsSerialized.length - 1];
-        expect(lastEmission).toEqual([]);
+        expect(lastEmission).toBeDefined();
+        // Should only have smoothing, no pinnedCards
+        expect(
+          lastEmission.find((p: {key: string}) => p.key === 'pinnedCards')
+        ).toBeUndefined();
+        expect(
+          lastEmission.find((p: {key: string}) => p.key === 'smoothing')
+        ).toBeDefined();
       });
 
       // Deserialization still works for backwards compatibility with old URLs
