@@ -22,7 +22,7 @@ jobs:
       - name: Download pip package
         uses: actions/download-artifact@v4
         with:
-          pattern: tb-nightly_py*
+          pattern: tensorbored-nightly_py*
           # Download all matching artifacts in the same directory (specified by path)
           merge-multiple: true
           path: wheels

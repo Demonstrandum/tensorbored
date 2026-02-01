@@ -14,7 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 
-# Updates package version and renames the package to `tb-nightly`.
+# Updates package version and renames the package to `tensorbored-nightly`.
 version="$(python tensorboard/version.py)"
 case "${version}" in
   *a0)

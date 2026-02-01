@@ -122,8 +122,8 @@ jobs:
         if: matrix.tf_version_id == 'tf' && github.ref == 'refs/heads/master'
         run: |
           ./tensorboard/tools/set_nightly_version.sh
-          rm -rf /tmp/tb_nightly_pip_package && mkdir /tmp/tb_nightly_pip_package
-          bazel run //tensorboard/pip_package:build_pip_package -- /tmp/tb_nightly_pip_package
+          rm -rf /tmp/tensorbored_nightly_pip_package && mkdir /tmp/tensorbored_nightly_pip_package
+          bazel run //tensorboard/pip_package:build_pip_package -- /tmp/tensorbored_nightly_pip_package
       - name: 'Upload Pip package as an artifact (master branch TF build only)'
         # Upload wheel artifact on every push to master.
         #
@@ -133,8 +133,8 @@ jobs:
         if: matrix.tf_version_id == 'tf' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v4
         with:
-          name: tb-nightly_py${{ matrix.python_version }}
-          path: /tmp/tb_nightly_pip_package/*
+          name: tensorbored-nightly_py${{ matrix.python_version }}
+          path: /tmp/tensorbored_nightly_pip_package/*
 
   build-data-server-pip:
     runs-on: ${{ matrix.platform }}

@@ -46,9 +46,10 @@ jobs:
           path: |
             ~/.cache/bazel
             ~/.cache/bazel-disk-cache
-          key: bazel-rc-wheel-${{ hashFiles('WORKSPACE', '.bazelversion', 'third_party/**') }}
+          key: bazel-rc-wheel-3.9-${{ hashFiles('WORKSPACE', '.bazelversion', 'third_party/**') }}
           restore-keys: |
-            bazel-rc-wheel-
+            bazel-rc-wheel-3.9-
+            bazel-tf-3.9-
             bazel-tf-
             bazel-
 
