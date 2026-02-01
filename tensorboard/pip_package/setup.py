@@ -37,7 +37,7 @@ CONSOLE_SCRIPTS = [
 ]
 
 setup(
-    name="tensorboard",
+    name="tensorbored",
     version=tensorboard.version.VERSION.replace("-", ""),
     description="TensorBored: a PyTorch-first TensorBoard fork",
     long_description=get_readme(),

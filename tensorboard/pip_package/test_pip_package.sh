@@ -126,7 +126,7 @@ smoke() (
 
   if [ -n "${tf_version}" ]; then
     pip install -qU "${tf_version}"
-    pip uninstall -qy tensorboard tb-nightly  # Drop any conflicting packages
+    pip uninstall -qy tensorboard tensorbored tensorbored-nightly tb-nightly  # Drop any conflicting packages
   fi
   pip install -qU "${wheels}"/*py"${py_major_version}"*.whl
   pip freeze  # Log the results of pip installation

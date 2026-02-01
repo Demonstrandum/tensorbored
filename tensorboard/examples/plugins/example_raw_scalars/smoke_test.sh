@@ -46,7 +46,7 @@ pip install -qU wheel 'setuptools>=36.2.0'
 
 py_major_version="$(python -c 'import sys; print(sys.version_info[0])')"
 pip install tf-nightly  # TODO(@wchargin): Other versions, too?
-pip uninstall -y tensorboard tb-nightly  # drop conflicting packages
+pip uninstall -y tensorboard tensorbored tensorbored-nightly tb-nightly  # drop conflicting packages
 pip install ./tensorboard-wheels/*py"${py_major_version}"*.whl
 pip install ./example-plugin/dist/*.whl
 
