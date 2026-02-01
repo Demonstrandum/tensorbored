@@ -1120,9 +1120,10 @@ describe('metrics effects', () => {
         actions$.next(actions.metricsEnableSavingPinsToggled());
 
         // All pinned cards are saved, not just scalars
+        // Images cards include runId and sample from createCardMetadata
         expect(setSavedPinsSpy).toHaveBeenCalledWith([
           {plugin: PluginType.SCALARS, tag: 'tag1'},
-          {plugin: PluginType.IMAGES, tag: 'tag2'},
+          {plugin: PluginType.IMAGES, tag: 'tag2', runId: 'run1', sample: 999},
           {plugin: PluginType.SCALARS, tag: 'tag3'},
         ]);
         expect(removeAllPinsSpy).not.toHaveBeenCalled();

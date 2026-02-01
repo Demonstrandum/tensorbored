@@ -414,8 +414,14 @@ describe('line_chart_v2/lib/scale test', () => {
         expect(scale.forward([0, 1], [-100, 100], 1)).toBeCloseTo(100, 5);
 
         // Test with positive domain including larger values
-        expect(scale.forward([1, 1000], [0, 1], 100)).toBeCloseTo(0.698, 2);
-        expect(scale.forward([0.00001, 1], [0, 5], 0.01)).toBeCloseTo(0.022, 1);
+        // symlog(100) = log10(101) ≈ 2.004
+        // symlog(1) = log10(2) ≈ 0.301
+        // symlog(1000) = log10(1001) ≈ 3.0004
+        // forward = (2.004 - 0.301) / (3.0004 - 0.301) ≈ 0.631
+        expect(scale.forward([1, 1000], [0, 1], 100)).toBeCloseTo(0.631, 2);
+        // symlog(0.01) = log10(1.01) ≈ 0.00432
+        // forward ≈ 0.072
+        expect(scale.forward([0.00001, 1], [0, 5], 0.01)).toBeCloseTo(0.072, 2);
       });
 
       it('handles zero correctly', () => {
