@@ -131,8 +131,8 @@ smoke() (
   pip install -qU "${wheels}"/*py"${py_major_version}"*.whl
   pip freeze  # Log the results of pip installation
 
-  # Test TensorBoard application
-  [ -x ./bin/tensorboard ]  # Ensure pip package included binary
+  # Test TensorBored application
+  [ -x ./bin/tensorbored ]  # Ensure pip package included binary
   mkfifo pipe
   tensorbored --port=0 --logdir=smokedir 2>pipe &
   perl -ne 'print STDERR;/http:.*:(\d+)/ and print $1.v10 and exit 0' <pipe >port
@@ -147,24 +147,24 @@ smoke() (
   grep '<vz-projector-dashboard' projector_binary.html
   kill $!
 
-  # Test TensorBoard APIs
+  # Test TensorBored APIs
   export TF_CPP_MIN_LOG_LEVEL=1  # Suppress spammy TF startup logging.
   python -c "
-import tensorboard as tb
+import tensorbored as tb
 assert tb.__version__ == tb.version.VERSION
 assert issubclass(tb.errors.NotFoundError, tb.errors.PublicError)
-from tensorboard.plugins.projector import visualize_embeddings
+from tensorbored.plugins.projector import visualize_embeddings
 tb.notebook.start  # don't invoke; just check existence
-from tensorboard.plugins.hparams import summary_v2 as hp
+from tensorbored.plugins.hparams import summary_v2 as hp
 hp.hparams_pb({'optimizer': 'adam', 'learning_rate': 0.02})
 "
   if [ -n "${tf_version}" ]; then
     # Only test summary scalar and mesh summary
     python -c "
-import tensorboard as tb
+import tensorbored as tb
 tb.summary.v1.scalar_pb('test', 42)
 tb.summary.scalar('test v2', 1337)
-from tensorboard.plugins.mesh import summary
+from tensorbored.plugins.mesh import summary
 "
   fi
 
