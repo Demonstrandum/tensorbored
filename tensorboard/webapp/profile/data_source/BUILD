@@ -34,7 +34,6 @@ tf_ts_library(
     ],
     deps = [
         ":data_source",
-        "//tensorboard/webapp/angular:expect_angular_common_http_testing",
         "//tensorboard/webapp/angular:expect_angular_core_testing",
         "//tensorboard/webapp/profile:types",
         "//tensorboard/webapp/webapp_data_source:http_client",

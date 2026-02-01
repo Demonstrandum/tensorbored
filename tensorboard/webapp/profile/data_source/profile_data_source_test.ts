@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import {TestBed} from '@angular/core/testing';
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {ProfileDataSource, TEST_ONLY} from './profile_data_source';
 import {TBHttpClient} from '../../webapp_data_source/tb_http_client';
 import {ProfileData, PROFILE_VERSION, createEmptyProfile} from '../types';
@@ -37,9 +36,17 @@ describe('ProfileDataSource', () => {
       delete localStorageMock[key];
     });
 
+    // Mock TBHttpClient since we're only testing localStorage functionality
+    const mockHttpClient = jasmine.createSpyObj('TBHttpClient', [
+      'get',
+      'post',
+    ]);
+
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [ProfileDataSource, TBHttpClient],
+      providers: [
+        ProfileDataSource,
+        {provide: TBHttpClient, useValue: mockHttpClient},
+      ],
     });
 
     dataSource = TestBed.inject(ProfileDataSource);
