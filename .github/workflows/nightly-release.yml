@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # Needed for PyPI OIDC trusted publishing
 
 jobs:
   ci:
@@ -17,7 +18,7 @@ jobs:
   nightly-release:
     runs-on: ubuntu-22.04
     needs: ci
-    if: github.repository == 'tensorflow/tensorboard'
+    if: github.repository == 'Demonstrandum/tensorbored'
     steps:
       - name: Download pip package
         uses: actions/download-artifact@v4
@@ -26,13 +27,12 @@ jobs:
           # Download all matching artifacts in the same directory (specified by path)
           merge-multiple: true
           path: wheels
-      - name: Install Twine
-        run: pip install twine
-      - name: Publish the package
-        run: |
-          twine check tensorbored_nightly*.whl
-          twine upload tensorbored_nightly*.whl
-        working-directory: wheels
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.NIGHTLY_PYPI_API_TOKEN }}
+
+      - name: List wheel files
+        run: ls -la wheels/
+
+      - name: Publish nightly to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: wheels/
+          print-hash: true

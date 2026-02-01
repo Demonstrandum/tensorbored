@@ -2,7 +2,8 @@
 #
 # This workflow builds the pip package and publishes it as a GitHub prerelease,
 # making it easy to download and test the latest changes without waiting for
-# an official release. It also publishes RC versions to PyPI.
+# an official release. It also publishes RC versions to PyPI using OIDC
+# (Trusted Publishers) - no API tokens required.
 
 name: Wheel Prerelease
 
@@ -13,6 +14,7 @@ on:
 
 permissions:
   contents: write # Needed for creating releases
+  id-token: write # Needed for PyPI OIDC trusted publishing
 
 env:
   BAZEL_VERSION: '6.5.0'
@@ -156,13 +158,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Twine
-        run: pip install twine
-
       - name: Publish RC to PyPI
-        run: |
-          twine check wheels/*.whl
-          twine upload wheels/*.whl
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: wheels/
+          print-hash: true
