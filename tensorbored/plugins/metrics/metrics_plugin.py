@@ -282,7 +282,9 @@ class MetricsPlugin(base_plugin.TBPlugin):
                 it contains a valid `data_provider`.
         """
         self._data_provider = context.data_provider
-        logdir_spec = context.flags.logdir_spec if context.flags else ""
+        logdir_spec = (
+            getattr(context.flags, "logdir_spec", "") if context.flags else ""
+        )
         self._logdir = context.logdir or logdir_spec
 
         # For histograms, use a round number + 1 since sampling includes both start
