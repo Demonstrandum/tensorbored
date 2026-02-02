@@ -15,7 +15,7 @@ limitations under the License.
 import {Injectable} from '@angular/core';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {Store} from '@ngrx/store';
-import {of} from 'rxjs';
+import {EMPTY, from, of} from 'rxjs';
 import {
   catchError,
   filter,
@@ -28,6 +28,8 @@ import {
 } from 'rxjs/operators';
 import {navigated} from '../../app_routing/actions';
 import {State} from '../../app_state';
+import {getExperimentIdsFromRoute} from '../../selectors';
+import {DataLoadState} from '../../types/data';
 import {
   getMetricsScalarSmoothing,
   getMetricsTagFilter,
@@ -37,9 +39,12 @@ import {
 } from '../../metrics/store/metrics_selectors';
 import {
   getRunColorOverride,
+  getRunSelectionMap,
   getGroupKeyToColorIdMap,
   getRunUserSetGroupBy,
   getRunSelectorRegexFilter,
+  getDashboardRuns,
+  getRunsLoadState,
 } from '../../runs/store/runs_selectors';
 import {CardIdWithMetadata, CardUniqueInfo} from '../../metrics/types';
 import {GroupBy, GroupByKey} from '../../runs/types';
@@ -52,6 +57,8 @@ import {
   ProfileGroupBy,
   RunColorEntry,
   GroupColorEntry,
+  RunSelectionEntryType,
+  ProfileSource,
   createEmptyProfile,
   PROFILE_VERSION,
 } from '../types';
@@ -59,6 +66,22 @@ import {
   isSampledPlugin,
   isSingleRunPlugin,
 } from '../../metrics/data_source/types';
+import * as profileSelectors from '../store/profile_selectors';
+
+const RUN_SELECTION_STORAGE_KEY = '_tb_run_selection.v1';
+
+function hasStoredRunSelection(): boolean {
+  const raw = window.localStorage.getItem(RUN_SELECTION_STORAGE_KEY);
+  if (!raw) {
+    return false;
+  }
+  try {
+    const parsed = JSON.parse(raw) as {runSelection?: unknown};
+    return Array.isArray(parsed.runSelection) && parsed.runSelection.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Effects for profile management.
@@ -120,7 +143,96 @@ export class ProfileEffects {
   activateLoadedProfile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(profileActions.profileLoaded),
-      map(({profile}) => profileActions.profileActivated({profile}))
+      map(({profile}) =>
+        profileActions.profileActivated({
+          profile,
+          source: ProfileSource.LOCAL,
+        })
+      )
+    )
+  );
+
+  fetchDefaultProfilesOnNavigation$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(navigated),
+      withLatestFrom(
+        this.store.select(getExperimentIdsFromRoute),
+        this.store.select(profileSelectors.getDefaultProfiles)
+      ),
+      mergeMap(([, experimentIds, defaultProfiles]) => {
+        if (!experimentIds) {
+          return EMPTY;
+        }
+        const missingExperimentIds = experimentIds.filter(
+          (experimentId: string) => !defaultProfiles.has(experimentId)
+        );
+        return from(missingExperimentIds).pipe(
+          map((experimentId: string) =>
+            profileActions.defaultProfileFetchRequested({experimentId})
+          )
+        );
+      })
+    )
+  );
+
+  applyDefaultProfileOnRunsLoaded$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(runsActions.fetchRunsSucceeded),
+      withLatestFrom(
+        this.store.select(profileSelectors.getActiveProfileName),
+        this.store.select(profileSelectors.getDefaultProfiles),
+        this.store.select(getExperimentIdsFromRoute)
+      ),
+      map(([, activeProfileName, defaultProfiles, experimentIds]) => {
+        if (activeProfileName || !experimentIds || experimentIds.length !== 1) {
+          return null;
+        }
+        const profile = defaultProfiles.get(experimentIds[0]) ?? null;
+        if (!profile) {
+          return null;
+        }
+        return profileActions.profileActivated({
+          profile,
+          source: ProfileSource.BACKEND,
+        });
+      }),
+      filter(
+        (
+          action
+        ): action is ReturnType<typeof profileActions.profileActivated> =>
+          action !== null
+      )
+    )
+  );
+
+  applyDefaultProfileOnFetch$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(profileActions.defaultProfileFetched),
+      filter(({profile}) => Boolean(profile)),
+      switchMap(({profile, experimentId}) =>
+        this.store.select(getRunsLoadState, {experimentId}).pipe(
+          filter((loadState) => loadState.state === DataLoadState.LOADED),
+          take(1),
+          withLatestFrom(
+            this.store.select(profileSelectors.getActiveProfileName),
+            this.store.select(getExperimentIdsFromRoute)
+          ),
+          filter(([, activeProfileName, experimentIds]) => {
+            return (
+              !activeProfileName &&
+              Boolean(experimentIds) &&
+              experimentIds!.length === 1 &&
+              experimentIds![0] === experimentId
+            );
+          }),
+          map(() =>
+            profileActions.profileActivated({
+              profile: profile as ProfileData,
+              source: ProfileSource.BACKEND,
+            })
+          )
+        )
+      )
     )
   );
 
@@ -179,6 +291,55 @@ export class ProfileEffects {
     )
   );
 
+  applyProfileRunSelection$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(profileActions.profileActivated),
+      filter(({profile}) => profile.runSelection !== undefined),
+      filter(({source}) => {
+        if (source === ProfileSource.BACKEND) {
+          return !hasStoredRunSelection();
+        }
+        return true;
+      }),
+      withLatestFrom(this.store.select(getDashboardRuns)),
+      map(([{profile}, runs]) => {
+        const runSelection = profile.runSelection ?? [];
+        const selectionMap = new Map<string, boolean>();
+        const runIdsByName = new Map<string, string[]>();
+
+        for (const run of runs) {
+          const names = runIdsByName.get(run.name);
+          if (names) {
+            names.push(run.id);
+          } else {
+            runIdsByName.set(run.name, [run.id]);
+          }
+        }
+
+        for (const entry of runSelection) {
+          if (entry.type === RunSelectionEntryType.RUN_ID) {
+            selectionMap.set(entry.value, entry.selected);
+            continue;
+          }
+          const matchingRunIds = runIdsByName.get(entry.value) ?? [];
+          for (const runId of matchingRunIds) {
+            selectionMap.set(runId, entry.selected);
+          }
+        }
+
+        for (const run of runs) {
+          if (!selectionMap.has(run.id)) {
+            selectionMap.set(run.id, false);
+          }
+        }
+
+        return runsActions.runSelectionStateLoaded({
+          runSelection: Array.from(selectionMap.entries()),
+        });
+      })
+    )
+  );
+
   /**
    * Save the current state as a profile.
    */
@@ -194,7 +355,9 @@ export class ProfileEffects {
         this.store.select(getMetricsTagFilter),
         this.store.select(getRunSelectorRegexFilter),
         this.store.select(getMetricsScalarSmoothing),
-        this.store.select(getRunUserSetGroupBy)
+        this.store.select(getRunUserSetGroupBy),
+        this.store.select(getRunSelectionMap),
+        this.store.select(getDashboardRuns)
       ),
       map(
         ([
@@ -208,6 +371,8 @@ export class ProfileEffects {
           runFilter,
           smoothing,
           groupBy,
+          runSelectionMap,
+          runs,
         ]) => {
           // Convert pinned cards to CardUniqueInfo format
           const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map(
@@ -251,6 +416,12 @@ export class ProfileEffects {
             }
           }
 
+          const runSelection = runs.map((run) => ({
+            type: RunSelectionEntryType.RUN_ID,
+            value: run.id,
+            selected: Boolean(runSelectionMap.get(run.id)),
+          }));
+
           const profile: ProfileData = {
             version: PROFILE_VERSION,
             name,
@@ -259,6 +430,7 @@ export class ProfileEffects {
             runColors,
             groupColors,
             superimposedCards: [...superimposedCards],
+            runSelection,
             tagFilter,
             runFilter,
             smoothing,

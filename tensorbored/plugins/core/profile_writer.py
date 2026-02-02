@@ -64,6 +64,8 @@ def create_profile(
     run_colors: Optional[Dict[str, str]] = None,
     group_colors: Optional[List[Dict[str, Any]]] = None,
     superimposed_cards: Optional[List[Dict[str, Any]]] = None,
+    run_selection: Optional[List[Dict[str, Any]]] = None,
+    selected_runs: Optional[List[str]] = None,
     tag_filter: str = "",
     run_filter: str = "",
     smoothing: float = 0.6,
@@ -88,6 +90,11 @@ def create_profile(
             - title: str (display title)
             - tags: List[str] (scalar tags to combine)
             - runId: Optional[str] (run filter, or None for all runs)
+        run_selection: Optional run selection entries. Each entry is:
+            - type: str ("RUN_ID" or "RUN_NAME")
+            - value: str (run id or run name)
+            - selected: bool
+        selected_runs: Convenience list of run names to select by default.
         tag_filter: Regex pattern to filter tags.
         run_filter: Regex pattern to filter runs.
         smoothing: Scalar smoothing value (0.0 to 0.999).
@@ -104,6 +111,13 @@ def create_profile(
         for run_id, color in run_colors.items():
             run_color_entries.append({"runId": run_id, "color": color})
 
+    run_selection_entries = run_selection or []
+    if not run_selection_entries and selected_runs:
+        run_selection_entries = [
+            {"type": "RUN_NAME", "value": run_name, "selected": True}
+            for run_name in selected_runs
+        ]
+
     return {
         "version": PROFILE_VERSION,
         "data": {
@@ -114,6 +128,7 @@ def create_profile(
             "runColors": run_color_entries,
             "groupColors": group_colors or [],
             "superimposedCards": superimposed_cards or [],
+            "runSelection": run_selection_entries,
             "tagFilter": tag_filter,
             "runFilter": run_filter,
             "smoothing": smoothing,
@@ -180,6 +195,8 @@ def set_default_profile(
     run_colors: Optional[Dict[str, str]] = None,
     group_colors: Optional[List[Dict[str, Any]]] = None,
     superimposed_cards: Optional[List[Dict[str, Any]]] = None,
+    run_selection: Optional[List[Dict[str, Any]]] = None,
+    selected_runs: Optional[List[str]] = None,
     tag_filter: str = "",
     run_filter: str = "",
     smoothing: float = 0.6,
@@ -194,6 +211,8 @@ def set_default_profile(
         run_colors: Dict mapping run names to hex colors.
         group_colors: List of group color assignments.
         superimposed_cards: List of superimposed card definitions.
+        run_selection: Optional run selection entries.
+        selected_runs: Convenience list of run names to select by default.
         tag_filter: Regex pattern to filter tags.
         run_filter: Regex pattern to filter runs.
         smoothing: Scalar smoothing value.
@@ -208,6 +227,8 @@ def set_default_profile(
         run_colors=run_colors,
         group_colors=group_colors,
         superimposed_cards=superimposed_cards,
+        run_selection=run_selection,
+        selected_runs=selected_runs,
         tag_filter=tag_filter,
         run_filter=run_filter,
         smoothing=smoothing,

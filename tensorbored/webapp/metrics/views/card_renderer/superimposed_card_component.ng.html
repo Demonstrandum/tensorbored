@@ -46,7 +46,15 @@ limitations under the License.
       <mat-menu #menu="matMenu">
         <button mat-menu-item (click)="toggleYScaleType()">
           <mat-icon svgIcon="line_weight_24px"></mat-icon>
-          <span>Toggle Y-axis log scale</span>
+          <span>Y-axis scale: {{ getYScaleLabel() }}</span>
+        </button>
+        <button
+          mat-menu-item
+          *ngIf="canToggleXScaleType()"
+          (click)="toggleXScaleType()"
+        >
+          <mat-icon svgIcon="line_weight_24px"></mat-icon>
+          <span>X-axis scale: {{ getXScaleLabel() }}</span>
         </button>
         <button mat-menu-item (click)="onDeleteCard.emit()">
           <mat-icon svgIcon="clear_24px"></mat-icon>
@@ -84,7 +92,7 @@ limitations under the License.
       [preferredRendererType]="forceSvg ? RendererType.SVG : RendererType.WEBGL"
       [seriesData]="dataSeries"
       [seriesMetadataMap]="chartMetadataMap"
-      [xScaleType]="xScaleType"
+      [xScaleType]="getEffectiveXScaleType()"
       [yScaleType]="yScaleType"
       [customXFormatter]="getCustomXFormatter()"
       [ignoreYOutliers]="ignoreOutliers"

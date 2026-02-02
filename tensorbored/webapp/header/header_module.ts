@@ -22,6 +22,7 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {CoreModule} from '../core/core_module';
+import {ProfileMenuModule} from '../profile/views/profile_menu_module';
 import {SettingsModule} from '../settings/settings_module';
 import {DarkModeToggleComponent} from './dark_mode_toggle_component';
 import {DarkModeToggleContainer} from './dark_mode_toggle_container';
@@ -55,6 +56,7 @@ import {ReloadContainer} from './reload_container';
     MatMenuModule,
     CommonModule,
     CoreModule,
+    ProfileMenuModule,
     SettingsModule,
   ],
 })

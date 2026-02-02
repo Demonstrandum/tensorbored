@@ -98,6 +98,7 @@ import {
   getMetricsScalarSmoothing,
   getMetricsTooltipSort,
   getMetricsXAxisType,
+  getSuperimposedCardsWithMetadata,
   RunToSeries,
 } from '../../store';
 import {
@@ -105,6 +106,8 @@ import {
   CardMetadata,
   HeaderEditInfo,
   HeaderToggleInfo,
+  SuperimposedCardId,
+  SuperimposedCardMetadata,
   XAxisType,
 } from '../../types';
 import {RunToHparamMap} from '../../../runs/types';
@@ -179,6 +182,7 @@ function areSeriesEqual(
       [loadState]="loadState$ | async"
       [showFullWidth]="showFullWidth$ | async"
       [smoothingEnabled]="smoothingEnabled$ | async"
+      [superimposedCards]="superimposedCards$ | async"
       [tag]="tag$ | async"
       [title]="title$ | async"
       [cardState]="cardState$ | async"
@@ -216,6 +220,7 @@ function areSeriesEqual(
       (addFilter)="addHparamFilter($event)"
       (loadAllColumns)="loadAllColumns()"
       (onAddToSuperimposed)="onAddToSuperimposed()"
+      (onAddToSuperimposedCard)="onAddToSuperimposedCard($event)"
     ></scalar-card-component>
   `,
   styles: [
@@ -266,6 +271,9 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
     this.smoothingEnabled$ = this.store
       .select(getMetricsScalarSmoothing)
       .pipe(map((smoothing) => smoothing > 0));
+    this.superimposedCards$ = this.store.select(
+      getSuperimposedCardsWithMetadata
+    );
     this.showFullWidth$ = this.store
       .select(getCardStateMap)
       .pipe(map((map) => map[this.cardId]?.fullWidth));
@@ -316,6 +324,7 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
 
   readonly scalarSmoothing$;
   readonly smoothingEnabled$;
+  readonly superimposedCards$: Observable<SuperimposedCardMetadata[]>;
 
   readonly showFullWidth$;
 
@@ -789,9 +798,7 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
   }
 
   onAddToSuperimposed() {
-    // Get the tag from the card metadata and create a new superimposed card
-    // In a real implementation, this could open a dialog to select an existing
-    // superimposed card or create a new one
+    // Get the tag from the card metadata and create a new superimposed card.
     this.tag$
       ?.pipe(
         filter((tag): tag is string => !!tag),
@@ -803,6 +810,22 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
             title: `Superimposed: ${tag}`,
             tags: [tag],
             runId: null,
+          })
+        );
+      });
+  }
+
+  onAddToSuperimposedCard(superimposedCardId: SuperimposedCardId) {
+    this.tag$
+      ?.pipe(
+        filter((tag): tag is string => !!tag),
+        take(1)
+      )
+      .subscribe((tag) => {
+        this.store.dispatch(
+          actions.superimposedCardTagAdded({
+            superimposedCardId,
+            tag,
           })
         );
       });

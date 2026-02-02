@@ -207,8 +207,11 @@ export class LineChart {
       xZeroLine = new Plottable.Components.GuideLineLayer('horizontal');
       xZeroLine.scale(this.yScale).value(0);
     }
-    let yZeroLine = new Plottable.Components.GuideLineLayer('vertical');
-    yZeroLine.scale(this.xScale).value(0);
+    let yZeroLine: any = null;
+    if (!(this.xScale instanceof LogScale)) {
+      yZeroLine = new Plottable.Components.GuideLineLayer('vertical');
+      yZeroLine.scale(this.xScale).value(0);
+    }
     this.center = new Plottable.Components.Group([
       this.gridlines,
       xZeroLine,

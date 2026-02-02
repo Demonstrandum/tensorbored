@@ -68,6 +68,16 @@ export const runPageSelectionToggled = createAction(
   props<{runIds: string[]}>()
 );
 
+export const runSelectionStateLoaded = createAction(
+  '[Runs] Run Selection State Loaded',
+  props<{
+    /**
+     * Serialized entries for Map<RunId, boolean>.
+     */
+    runSelection: Array<[runId: string, selected: boolean]>;
+  }>()
+);
+
 export const runSelectorRegexFilterChanged = createAction(
   '[Runs] Run Selector Regex Filter Changed',
   props<{regexString: string}>()

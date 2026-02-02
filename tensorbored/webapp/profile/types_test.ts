@@ -15,6 +15,7 @@ limitations under the License.
 import {
   ProfileData,
   PROFILE_VERSION,
+  RunSelectionEntryType,
   createEmptyProfile,
   isValidProfile,
   migrateProfile,
@@ -36,6 +37,7 @@ describe('profile types', () => {
       expect(profile.runColors).toEqual([]);
       expect(profile.groupColors).toEqual([]);
       expect(profile.superimposedCards).toEqual([]);
+      expect(profile.runSelection).toEqual([]);
       expect(profile.tagFilter).toBe('');
       expect(profile.runFilter).toBe('');
       expect(profile.smoothing).toBe(0.6);
@@ -125,6 +127,21 @@ describe('profile types', () => {
       expect(isValidProfile(invalidProfile)).toBe(false);
     });
 
+    it('returns false for invalid runSelection (not an array)', () => {
+      const profile = createEmptyProfile('Test');
+      const invalidProfile = {...profile, runSelection: 'nope'} as any;
+      expect(isValidProfile(invalidProfile)).toBe(false);
+    });
+
+    it('returns false for invalid runSelection entry', () => {
+      const profile = createEmptyProfile('Test');
+      const invalidProfile = {
+        ...profile,
+        runSelection: [{type: 'RUN_ID', value: 'run', selected: 'yes'}],
+      } as any;
+      expect(isValidProfile(invalidProfile)).toBe(false);
+    });
+
     it('returns false for invalid groupColors (not an array)', () => {
       const profile = createEmptyProfile('Test');
       const invalidProfile = {...profile, groupColors: {}} as any;
@@ -155,6 +172,14 @@ describe('profile types', () => {
     it('returns true with valid group colors', () => {
       const profile = createEmptyProfile('Test');
       profile.groupColors = [{groupKey: 'key1', colorId: 0}];
+      expect(isValidProfile(profile)).toBe(true);
+    });
+
+    it('returns true with valid run selection entries', () => {
+      const profile = createEmptyProfile('Test');
+      profile.runSelection = [
+        {type: RunSelectionEntryType.RUN_ID, value: 'exp/run', selected: true},
+      ];
       expect(isValidProfile(profile)).toBe(true);
     });
   });

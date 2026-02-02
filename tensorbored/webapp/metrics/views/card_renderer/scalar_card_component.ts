@@ -49,6 +49,8 @@ import {
   HeaderToggleInfo,
   TooltipSort,
   XAxisType,
+  SuperimposedCardId,
+  SuperimposedCardMetadata,
 } from '../../types';
 import {
   MinMaxStep,
@@ -100,6 +102,7 @@ export class ScalarCardComponent<Downloader> {
   @Input() loadState!: DataLoadState;
   @Input() showFullWidth!: boolean;
   @Input() smoothingEnabled!: boolean;
+  @Input() superimposedCards: SuperimposedCardMetadata[] = [];
   @Input() tag!: string;
   @Input() title!: string;
   @Input() tooltipSort!: TooltipSort;
@@ -140,6 +143,7 @@ export class ScalarCardComponent<Downloader> {
   @Output() onLineChartZoom = new EventEmitter<Extent | null>();
   @Output() onCardStateChanged = new EventEmitter<Partial<CardState>>();
   @Output() onAddToSuperimposed = new EventEmitter<void>();
+  @Output() onAddToSuperimposedCard = new EventEmitter<SuperimposedCardId>();
 
   // Line chart may not exist when was never visible (*ngIf).
   @ViewChild(LineChartComponent)
@@ -266,6 +270,13 @@ export class ScalarCardComponent<Downloader> {
 
   trackByTooltipDatum(index: number, datum: ScalarTooltipDatum) {
     return datum.id;
+  }
+
+  trackBySuperimposedCard(
+    index: number,
+    card: SuperimposedCardMetadata
+  ): SuperimposedCardId {
+    return card.id;
   }
 
   readonly relativeXFormatter = relativeTimeFormatter;

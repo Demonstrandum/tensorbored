@@ -86,12 +86,86 @@ export class SuperimposedCardComponent {
   constructor(private readonly ref: ElementRef) {}
 
   yScaleType = ScaleType.LINEAR;
+  /** Local override for x-axis scale type. When null, uses xScaleType input. */
+  xScaleTypeOverride: ScaleType | null = null;
   isViewBoxOverridden = false;
   additionalItemsCount = 0;
 
+  /**
+   * Cycles through y-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
+   */
   toggleYScaleType() {
-    this.yScaleType =
-      this.yScaleType === ScaleType.LINEAR ? ScaleType.LOG10 : ScaleType.LINEAR;
+    switch (this.yScaleType) {
+      case ScaleType.LINEAR:
+        this.yScaleType = ScaleType.LOG10;
+        break;
+      case ScaleType.LOG10:
+        this.yScaleType = ScaleType.SYMLOG10;
+        break;
+      case ScaleType.SYMLOG10:
+      default:
+        this.yScaleType = ScaleType.LINEAR;
+        break;
+    }
+  }
+
+  /**
+   * Cycles through x-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
+   * Only available when xAxisType is STEP or RELATIVE.
+   */
+  toggleXScaleType() {
+    const currentScale = this.xScaleTypeOverride ?? this.xScaleType;
+    let nextScale: ScaleType;
+
+    switch (currentScale) {
+      case ScaleType.LINEAR:
+        nextScale = ScaleType.LOG10;
+        break;
+      case ScaleType.LOG10:
+        nextScale = ScaleType.SYMLOG10;
+        break;
+      case ScaleType.SYMLOG10:
+      default:
+        nextScale = ScaleType.LINEAR;
+        break;
+    }
+
+    this.xScaleTypeOverride = nextScale === ScaleType.LINEAR ? null : nextScale;
+  }
+
+  getEffectiveXScaleType(): ScaleType {
+    return this.xScaleTypeOverride ?? this.xScaleType;
+  }
+
+  getYScaleLabel(): string {
+    switch (this.yScaleType) {
+      case ScaleType.LOG10:
+        return 'Log';
+      case ScaleType.SYMLOG10:
+        return 'SymLog';
+      default:
+        return 'Linear';
+    }
+  }
+
+  getXScaleLabel(): string {
+    const scaleType = this.getEffectiveXScaleType();
+    switch (scaleType) {
+      case ScaleType.LOG10:
+        return 'Log';
+      case ScaleType.SYMLOG10:
+        return 'SymLog';
+      case ScaleType.TIME:
+        return 'Time';
+      default:
+        return 'Linear';
+    }
+  }
+
+  canToggleXScaleType(): boolean {
+    return (
+      this.xAxisType === XAxisType.STEP || this.xAxisType === XAxisType.RELATIVE
+    );
   }
 
   resetDomain() {

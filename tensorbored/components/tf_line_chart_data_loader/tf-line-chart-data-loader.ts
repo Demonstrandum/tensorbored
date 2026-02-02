@@ -22,6 +22,7 @@ import {RequestManager} from '../tf_backend/requestManager';
 import {runsColorScale} from '../tf_color_scale/colorScale';
 import {DataLoaderBehavior} from '../tf_dashboard_common/data-loader-behavior';
 import {
+  AxisScaleType,
   ScalarDatum,
   SymbolFn,
   TooltipColumn,
@@ -84,8 +85,10 @@ class _TfLineChartDataLoader<ScalarMetadata>
         tooltip-columns="[[tooltipColumns]]"
         tooltip-position="[[tooltipPosition]]"
         tooltip-sorting-method="[[tooltipSortingMethod]]"
+        x-scale-type="[[xScaleType]]"
         x-components-creation-method="[[xComponentsCreationMethod]]"
         x-type="[[xType]]"
+        y-scale-type="[[yScaleType]]"
         y-value-accessor="[[yValueAccessor]]"
       ></vz-line-chart2>
       <template is="dom-if" if="[[dataLoading]]">
@@ -155,6 +158,12 @@ class _TfLineChartDataLoader<ScalarMetadata>
     observer: '_logScaleChanged',
   })
   logScaleActive: boolean = false;
+
+  @property({type: String})
+  xScaleType: AxisScaleType = AxisScaleType.LINEAR;
+
+  @property({type: String})
+  yScaleType: YScaleType = YScaleType.LINEAR;
 
   @property({type: Object})
   xComponentsCreationMethod?: any;
@@ -277,9 +286,7 @@ class _TfLineChartDataLoader<ScalarMetadata>
   }
 
   private _logScaleChanged(logScaleActive: boolean) {
-    const chart = this.getChart();
-    chart.yScaleType = logScaleActive ? YScaleType.LOG : YScaleType.LINEAR;
-    this.redraw();
+    this.yScaleType = logScaleActive ? YScaleType.LOG : YScaleType.LINEAR;
   }
 
   private _fixBadStateWhenActive() {

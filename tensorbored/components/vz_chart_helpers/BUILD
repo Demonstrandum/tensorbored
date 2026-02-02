@@ -14,6 +14,7 @@ tf_ts_library(
     strict_checks = False,
     deps = [
         "//tensorbored/components/polymer:legacy_element_mixin",
+        "//tensorbored/components/vz_line_chart2:vz_line_chart2_scales",
         "@npm//@polymer/decorators",
         "@npm//@polymer/polymer",
         "@npm//@types/d3",

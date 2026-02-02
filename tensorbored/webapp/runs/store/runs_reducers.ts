@@ -621,6 +621,12 @@ const uiReducer: ActionReducer<RunsUiState, Action> = createReducer(
       selectionState: nextSelectionState,
     };
   }),
+  on(runsActions.runSelectionStateLoaded, (state, {runSelection}) => {
+    return {
+      ...state,
+      selectionState: new Map(runSelection),
+    };
+  }),
   on(runsActions.runsTableHeaderAdded, (state, {header, index}) => {
     const newRunsTableHeaders = [...state.runsTableHeaders];
     if (index === undefined) {
