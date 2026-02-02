@@ -41,6 +41,29 @@ function getTagGroupName(tag: string): string {
   return tag.split('/', 1)[0];
 }
 
+let htmlToTextScratch: HTMLDivElement | null = null;
+
+export function htmlToText(html: string): string {
+  if (!html) {
+    return '';
+  }
+  if (typeof document === 'undefined') {
+    return html;
+  }
+  if (!htmlToTextScratch) {
+    htmlToTextScratch = document.createElement('div');
+  }
+  htmlToTextScratch.innerHTML = html;
+  return htmlToTextScratch.textContent || '';
+}
+
+export function buildTagTooltip(tag: string, description: string): string {
+  if (!description) {
+    return tag;
+  }
+  return `${tag}\n${description}`;
+}
+
 // TODO(b/154055328): combine this with the OSS ts_library compat version.
 // Adopted from tensorboard/components/vz_sorting/sorting.js
 // Delta:

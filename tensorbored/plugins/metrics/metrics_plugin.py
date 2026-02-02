@@ -156,7 +156,9 @@ def _merge_profile_tag_descriptions(
             continue
         description = profile_descriptions.get(tag)
         if description:
-            tag_descriptions[tag] = plugin_util.markdown_to_safe_html(description)
+            tag_descriptions[tag] = plugin_util.markdown_to_safe_html(
+                description
+            )
     return tag_descriptions
 
 
