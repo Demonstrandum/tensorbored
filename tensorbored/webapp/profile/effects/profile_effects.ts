@@ -28,6 +28,8 @@ import {
 } from 'rxjs/operators';
 import {navigated} from '../../app_routing/actions';
 import {State} from '../../app_state';
+import {getExperimentIdsFromRoute} from '../../selectors';
+import {DataLoadState} from '../../types/data';
 import {
   getMetricsScalarSmoothing,
   getMetricsTagFilter,
@@ -42,6 +44,7 @@ import {
   getRunUserSetGroupBy,
   getRunSelectorRegexFilter,
   getDashboardRuns,
+  getRunsLoadState,
 } from '../../runs/store/runs_selectors';
 import {CardIdWithMetadata, CardUniqueInfo} from '../../metrics/types';
 import {GroupBy, GroupByKey} from '../../runs/types';
@@ -55,6 +58,7 @@ import {
   RunColorEntry,
   GroupColorEntry,
   RunSelectionEntryType,
+  ProfileSource,
   createEmptyProfile,
   PROFILE_VERSION,
 } from '../types';
@@ -62,6 +66,24 @@ import {
   isSampledPlugin,
   isSingleRunPlugin,
 } from '../../metrics/data_source/types';
+import * as profileSelectors from '../store/profile_selectors';
+
+const RUN_SELECTION_STORAGE_KEY = '_tb_run_selection.v1';
+
+function hasStoredRunSelection(): boolean {
+  const raw = window.localStorage.getItem(RUN_SELECTION_STORAGE_KEY);
+  if (!raw) {
+    return false;
+  }
+  try {
+    const parsed = JSON.parse(raw) as {runSelection?: unknown};
+    return (
+      Array.isArray(parsed.runSelection) && parsed.runSelection.length > 0
+    );
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Effects for profile management.
@@ -123,7 +145,95 @@ export class ProfileEffects {
   activateLoadedProfile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(profileActions.profileLoaded),
-      map(({profile}) => profileActions.profileActivated({profile}))
+      map(({profile}) =>
+        profileActions.profileActivated({
+          profile,
+          source: ProfileSource.LOCAL,
+        })
+      )
+    )
+  );
+
+  fetchDefaultProfilesOnNavigation$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(navigated),
+      withLatestFrom(
+        this.store.select(getExperimentIdsFromRoute),
+        this.store.select(profileSelectors.getDefaultProfiles)
+      ),
+      mergeMap(([, experimentIds, defaultProfiles]) => {
+        if (!experimentIds) {
+          return [];
+        }
+        return experimentIds
+          .filter((experimentId) => !defaultProfiles.has(experimentId))
+          .map((experimentId) =>
+            profileActions.defaultProfileFetchRequested({experimentId})
+          );
+      })
+    )
+  );
+
+  applyDefaultProfileOnRunsLoaded$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(runsActions.fetchRunsSucceeded),
+      withLatestFrom(
+        this.store.select(profileSelectors.getActiveProfileName),
+        this.store.select(profileSelectors.getDefaultProfiles),
+        this.store.select(getExperimentIdsFromRoute)
+      ),
+      map(([, activeProfileName, defaultProfiles, experimentIds]) => {
+        if (
+          activeProfileName ||
+          !experimentIds ||
+          experimentIds.length !== 1
+        ) {
+          return null;
+        }
+        const profile = defaultProfiles.get(experimentIds[0]) ?? null;
+        if (!profile) {
+          return null;
+        }
+        return profileActions.profileActivated({
+          profile,
+          source: ProfileSource.BACKEND,
+        });
+      }),
+      filter(
+        (action): action is ReturnType<typeof profileActions.profileActivated> =>
+          action !== null
+      )
+    )
+  );
+
+  applyDefaultProfileOnFetch$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(profileActions.defaultProfileFetched),
+      filter(({profile}) => Boolean(profile)),
+      switchMap(({profile, experimentId}) =>
+        this.store.select(getRunsLoadState, {experimentId}).pipe(
+          filter((loadState) => loadState.state === DataLoadState.LOADED),
+          take(1),
+          withLatestFrom(
+            this.store.select(profileSelectors.getActiveProfileName),
+            this.store.select(getExperimentIdsFromRoute)
+          ),
+          filter(([, activeProfileName, experimentIds]) => {
+            return (
+              !activeProfileName &&
+              Boolean(experimentIds) &&
+              experimentIds!.length === 1 &&
+              experimentIds![0] === experimentId
+            );
+          }),
+          map(() =>
+            profileActions.profileActivated({
+              profile: profile as ProfileData,
+              source: ProfileSource.BACKEND,
+            })
+          )
+        )
+      )
     )
   );
 
@@ -186,6 +296,12 @@ export class ProfileEffects {
     this.actions$.pipe(
       ofType(profileActions.profileActivated),
       filter(({profile}) => profile.runSelection !== undefined),
+      filter(({source}) => {
+        if (source === ProfileSource.BACKEND) {
+          return !hasStoredRunSelection();
+        }
+        return true;
+      }),
       withLatestFrom(this.store.select(getDashboardRuns)),
       map(([{profile}, runs]) => {
         const runSelection = profile.runSelection ?? [];

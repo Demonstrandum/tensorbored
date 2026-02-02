@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import {createAction, props} from '@ngrx/store';
-import {ProfileData, ProfileMetadata} from '../types';
+import {ProfileData, ProfileMetadata, ProfileSource} from '../types';
 
 /**
  * Dispatched when profile list is requested to load from storage.
@@ -138,7 +138,7 @@ export const profileImportFailed = createAction(
  */
 export const profileActivated = createAction(
   '[Profile] Activated',
-  props<{profile: ProfileData}>()
+  props<{profile: ProfileData; source?: ProfileSource}>()
 );
 
 /**
