@@ -141,6 +141,7 @@ tf_ng_module(
         ":common_selectors",
         "//tensorbored/webapp:app_state",
         "//tensorbored/webapp:selectors",
+        "//tensorbored/webapp/angular:expect_angular_cdk_drag_drop",
         "//tensorbored/webapp/angular:expect_angular_cdk_scrolling",
         "//tensorbored/webapp/angular:expect_angular_material_autocomplete",
         "//tensorbored/webapp/angular:expect_angular_material_button",
