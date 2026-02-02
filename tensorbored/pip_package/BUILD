@@ -42,6 +42,8 @@ sh_binary(
         "//tensorbored",  # Main tensorboard binary and everything it uses
         "//tensorbored:lib",  # User-facing overall TensorBoard API
         "//tensorbored:version",  # Version module (read by setup.py)
+        "//tensorbored/plugins/core:color_sampler",  # User-facing color sampler API
+        "//tensorbored/plugins/core:profile_writer",  # User-facing profile writer API
         "//tensorbored/plugins/hparams",  # User-facing hparams API
         "//tensorbored/plugins/mesh",  #  User-facing mesh API
         "//tensorbored/plugins/projector",  # User-facing projector API
