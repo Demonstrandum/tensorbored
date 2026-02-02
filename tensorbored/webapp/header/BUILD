@@ -47,6 +47,7 @@ tf_ng_module(
         "//tensorbored/webapp/feature_flag/actions",
         "//tensorbored/webapp/feature_flag/store",
         "//tensorbored/webapp/feature_flag/store:types",
+        "//tensorbored/webapp/profile/views",
         "//tensorbored/webapp/settings",
         "//tensorbored/webapp/types",
         "@npm//@angular/common",
