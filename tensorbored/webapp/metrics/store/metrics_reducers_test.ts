@@ -2529,6 +2529,87 @@ describe('metrics reducers', () => {
     );
   });
 
+  describe('metricsPinnedCardsReordered', () => {
+    it('reorders pinned cards and preserves cache order', () => {
+      const cardMetadata1 = {
+        plugin: PluginType.SCALARS,
+        tag: 'tagA',
+        runId: null,
+      };
+      const cardMetadata2 = {
+        plugin: PluginType.IMAGES,
+        tag: 'tagB',
+        runId: 'run1',
+        sample: 0,
+        numSample: 2,
+      };
+      const cardMetadata3 = {
+        plugin: PluginType.HISTOGRAMS,
+        tag: 'tagC',
+        runId: 'run2',
+      };
+      const cardId1 = getCardId(cardMetadata1);
+      const cardId2 = getCardId(cardMetadata2);
+      const cardId3 = getCardId(cardMetadata3);
+      const pinnedCopyId1 = getPinnedCardId(cardId1);
+      const pinnedCopyId2 = getPinnedCardId(cardId2);
+      const pinnedCopyId3 = getPinnedCardId(cardId3);
+      const beforeState = buildMetricsState({
+        cardMetadataMap: {
+          [cardId1]: cardMetadata1,
+          [cardId2]: cardMetadata2,
+          [cardId3]: cardMetadata3,
+          [pinnedCopyId1]: cardMetadata1,
+          [pinnedCopyId2]: cardMetadata2,
+          [pinnedCopyId3]: cardMetadata3,
+        },
+        cardList: [cardId1, cardId2, cardId3],
+        cardToPinnedCopy: new Map([
+          [cardId1, pinnedCopyId1],
+          [cardId2, pinnedCopyId2],
+          [cardId3, pinnedCopyId3],
+        ]),
+        cardToPinnedCopyCache: new Map([
+          [cardId1, pinnedCopyId1],
+          [cardId2, pinnedCopyId2],
+          [cardId3, pinnedCopyId3],
+        ]),
+        pinnedCardToOriginal: new Map([
+          [pinnedCopyId1, cardId1],
+          [pinnedCopyId2, cardId2],
+          [pinnedCopyId3, cardId3],
+        ]),
+      });
+
+      const action = actions.metricsPinnedCardsReordered({
+        previousIndex: 0,
+        currentIndex: 2,
+      });
+      const nextState = reducers(beforeState, action);
+
+      expect(Array.from(nextState.cardToPinnedCopy.keys())).toEqual([
+        cardId2,
+        cardId3,
+        cardId1,
+      ]);
+      expect(Array.from(nextState.cardToPinnedCopy.values())).toEqual([
+        pinnedCopyId2,
+        pinnedCopyId3,
+        pinnedCopyId1,
+      ]);
+      expect(Array.from(nextState.pinnedCardToOriginal.keys())).toEqual([
+        pinnedCopyId2,
+        pinnedCopyId3,
+        pinnedCopyId1,
+      ]);
+      expect(Array.from(nextState.cardToPinnedCopyCache.keys())).toEqual([
+        cardId2,
+        cardId3,
+        cardId1,
+      ]);
+    });
+  });
+
   describe('cardPinStateToggled', () => {
     it('unpins a pinned copy', () => {
       const beforeState = buildMetricsState({

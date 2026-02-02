@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import {CdkScrollable} from '@angular/cdk/scrolling';
 import {
   ChangeDetectionStrategy,
@@ -41,20 +42,29 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
 export class CardGridComponent {
   readonly PluginType = PluginType;
   gridTemplateColumn = '';
+  readonly dragStartDelayMs = 150;
 
   cardsAtFullWidth = new Set<CardId>();
   cardsAtFullHeight = new Set<CardId>();
+  displayCardIdsWithMetadata: CardIdWithMetadata[] = [];
 
   @Input() isGroupExpanded!: boolean;
   @Input() pageIndex!: number;
   @Input() numPages!: number;
   @Input() cardIdsWithMetadata!: CardIdWithMetadata[];
+  @Input() pageSize: number = 0;
+  @Input() totalItems: number = 0;
   @Input() cardMinWidth!: number | null;
   @Input() cardObserver!: CardObserver;
   @Input() showPaginationControls!: boolean;
   @Input() cardStateMap!: CardStateMap;
+  @Input() allowPinnedReorder: boolean = false;
 
   @Output() pageIndexChanged = new EventEmitter<number>();
+  @Output() cardOrderChanged = new EventEmitter<{
+    previousIndex: number;
+    currentIndex: number;
+  }>();
 
   constructor(
     @Optional() private readonly cdkScrollable: CdkScrollable | null
@@ -75,6 +85,12 @@ export class CardGridComponent {
       } else {
         this.gridTemplateColumn = '';
       }
+    }
+
+    if (changes['cardIdsWithMetadata']) {
+      this.displayCardIdsWithMetadata = [
+        ...(this.cardIdsWithMetadata ?? []),
+      ];
     }
   }
 
@@ -115,6 +131,64 @@ export class CardGridComponent {
 
   trackByCards(index: number, cardIdWithMetadata: CardIdWithMetadata) {
     return cardIdWithMetadata.cardId;
+  }
+
+  getGlobalIndex(localIndex: number) {
+    if (!this.pageSize) {
+      return localIndex;
+    }
+    const pageIndex = this.pageIndex ?? 0;
+    return pageIndex * this.pageSize + localIndex;
+  }
+
+  getMaxPinnedIndex() {
+    const totalItems = this.totalItems || this.displayCardIdsWithMetadata.length;
+    return Math.max(0, totalItems - 1);
+  }
+
+  canMoveLeft(localIndex: number) {
+    return this.getGlobalIndex(localIndex) > 0;
+  }
+
+  canMoveRight(localIndex: number) {
+    return this.getGlobalIndex(localIndex) < this.getMaxPinnedIndex();
+  }
+
+  moveCardLeft(localIndex: number) {
+    if (!this.allowPinnedReorder || !this.canMoveLeft(localIndex)) {
+      return;
+    }
+    const previousIndex = this.getGlobalIndex(localIndex);
+    this.cardOrderChanged.emit({
+      previousIndex,
+      currentIndex: previousIndex - 1,
+    });
+  }
+
+  moveCardRight(localIndex: number) {
+    if (!this.allowPinnedReorder || !this.canMoveRight(localIndex)) {
+      return;
+    }
+    const previousIndex = this.getGlobalIndex(localIndex);
+    this.cardOrderChanged.emit({
+      previousIndex,
+      currentIndex: previousIndex + 1,
+    });
+  }
+
+  onPinnedCardDrop(event: CdkDragDrop<CardIdWithMetadata[]>) {
+    if (!this.allowPinnedReorder) {
+      return;
+    }
+    const {previousIndex, currentIndex} = event;
+    if (previousIndex === currentIndex) {
+      return;
+    }
+    moveItemInArray(this.displayCardIdsWithMetadata, previousIndex, currentIndex);
+    this.cardOrderChanged.emit({
+      previousIndex: this.getGlobalIndex(previousIndex),
+      currentIndex: this.getGlobalIndex(currentIndex),
+    });
   }
 
   onPaginationInputChange(event: Event) {

@@ -63,6 +63,8 @@ import {CardIdWithMetadata} from '../metrics_view_types';
       *ngIf="cardIdsWithMetadata.length; else emptyPinnedView"
       [cardIdsWithMetadata]="cardIdsWithMetadata"
       [cardObserver]="cardObserver"
+      [allowPinnedReorder]="true"
+      (cardOrderChanged)="onCardOrderChanged.emit($event)"
     ></metrics-card-grid>
     <ng-template #emptyPinnedView>
       <div class="empty-message">Pin cards for a quick view and comparison</div>
@@ -77,4 +79,8 @@ export class PinnedViewComponent {
   @Input() lastPinnedCardTime!: number;
   @Input() globalPinsEnabled: boolean = false;
   @Output() onClearAllPinsClicked = new EventEmitter<void>();
+  @Output() onCardOrderChanged = new EventEmitter<{
+    previousIndex: number;
+    currentIndex: number;
+  }>();
 }

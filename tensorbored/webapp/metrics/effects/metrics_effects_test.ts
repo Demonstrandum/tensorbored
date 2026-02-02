@@ -1149,5 +1149,56 @@ describe('metrics effects', () => {
         expect(setSavedPinsSpy).not.toHaveBeenCalled();
       });
     });
+
+    describe('reorderPins', () => {
+      let setSavedPinsSpy: jasmine.Spy;
+
+      beforeEach(() => {
+        setSavedPinsSpy = spyOn(savedPinsDataSource, 'setSavedPins');
+        store.overrideSelector(selectors.getPinnedCardsWithMetadata, [
+          {
+            cardId: 'card1',
+            ...createCardMetadata(PluginType.SCALARS),
+            tag: 'tag1',
+          },
+          {
+            cardId: 'card2',
+            ...createCardMetadata(PluginType.IMAGES),
+            tag: 'tag2',
+          },
+        ]);
+        store.overrideSelector(selectors.getEnableGlobalPins, true);
+        store.overrideSelector(selectors.getMetricsSavingPinsEnabled, true);
+        store.refreshState();
+      });
+
+      it('persists pinned order when saving is enabled', () => {
+        actions$.next(
+          actions.metricsPinnedCardsReordered({
+            previousIndex: 0,
+            currentIndex: 1,
+          })
+        );
+
+        expect(setSavedPinsSpy).toHaveBeenCalledWith([
+          {plugin: PluginType.SCALARS, tag: 'tag1'},
+          {plugin: PluginType.IMAGES, tag: 'tag2', runId: 'run1', sample: 999},
+        ]);
+      });
+
+      it('does not persist order when saving pins is disabled', () => {
+        store.overrideSelector(selectors.getMetricsSavingPinsEnabled, false);
+        store.refreshState();
+
+        actions$.next(
+          actions.metricsPinnedCardsReordered({
+            previousIndex: 0,
+            currentIndex: 1,
+          })
+        );
+
+        expect(setSavedPinsSpy).not.toHaveBeenCalled();
+      });
+    });
   });
 });

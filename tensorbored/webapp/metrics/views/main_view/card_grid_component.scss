@@ -31,6 +31,11 @@ $_background: map-get($tb-theme, background);
   padding: $metrics-preferred-gap;
 }
 
+.card-space {
+  display: flex;
+  flex-direction: column;
+}
+
 .card-space.full-width {
   grid-column-start: 1;
   grid-column-end: -1;
@@ -40,7 +45,7 @@ $_background: map-get($tb-theme, background);
   min-height: $metrics-min-card-height * 1.5;
 
   card-view {
-    height: 100%;
+    flex: 1 1 auto;
   }
 }
 
@@ -53,6 +58,34 @@ card-view {
   // Make sure the cards generally have some guaranteed minimum height to avoid
   // jank as cards load.
   min-height: $metrics-min-card-height;
+  flex: 1 1 auto;
+}
+
+.pinned-card-controls {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.pinned-reorder-button {
+  height: 28px;
+  line-height: 28px;
+  padding: 0;
+  width: 28px;
+
+  mat-icon {
+    margin: 0;
+  }
+}
+
+.card-space.cdk-drag:not(.cdk-drag-disabled) .cdk-drag-handle {
+  cursor: grab;
+}
+
+.card-space.cdk-drag:not(.cdk-drag-disabled) .cdk-drag-handle:active {
+  cursor: grabbing;
 }
 
 .group-controls {

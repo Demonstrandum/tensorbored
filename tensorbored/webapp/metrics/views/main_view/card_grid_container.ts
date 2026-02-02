@@ -15,9 +15,11 @@ limitations under the License.
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
+  Output,
   SimpleChanges,
 } from '@angular/core';
 import {Store} from '@ngrx/store';
@@ -43,10 +45,14 @@ import {CardIdWithMetadata} from '../metrics_view_types';
       [numPages]="numPages$ | async"
       [showPaginationControls]="showPaginationControls$ | async"
       [cardIdsWithMetadata]="pagedItems$ | async"
+      [pageSize]="pageSize$ | async"
+      [totalItems]="totalItems$ | async"
       [cardMinWidth]="cardMinWidth$ | async"
       [cardObserver]="cardObserver"
       [cardStateMap]="cardStateMap$ | async"
+      [allowPinnedReorder]="allowPinnedReorder"
       (pageIndexChanged)="onPageIndexChanged($event)"
+      (cardOrderChanged)="onCardOrderChanged($event)"
     >
     </metrics-card-grid-component>
   `,
@@ -57,14 +63,21 @@ export class CardGridContainer implements OnChanges, OnDestroy {
   @Input() groupName: string | null = null;
   @Input() cardIdsWithMetadata!: CardIdWithMetadata[];
   @Input() cardObserver!: CardObserver;
+  @Input() allowPinnedReorder: boolean = false;
+
+  @Output() cardOrderChanged = new EventEmitter<{
+    previousIndex: number;
+    currentIndex: number;
+  }>();
 
   private readonly groupName$ = new BehaviorSubject<string | null>(null);
   readonly pageIndex$ = new BehaviorSubject<number>(0);
   private readonly items$ = new BehaviorSubject<CardIdWithMetadata[]>([]);
   private readonly ngUnsubscribe = new Subject<void>();
   readonly cardStateMap$;
-
+  readonly pageSize$;
   readonly numPages$;
+  readonly totalItems$;
 
   readonly isGroupExpanded$: Observable<boolean>;
 
@@ -78,14 +91,13 @@ export class CardGridContainer implements OnChanges, OnDestroy {
 
   constructor(private readonly store: Store<State>) {
     this.cardStateMap$ = this.store.select(selectors.getCardStateMap);
-    this.numPages$ = combineLatest([
-      this.items$,
-      this.store.select(settingsSelectors.getPageSize),
-    ]).pipe(
+    this.pageSize$ = this.store.select(settingsSelectors.getPageSize);
+    this.numPages$ = combineLatest([this.items$, this.pageSize$]).pipe(
       map(([items, pageSize]) => {
         return Math.ceil(items.length / pageSize);
       })
     );
+    this.totalItems$ = this.items$.pipe(map((items) => items.length));
     this.isGroupExpanded$ = this.groupName$.pipe(
       switchMap((groupName) => {
         return groupName !== null
@@ -120,7 +132,7 @@ export class CardGridContainer implements OnChanges, OnDestroy {
     );
     this.pagedItems$ = combineLatest([
       this.items$,
-      this.store.select(settingsSelectors.getPageSize),
+      this.pageSize$,
       this.normalizedPageIndex$,
       this.isGroupExpanded$,
     ]).pipe(
@@ -150,5 +162,9 @@ export class CardGridContainer implements OnChanges, OnDestroy {
 
   onPageIndexChanged(newIndex: number) {
     this.pageIndex$.next(newIndex);
+  }
+
+  onCardOrderChanged(event: {previousIndex: number; currentIndex: number}) {
+    this.cardOrderChanged.emit(event);
   }
 }
