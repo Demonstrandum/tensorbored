@@ -37,9 +37,11 @@ import {
 } from '../../metrics/store/metrics_selectors';
 import {
   getRunColorOverride,
+  getRunSelectionMap,
   getGroupKeyToColorIdMap,
   getRunUserSetGroupBy,
   getRunSelectorRegexFilter,
+  getDashboardRuns,
 } from '../../runs/store/runs_selectors';
 import {CardIdWithMetadata, CardUniqueInfo} from '../../metrics/types';
 import {GroupBy, GroupByKey} from '../../runs/types';
@@ -52,6 +54,7 @@ import {
   ProfileGroupBy,
   RunColorEntry,
   GroupColorEntry,
+  RunSelectionEntryType,
   createEmptyProfile,
   PROFILE_VERSION,
 } from '../types';
@@ -179,6 +182,49 @@ export class ProfileEffects {
     )
   );
 
+  applyProfileRunSelection$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(profileActions.profileActivated),
+      filter(({profile}) => profile.runSelection !== undefined),
+      withLatestFrom(this.store.select(getDashboardRuns)),
+      map(([{profile}, runs]) => {
+        const runSelection = profile.runSelection ?? [];
+        const selectionMap = new Map<string, boolean>();
+        const runIdsByName = new Map<string, string[]>();
+
+        for (const run of runs) {
+          const names = runIdsByName.get(run.name);
+          if (names) {
+            names.push(run.id);
+          } else {
+            runIdsByName.set(run.name, [run.id]);
+          }
+        }
+
+        for (const entry of runSelection) {
+          if (entry.type === RunSelectionEntryType.RUN_ID) {
+            selectionMap.set(entry.value, entry.selected);
+            continue;
+          }
+          const matchingRunIds = runIdsByName.get(entry.value) ?? [];
+          for (const runId of matchingRunIds) {
+            selectionMap.set(runId, entry.selected);
+          }
+        }
+
+        for (const run of runs) {
+          if (!selectionMap.has(run.id)) {
+            selectionMap.set(run.id, false);
+          }
+        }
+
+        return runsActions.runSelectionStateLoaded({
+          runSelection: Array.from(selectionMap.entries()),
+        });
+      })
+    )
+  );
+
   /**
    * Save the current state as a profile.
    */
@@ -194,7 +240,9 @@ export class ProfileEffects {
         this.store.select(getMetricsTagFilter),
         this.store.select(getRunSelectorRegexFilter),
         this.store.select(getMetricsScalarSmoothing),
-        this.store.select(getRunUserSetGroupBy)
+        this.store.select(getRunUserSetGroupBy),
+        this.store.select(getRunSelectionMap),
+        this.store.select(getDashboardRuns)
       ),
       map(
         ([
@@ -208,6 +256,8 @@ export class ProfileEffects {
           runFilter,
           smoothing,
           groupBy,
+          runSelectionMap,
+          runs,
         ]) => {
           // Convert pinned cards to CardUniqueInfo format
           const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map(
@@ -251,6 +301,12 @@ export class ProfileEffects {
             }
           }
 
+          const runSelection = runs.map((run) => ({
+            type: RunSelectionEntryType.RUN_ID,
+            value: run.id,
+            selected: Boolean(runSelectionMap.get(run.id)),
+          }));
+
           const profile: ProfileData = {
             version: PROFILE_VERSION,
             name,
@@ -259,6 +315,7 @@ export class ProfileEffects {
             runColors,
             groupColors,
             superimposedCards: [...superimposedCards],
+            runSelection,
             tagFilter,
             runFilter,
             smoothing,

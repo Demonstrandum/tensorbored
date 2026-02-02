@@ -38,6 +38,17 @@ export interface GroupColorEntry {
   colorId: number;
 }
 
+export enum RunSelectionEntryType {
+  RUN_ID = 'RUN_ID',
+  RUN_NAME = 'RUN_NAME',
+}
+
+export interface RunSelectionEntry {
+  type: RunSelectionEntryType;
+  value: string;
+  selected: boolean;
+}
+
 /**
  * GroupBy configuration for profiles.
  */
@@ -86,6 +97,11 @@ export interface ProfileData {
    * Superimposed/combined scalar cards.
    */
   superimposedCards: SuperimposedCardMetadata[];
+
+  /**
+   * Run selection overrides. If provided, runs not listed are treated as hidden.
+   */
+  runSelection?: RunSelectionEntry[];
 
   /**
    * Tag filter text.
@@ -153,6 +169,7 @@ export function createEmptyProfile(name: string): ProfileData {
     runColors: [],
     groupColors: [],
     superimposedCards: [],
+    runSelection: [],
     tagFilter: '',
     runFilter: '',
     smoothing: 0.6,
@@ -179,6 +196,12 @@ export function isValidProfile(data: unknown): data is ProfileData {
   if (!Array.isArray(profile.runColors)) return false;
   if (!Array.isArray(profile.groupColors)) return false;
   if (!Array.isArray(profile.superimposedCards)) return false;
+  if (
+    profile.runSelection !== undefined &&
+    !Array.isArray(profile.runSelection)
+  ) {
+    return false;
+  }
   if (typeof profile.tagFilter !== 'string') return false;
   if (typeof profile.runFilter !== 'string') return false;
   if (typeof profile.smoothing !== 'number') return false;
@@ -207,6 +230,23 @@ export function isValidProfile(data: unknown): data is ProfileData {
     }
   }
 
+  if (profile.runSelection) {
+    for (const entry of profile.runSelection) {
+      if (
+        entry.type !== RunSelectionEntryType.RUN_ID &&
+        entry.type !== RunSelectionEntryType.RUN_NAME
+      ) {
+        return false;
+      }
+      if (typeof entry.value !== 'string') {
+        return false;
+      }
+      if (typeof entry.selected !== 'boolean') {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -217,6 +257,9 @@ export function isValidProfile(data: unknown): data is ProfileData {
 export function migrateProfile(data: ProfileData): ProfileData {
   // Currently only version 1 exists, but this function provides
   // a place for future migrations when the schema changes.
+  if (!data.runSelection) {
+    data.runSelection = [];
+  }
   if (data.version === PROFILE_VERSION) {
     return data;
   }

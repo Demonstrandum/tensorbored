@@ -49,14 +49,21 @@ import {ExperimentIdToRuns} from '../types';
 import {
   getGroupKeyToColorIdMap,
   getRunColorOverride,
+  getRunSelectionMap,
 } from '../store/runs_selectors';
 
 const RUN_COLOR_STORAGE_KEY = '_tb_run_colors.v1';
+const RUN_SELECTION_STORAGE_KEY = '_tb_run_selection.v1';
 
 type StoredRunColorsV1 = {
   version: 1;
   runColorOverrides: Array<[runId: string, color: string]>;
   groupKeyToColorId: Array<[groupKey: string, colorId: number]>;
+};
+
+type StoredRunSelectionV1 = {
+  version: 1;
+  runSelection: Array<[runId: string, selected: boolean]>;
 };
 
 function safeParseStoredRunColors(
@@ -84,6 +91,28 @@ function safeParseStoredRunColors(
   }
 }
 
+function safeParseStoredRunSelection(
+  serialized: string | null
+): StoredRunSelectionV1 {
+  if (!serialized) {
+    return {version: 1, runSelection: []};
+  }
+  try {
+    const parsed = JSON.parse(serialized) as Partial<StoredRunSelectionV1>;
+    if (parsed.version !== 1) {
+      return {version: 1, runSelection: []};
+    }
+    return {
+      version: 1,
+      runSelection: Array.isArray(parsed.runSelection)
+        ? parsed.runSelection
+        : [],
+    };
+  } catch {
+    return {version: 1, runSelection: []};
+  }
+}
+
 function persistRunColorsToLocalStorage(
   runColorOverrides: Map<string, string>,
   groupKeyToColorId: Map<string, number>
@@ -94,6 +123,16 @@ function persistRunColorsToLocalStorage(
     groupKeyToColorId: Array.from(groupKeyToColorId.entries()),
   };
   window.localStorage.setItem(RUN_COLOR_STORAGE_KEY, JSON.stringify(payload));
+}
+
+function persistRunSelectionToLocalStorage(
+  runSelection: Map<string, boolean>
+) {
+  const payload: StoredRunSelectionV1 = {
+    version: 1,
+    runSelection: Array.from(runSelection.entries()),
+  };
+  window.localStorage.setItem(RUN_SELECTION_STORAGE_KEY, JSON.stringify(payload));
 }
 
 function runToRunId(run: string, experimentId: string) {
@@ -207,6 +246,20 @@ export class RunsEffects {
       );
     });
 
+    this.loadRunSelectionFromStorage$ = createEffect(() => {
+      return this.actions$.pipe(
+        ofType(navigated),
+        map(() => {
+          const stored = safeParseStoredRunSelection(
+            window.localStorage.getItem(RUN_SELECTION_STORAGE_KEY)
+          );
+          return actions.runSelectionStateLoaded({
+            runSelection: stored.runSelection,
+          });
+        })
+      );
+    });
+
     this.persistRunColorSettings$ = createEffect(
       () => {
         return this.actions$.pipe(
@@ -227,6 +280,26 @@ export class RunsEffects {
               runColorOverrides,
               groupKeyToColorId
             );
+          })
+        );
+      },
+      {dispatch: false}
+    );
+
+    this.persistRunSelection$ = createEffect(
+      () => {
+        return this.actions$.pipe(
+          ofType(
+            actions.runSelectionToggled,
+            actions.runPageSelectionToggled,
+            actions.singleRunSelected,
+            actions.fetchRunsSucceeded,
+            actions.runSelectionStateLoaded
+          ),
+          debounceTime(200),
+          withLatestFrom(this.store.select(getRunSelectionMap)),
+          tap(([, runSelection]) => {
+            persistRunSelectionToLocalStorage(runSelection);
           })
         );
       },
@@ -278,6 +351,12 @@ export class RunsEffects {
 
   /** @export */
   persistRunColorSettings$;
+
+  /** @export */
+  loadRunSelectionFromStorage$;
+
+  /** @export */
+  persistRunSelection$;
 
   /**
    * IMPORTANT: actions are dispatched even when there are no experiments to
