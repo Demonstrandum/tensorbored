@@ -16,15 +16,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Base name for preview spaces
   SPACE_PREFIX: tensorbored-pr
-  # HuggingFace username/org where spaces will be created
   HF_USERNAME: Demonstrandum
 
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
-    # Only deploy if CI succeeded and this is a PR (not a push to master)
     if: |
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success' &&
@@ -70,12 +67,7 @@ jobs:
       - name: Install huggingface_hub
         run: pip install huggingface_hub
 
-      - name: Setup Git
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-
-      - name: Create or update HuggingFace Space
+      - name: Prepare Space files
         id: deploy
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -85,128 +77,111 @@ jobs:
           SPACE_REPO="${HF_USERNAME}/${SPACE_NAME}"
           SPACE_URL="https://huggingface.co/spaces/${SPACE_REPO}"
           EMBED_URL="https://${HF_USERNAME}-${SPACE_NAME}.hf.space"
+          HEAD_SHA="${{ steps.pr.outputs.head_sha }}"
+          SHORT_SHA="${HEAD_SHA:0:7}"
+          WHEEL_NAME="${{ steps.wheel.outputs.filename }}"
 
           echo "space_name=${SPACE_NAME}" >> $GITHUB_OUTPUT
+          echo "space_repo=${SPACE_REPO}" >> $GITHUB_OUTPUT
           echo "space_url=${SPACE_URL}" >> $GITHUB_OUTPUT
           echo "embed_url=${EMBED_URL}" >> $GITHUB_OUTPUT
 
-          # Create space if it doesn't exist
-          python3 -c "
-          from huggingface_hub import HfApi, create_repo
-          from huggingface_hub.utils import RepositoryNotFoundError
-          api = HfApi()
-          repo_id = '${SPACE_REPO}'
-          try:
-              api.repo_info(repo_id=repo_id, repo_type='space')
-              print(f'Space {repo_id} already exists')
-          except RepositoryNotFoundError:
-              print(f'Creating space {repo_id}')
-              create_repo(repo_id=repo_id, repo_type='space', space_sdk='docker', private=False)
-              print(f'Created space {repo_id}')
-          "
+          # Prepare upload directory
+          mkdir -p hf-space
 
-          # Clone the space
-          git clone "https://user:${HF_TOKEN}@huggingface.co/spaces/${SPACE_REPO}" hf-space || {
-            mkdir -p hf-space
-            cd hf-space
-            git init
-            git remote add origin "https://user:${HF_TOKEN}@huggingface.co/spaces/${SPACE_REPO}"
-            cd ..
-          }
-
-          # Copy the wheel
+          # Copy wheel
           cp wheel/*.whl hf-space/
 
-          # Create a modified Dockerfile that uses the local wheel
-          WHEEL_NAME="${{ steps.wheel.outputs.filename }}"
-          cat > hf-space/Dockerfile << 'DOCKERFILE_END'
-          # TensorBored PR Preview - Built from PR wheel
+          # Create Dockerfile that installs from local wheel
+          cat > hf-space/Dockerfile << 'EOF'
+          # TensorBored PR Preview
           FROM python:3.11-slim
 
-          RUN apt-get update && apt-get install -y --no-install-recommends \
-              curl \
-              && rm -rf /var/lib/apt/lists/*
+          RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
           RUN useradd -m -u 1000 user
           USER user
           ENV PATH="/home/user/.local/bin:$PATH"
-
           WORKDIR /app
 
-          # Copy and install the PR wheel (instead of PyPI)
           COPY --chown=user *.whl /tmp/
           RUN pip install --no-cache-dir --user /tmp/*.whl pillow>=10.0.0
 
-          COPY --chown=user generate_demo_data.py /app/generate_demo_data.py
-          COPY --chown=user start.sh /app/start.sh
-
+          COPY --chown=user generate_demo_data.py /app/
+          COPY --chown=user start.sh /app/
           RUN chmod +x /app/start.sh
           RUN python /app/generate_demo_data.py
 
           EXPOSE 7860
           CMD ["/app/start.sh"]
-          DOCKERFILE_END
-
-          # Remove leading whitespace from Dockerfile
+          EOF
           sed -i 's/^          //' hf-space/Dockerfile
 
-          # Generate README with PR info
-          PR_NUMBER_VAL="${PR_NUMBER}"
-          REPO_VAL="${{ github.repository }}"
-          HEAD_SHA="${{ steps.pr.outputs.head_sha }}"
-          SHORT_SHA="${HEAD_SHA:0:7}"
+          # Create README
+          cat > hf-space/README.md << EOF
+          ---
+          title: TensorBored PR #${PR_NUMBER} Preview
+          emoji: "\U0001F50D"
+          colorFrom: orange
+          colorTo: yellow
+          sdk: docker
+          pinned: false
+          license: apache-2.0
+          ---
 
-          python3 -c "
-          import os
-          pr = '${PR_NUMBER_VAL}'
-          repo = '${REPO_VAL}'
-          sha = '${SHORT_SHA}'
-          wheel = '${WHEEL_NAME}'
-          content = [
-              '---',
-              f'title: TensorBored PR #{pr} Preview',
-              'emoji: \"\\U0001F50D\"',
-              'colorFrom: orange',
-              'colorTo: yellow',
-              'sdk: docker',
-              'pinned: false',
-              'license: apache-2.0',
-              '---',
-              '',
-              f'# TensorBored PR #{pr} Preview',
-              '',
-              f'Preview deployment for [PR #{pr}](https://github.com/{repo}/pull/{pr}).',
-              '',
-              f'**Wheel**: \`{wheel}\`',
-              f'**Commit**: [{sha}](https://github.com/{repo}/commit/{sha})',
-              '',
-              '---',
-              '',
-          ]
-          with open('hf-space/README.md', 'w') as f:
-              f.write('\\n'.join(content))
-          "
+          # TensorBored PR #${PR_NUMBER} Preview
 
-          # Append demo README content
+          Preview deployment for [PR #${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER}).
+
+          **Wheel**: \`${WHEEL_NAME}\`
+          **Commit**: [${SHORT_SHA}](https://github.com/${{ github.repository }}/commit/${HEAD_SHA})
+
+          ---
+
+          EOF
+          sed -i 's/^          //' hf-space/README.md
+
+          # Append demo docs
           tail -n +10 demo/README.md >> hf-space/README.md
 
-          # Copy other demo files
+          # Copy demo files
           cp demo/generate_demo_data.py hf-space/
           cp demo/start.sh hf-space/
 
-          # Commit and push
-          cd hf-space
-          git add -A
+      - name: Create Space and upload files
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          SPACE_REPO="${{ steps.deploy.outputs.space_repo }}"
+          PR_NUMBER=${{ steps.pr.outputs.number }}
+          SHORT_SHA="${{ steps.pr.outputs.head_sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
 
-          if git diff --staged --quiet; then
-            echo "No changes to deploy"
-            echo "deployed=false" >> $GITHUB_OUTPUT
-          else
-            git commit -m "PR #${PR_NUMBER}: ${SHORT_SHA}"
-            git push --set-upstream origin main || git push --set-upstream origin master
-            echo "deployed=true" >> $GITHUB_OUTPUT
-            echo "Deployed successfully!"
-          fi
+          python3 << EOF
+          from huggingface_hub import HfApi, create_repo
+          from huggingface_hub.utils import RepositoryNotFoundError
+
+          api = HfApi()
+          repo_id = "${SPACE_REPO}"
+
+          # Create space if needed
+          try:
+              api.repo_info(repo_id=repo_id, repo_type="space")
+              print(f"Space {repo_id} exists")
+          except RepositoryNotFoundError:
+              print(f"Creating space {repo_id}")
+              create_repo(repo_id=repo_id, repo_type="space", space_sdk="docker", private=False)
+
+          # Upload all files (handles large files automatically)
+          print(f"Uploading files to {repo_id}")
+          api.upload_folder(
+              folder_path="hf-space",
+              repo_id=repo_id,
+              repo_type="space",
+              commit_message="PR #${PR_NUMBER}: ${SHORT_SHA}",
+          )
+          print("Upload complete!")
+          EOF
 
       - name: Find existing comment
         uses: peter-evans/find-comment@v3
@@ -263,18 +238,20 @@ jobs:
           SPACE_NAME="${SPACE_PREFIX}-${PR_NUMBER}"
           SPACE_REPO="${HF_USERNAME}/${SPACE_NAME}"
 
-          python3 -c "
+          python3 << EOF
           from huggingface_hub import HfApi, delete_repo
           from huggingface_hub.utils import RepositoryNotFoundError
+
           api = HfApi()
-          repo_id = '${SPACE_REPO}'
+          repo_id = "${SPACE_REPO}"
+
           try:
-              api.repo_info(repo_id=repo_id, repo_type='space')
-              print(f'Deleting space {repo_id}')
-              delete_repo(repo_id=repo_id, repo_type='space')
-              print(f'Deleted space {repo_id}')
+              api.repo_info(repo_id=repo_id, repo_type="space")
+              print(f"Deleting space {repo_id}")
+              delete_repo(repo_id=repo_id, repo_type="space")
+              print(f"Deleted space {repo_id}")
           except RepositoryNotFoundError:
-              print(f'Space {repo_id} not found, nothing to delete')
-          "
+              print(f"Space {repo_id} not found")
+          EOF
 
           echo "Cleanup complete for PR #${PR_NUMBER}"
