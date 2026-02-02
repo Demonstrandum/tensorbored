@@ -201,7 +201,7 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
           const runIds = Object.keys(runToSeries);
           for (const runId of runIds) {
             results.push({
-              runId: `${tag}::${runId}`,
+              runId: this.buildCombinedRunId(tag, runId),
               points: this.stepSeriesToLineSeries(
                 runToSeries[runId] as ScalarStepDatum[],
                 xAxisType
@@ -331,8 +331,9 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
       >((partitioned) => {
         return combineLatest(
           partitioned.map((series) => {
-            // Extract tag and runId from combined ID
-            const [tag, originalRunId] = series.runId.split('::');
+            const {tag, runId: originalRunId} = this.parseCombinedRunId(
+              series.runId
+            );
             return this.getRunDisplayNameAndAlias(originalRunId).pipe(
               map((displayNameAndAlias) => {
                 return {
@@ -465,6 +466,18 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
         };
       })
     );
+  }
+
+  private buildCombinedRunId(tag: string, runId: string): string {
+    return JSON.stringify([tag, runId]);
+  }
+
+  private parseCombinedRunId(combinedRunId: string): {
+    tag: string;
+    runId: string;
+  } {
+    const [tag, runId] = JSON.parse(combinedRunId) as [string, string];
+    return {tag, runId};
   }
 
   private stepSeriesToLineSeries(

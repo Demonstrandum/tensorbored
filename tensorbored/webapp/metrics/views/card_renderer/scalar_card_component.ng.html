@@ -104,12 +104,41 @@ limitations under the License.
         </button>
         <button
           mat-menu-item
-          (click)="onAddToSuperimposed.emit()"
+          [matMenuTriggerFor]="superimposedMenu"
           aria-label="Add to superimposed plot"
         >
           <mat-icon svgIcon="group_work_24px"></mat-icon>
           <span>Add to superimposed plot</span>
         </button>
+        <mat-menu #superimposedMenu="matMenu">
+          <button
+            mat-menu-item
+            (click)="onAddToSuperimposed.emit()"
+            aria-label="Create new superimposed plot"
+          >
+            <mat-icon svgIcon="add_24px"></mat-icon>
+            <span>Create new superimposed plot</span>
+          </button>
+          <button
+            mat-menu-item
+            *ngIf="superimposedCards.length === 0"
+            disabled
+          >
+            <span>No superimposed plots yet</span>
+          </button>
+          <button
+            mat-menu-item
+            *ngFor="
+              let card of superimposedCards;
+              trackBy: trackBySuperimposedCard
+            "
+            (click)="onAddToSuperimposedCard.emit(card.id)"
+            aria-label="Add to existing superimposed plot"
+          >
+            <mat-icon svgIcon="group_work_24px"></mat-icon>
+            <span>Add to {{ card.title }}</span>
+          </button>
+        </mat-menu>
         <button
           *ngIf="columnCustomizationEnabled"
           mat-menu-item

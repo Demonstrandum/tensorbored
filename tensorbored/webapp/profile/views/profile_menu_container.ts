@@ -15,6 +15,7 @@ limitations under the License.
 import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
+import {take} from 'rxjs/operators';
 import {State} from '../../app_state';
 import {ProfileMetadata} from '../types';
 import * as profileSelectors from '../store/profile_selectors';
@@ -78,14 +79,15 @@ export class ProfileMenuContainer {
   }
 
   onExport(): void {
-    // Show a dialog to select which profile to export
-    // For now, export the current state
-    const name = prompt('Enter name for exported profile:', 'Exported Profile');
-    if (name && name.trim()) {
+    this.activeProfileName$.pipe(take(1)).subscribe((activeProfileName) => {
+      if (!activeProfileName) {
+        alert('No active profile to export. Save or load a profile first.');
+        return;
+      }
       this.store.dispatch(
-        profileActions.profileExportRequested({name: name.trim()})
+        profileActions.profileExportRequested({name: activeProfileName})
       );
-    }
+    });
   }
 
   onImport(): void {

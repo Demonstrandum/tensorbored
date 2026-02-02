@@ -86,9 +86,13 @@ import {ProfileMetadata} from '../types';
       <!-- Import/Export Section -->
       <div class="menu-section">
         <div class="section-header">Import/Export</div>
-        <button mat-menu-item (click)="onExportClicked()">
+        <button
+          mat-menu-item
+          (click)="onExportClicked()"
+          [disabled]="!activeProfileName"
+        >
           <mat-icon>download</mat-icon>
-          <span>Export Profile...</span>
+          <span>Export Active Profile</span>
         </button>
         <button mat-menu-item (click)="onImportClicked()">
           <mat-icon>upload</mat-icon>

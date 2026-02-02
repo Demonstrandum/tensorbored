@@ -169,6 +169,7 @@ export class MetricsEffects implements OnInitEffects {
   private readonly visibleCardsReloaded$;
 
   private readonly loadTimeSeries$;
+  private readonly loadSuperimposedTimeSeries$;
 
   private readonly addOrRemovePin$;
 
@@ -302,6 +303,40 @@ export class MetricsEffects implements OnInitEffects {
           .pipe(filter((experimentIds) => experimentIds !== null))
       ),
       mergeMap(([fetchInfos, experimentIds]) => {
+        return this.fetchTimeSeriesForCards(fetchInfos, experimentIds!);
+      })
+    );
+
+    this.loadSuperimposedTimeSeries$ = this.actions$.pipe(
+      ofType(
+        actions.superimposedCardCreated,
+        actions.superimposedCardTagAdded,
+        actions.profileMetricsSettingsApplied
+      ),
+      map((action) => {
+        if ('tags' in action) {
+          return action.tags;
+        }
+        if ('tag' in action) {
+          return [action.tag];
+        }
+        return action.superimposedCards.flatMap((card) => card.tags);
+      }),
+      map((tags) => Array.from(new Set(tags))),
+      filter((tags) => tags.length > 0),
+      withLatestFrom(
+        this.store
+          .select(selectors.getExperimentIdsFromRoute)
+          .pipe(filter((experimentIds) => experimentIds !== null))
+      ),
+      mergeMap(([tags, experimentIds]) => {
+        const fetchInfos: CardFetchInfo[] = tags.map((tag) => ({
+          id: `superimposed-${tag}`,
+          plugin: PluginType.SCALARS,
+          tag,
+          runId: null,
+          loadState: DataLoadState.NOT_LOADED,
+        }));
         return this.fetchTimeSeriesForCards(fetchInfos, experimentIds!);
       })
     );
@@ -478,6 +513,10 @@ export class MetricsEffects implements OnInitEffects {
            * Subscribes to: card visibility, reloads.
            */
           this.loadTimeSeries$,
+          /**
+           * Subscribes to: superimposed card creation or tag updates.
+           */
+          this.loadSuperimposedTimeSeries$,
 
           /**
            * Subscribes to: cardPinStateToggled.
