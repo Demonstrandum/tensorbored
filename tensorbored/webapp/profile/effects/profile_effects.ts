@@ -15,7 +15,7 @@ limitations under the License.
 import {Injectable} from '@angular/core';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {Store} from '@ngrx/store';
-import {of} from 'rxjs';
+import {EMPTY, from, of} from 'rxjs';
 import {
   catchError,
   filter,
@@ -161,13 +161,16 @@ export class ProfileEffects {
       ),
       mergeMap(([, experimentIds, defaultProfiles]) => {
         if (!experimentIds) {
-          return [];
+          return EMPTY;
         }
-        return experimentIds
-          .filter((experimentId) => !defaultProfiles.has(experimentId))
-          .map((experimentId) =>
+        const missingExperimentIds = experimentIds.filter(
+          (experimentId: string) => !defaultProfiles.has(experimentId)
+        );
+        return from(missingExperimentIds).pipe(
+          map((experimentId: string) =>
             profileActions.defaultProfileFetchRequested({experimentId})
-          );
+          )
+        );
       })
     )
   );
