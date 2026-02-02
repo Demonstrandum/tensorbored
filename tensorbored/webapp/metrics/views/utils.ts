@@ -9,9 +9,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-import {buildTagTooltip, htmlToText} from '../utils';
-
 const IGNORED_TAG_SUFFIX = '/scalar_summary';
+let htmlToTextScratch: HTMLDivElement | null = null;
 
 export function getTagDisplayName(
   tag: string,
@@ -31,4 +30,23 @@ export function getTagDisplayName(
   return result || tag;
 }
 
-export {buildTagTooltip, htmlToText};
+export function htmlToText(html: string): string {
+  if (!html) {
+    return '';
+  }
+  if (typeof document === 'undefined') {
+    return html;
+  }
+  if (!htmlToTextScratch) {
+    htmlToTextScratch = document.createElement('div');
+  }
+  htmlToTextScratch.innerHTML = html;
+  return htmlToTextScratch.textContent || '';
+}
+
+export function buildTagTooltip(tag: string, description: string): string {
+  if (!description) {
+    return tag;
+  }
+  return `${tag}\n${description}`;
+}
