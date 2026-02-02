@@ -125,14 +125,15 @@ function persistRunColorsToLocalStorage(
   window.localStorage.setItem(RUN_COLOR_STORAGE_KEY, JSON.stringify(payload));
 }
 
-function persistRunSelectionToLocalStorage(
-  runSelection: Map<string, boolean>
-) {
+function persistRunSelectionToLocalStorage(runSelection: Map<string, boolean>) {
   const payload: StoredRunSelectionV1 = {
     version: 1,
     runSelection: Array.from(runSelection.entries()),
   };
-  window.localStorage.setItem(RUN_SELECTION_STORAGE_KEY, JSON.stringify(payload));
+  window.localStorage.setItem(
+    RUN_SELECTION_STORAGE_KEY,
+    JSON.stringify(payload)
+  );
 }
 
 function runToRunId(run: string, experimentId: string) {

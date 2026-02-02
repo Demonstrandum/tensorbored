@@ -77,9 +77,7 @@ function hasStoredRunSelection(): boolean {
   }
   try {
     const parsed = JSON.parse(raw) as {runSelection?: unknown};
-    return (
-      Array.isArray(parsed.runSelection) && parsed.runSelection.length > 0
-    );
+    return Array.isArray(parsed.runSelection) && parsed.runSelection.length > 0;
   } catch {
     return false;
   }
@@ -183,11 +181,7 @@ export class ProfileEffects {
         this.store.select(getExperimentIdsFromRoute)
       ),
       map(([, activeProfileName, defaultProfiles, experimentIds]) => {
-        if (
-          activeProfileName ||
-          !experimentIds ||
-          experimentIds.length !== 1
-        ) {
+        if (activeProfileName || !experimentIds || experimentIds.length !== 1) {
           return null;
         }
         const profile = defaultProfiles.get(experimentIds[0]) ?? null;
@@ -200,7 +194,9 @@ export class ProfileEffects {
         });
       }),
       filter(
-        (action): action is ReturnType<typeof profileActions.profileActivated> =>
+        (
+          action
+        ): action is ReturnType<typeof profileActions.profileActivated> =>
           action !== null
       )
     )
