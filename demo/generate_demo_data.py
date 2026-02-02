@@ -16,8 +16,9 @@ The generated data demonstrates:
 1. Dashboard Profiles - pre-configured views from training scripts
 2. Color Sampler - perceptually uniform colors for runs
 3. Pinned Cards - important metrics always visible
-4. Superimposed Cards - comparing multiple metrics on one chart
-5. Run Grouping - organizing related experiments
+4. Metric Descriptions - hover text for metric cards
+5. Superimposed Cards - comparing multiple metrics on one chart
+6. Run Grouping - organizing related experiments
 
 Run this script to regenerate the demo data:
     python generate_demo_data.py
@@ -387,6 +388,14 @@ def setup_default_profile(logdir: Path, run_ids: list):
         run_colors=run_colors,
         # Configure filters and smoothing
         tag_filter="loss|accuracy|learning_rate",
+        metric_descriptions={
+            "loss/train": "Training loss used for optimization.",
+            "loss/eval": "Evaluation loss on the validation split.",
+            "accuracy/train": "Top-1 accuracy on the training set.",
+            "accuracy/eval": "Top-1 accuracy on the validation set.",
+            "learning_rate": "Learning rate after warmup and cosine decay.",
+            "gradients/global_norm": "Global L2 norm of all gradients.",
+        },
         smoothing=0.8,
         # Group runs by experiment type
         group_by={
@@ -483,6 +492,13 @@ def setup_tensorboard_profile(logdir: str, run_names: list):
         run_colors=run_colors,
 
         # Default settings
+        metric_descriptions={
+            "loss/train": "Training loss used for optimization.",
+            "loss/eval": "Evaluation loss on the validation split.",
+            "accuracy/train": "Top-1 accuracy on the training set.",
+            "accuracy/eval": "Top-1 accuracy on the validation set.",
+            "learning_rate": "Learning rate after warmup and cosine decay.",
+        },
         smoothing=0.8,
         tag_filter="loss|accuracy|learning_rate",
     )

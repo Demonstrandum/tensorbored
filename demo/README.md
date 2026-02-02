@@ -51,10 +51,27 @@ profile_writer.set_default_profile(
     ],
     run_colors=color_sampler.colors_for_runs(['run1', 'run2']),
     smoothing=0.8,
+    metric_descriptions={
+        'loss/train': 'Training loss used for optimization.',
+        'accuracy': 'Top-1 accuracy on the training set.',
+    },
 )
 ```
 
-### 4. Superimposed Cards
+### 4. Metric Descriptions
+Add long-form descriptions that show on hover in metric card headers:
+
+```python
+profile_writer.set_default_profile(
+    logdir=logdir,
+    metric_descriptions={
+        'loss/train': 'Training loss used for optimization.',
+        'loss/eval': 'Evaluation loss on the validation split.',
+    },
+)
+```
+
+### 5. Superimposed Cards
 Compare multiple metrics on a single chart:
 
 ```python
@@ -117,6 +134,7 @@ Then open http://localhost:7860
 - Check the **Text** tab to see the full source code
 - Click **Load Default Profile** to see the pre-configured dashboard
 - Try **Export Profile** to download the configuration as JSON
+- Hover metric titles to see description tooltips
 
 ---
 

@@ -58,7 +58,7 @@ work, but there may be bugs or performance issues.
 
 TensorBored supports **Dashboard Profiles**, a system for saving, loading, and
 sharing your dashboard configurations (pinned cards, run colors, filters,
-smoothing settings, and more).
+smoothing settings, metric descriptions, and more).
 
 ## Why Profiles?
 
@@ -102,6 +102,24 @@ profile_writer.set_default_profile(
     },
     smoothing=0.8,
     tag_filter='loss|accuracy',
+    metric_descriptions={
+        'train/loss': 'Training loss used for optimization.',
+        'eval/accuracy': 'Top-1 accuracy on the validation set.',
+    },
+)
+```
+
+### Metric Descriptions
+
+Add long-form descriptions that appear when hovering a metric card header:
+
+```python
+profile_writer.set_default_profile(
+    logdir='/path/to/logs',
+    metric_descriptions={
+        'train/loss': 'Training loss used for optimization.',
+        'gradients/global_norm': 'Global L2 norm of all gradients.',
+    },
 )
 ```
 
@@ -199,6 +217,7 @@ Creates and writes a default profile to the log directory.
 | `group_colors` | `dict` | Mapping of group keys to color IDs |
 | `smoothing` | `float` | Scalar smoothing value, 0.0-0.999 (default: 0.6) |
 | `tag_filter` | `str` | Regex to filter displayed tags |
+| `metric_descriptions` | `dict` | Optional `{tag: description}` hover text |
 | `run_filter` | `str` | Regex to filter displayed runs |
 | `group_by` | `dict` | Run grouping configuration |
 
@@ -290,6 +309,7 @@ A profile captures:
 - **Group Colors**: Colors for run groups
 - **Smoothing**: Scalar smoothing setting
 - **Tag Filter**: Current tag filter regex
+- **Metric Descriptions**: Per-tag hover text for metric cards
 - **Run Filter**: Current run filter regex
 - **Group By**: Run grouping configuration
 
@@ -370,6 +390,10 @@ Use **Export/Import** to transfer profiles between browsers or share with teamma
     }
   ],
   "tagFilter": "loss|accuracy",
+  "metricDescriptions": {
+    "train/loss": "Training loss used for optimization.",
+    "eval/accuracy": "Top-1 accuracy on the validation set."
+  },
   "runFilter": "",
   "smoothing": 0.8,
   "groupBy": null
