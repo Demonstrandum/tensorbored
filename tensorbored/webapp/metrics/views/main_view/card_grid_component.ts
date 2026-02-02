@@ -88,9 +88,7 @@ export class CardGridComponent {
     }
 
     if (changes['cardIdsWithMetadata']) {
-      this.displayCardIdsWithMetadata = [
-        ...(this.cardIdsWithMetadata ?? []),
-      ];
+      this.displayCardIdsWithMetadata = [...(this.cardIdsWithMetadata ?? [])];
     }
   }
 
@@ -142,7 +140,8 @@ export class CardGridComponent {
   }
 
   getMaxPinnedIndex() {
-    const totalItems = this.totalItems || this.displayCardIdsWithMetadata.length;
+    const totalItems =
+      this.totalItems || this.displayCardIdsWithMetadata.length;
     return Math.max(0, totalItems - 1);
   }
 
@@ -184,7 +183,11 @@ export class CardGridComponent {
     if (previousIndex === currentIndex) {
       return;
     }
-    moveItemInArray(this.displayCardIdsWithMetadata, previousIndex, currentIndex);
+    moveItemInArray(
+      this.displayCardIdsWithMetadata,
+      previousIndex,
+      currentIndex
+    );
     this.cardOrderChanged.emit({
       previousIndex: this.getGlobalIndex(previousIndex),
       currentIndex: this.getGlobalIndex(currentIndex),
