@@ -86,37 +86,49 @@ jobs:
           }
 
           # Prepare the README with PR-specific metadata
+          # Using a separate script file to avoid YAML/Prettier parsing issues
           PR_TITLE="${{ github.event.pull_request.title }}"
           PR_AUTHOR="${{ github.event.pull_request.user.login }}"
           PR_BRANCH="${{ github.head_ref }}"
           REPO="${{ github.repository }}"
 
-          cat > hf-space/README.md << EOF
----
-title: TensorBored PR #${PR_NUMBER} Preview
-emoji: 🔍
-colorFrom: orange
-colorTo: yellow
-sdk: docker
-pinned: false
-license: apache-2.0
----
-
-# TensorBored PR #${PR_NUMBER} Preview
-
-This is a **preview deployment** for [PR #${PR_NUMBER}](https://github.com/${REPO}/pull/${PR_NUMBER}).
-
-> **Note**: This space will be automatically deleted when the PR is closed or merged.
-
-## PR Details
-
-- **Title**: ${PR_TITLE}
-- **Branch**: \`${PR_BRANCH}\`
-- **Author**: @${PR_AUTHOR}
-
----
-
-EOF
+          export PR_NUMBER PR_TITLE PR_AUTHOR PR_BRANCH REPO
+          python3 -c "
+          import os
+          pr = os.environ['PR_NUMBER']
+          title = os.environ['PR_TITLE']
+          author = os.environ['PR_AUTHOR']
+          branch = os.environ['PR_BRANCH']
+          repo = os.environ['REPO']
+          content = [
+              '---',
+              f'title: TensorBored PR #{pr} Preview',
+              'emoji: \"\\U0001F50D\"',
+              'colorFrom: orange',
+              'colorTo: yellow',
+              'sdk: docker',
+              'pinned: false',
+              'license: apache-2.0',
+              '---',
+              '',
+              f'# TensorBored PR #{pr} Preview',
+              '',
+              f'This is a **preview deployment** for [PR #{pr}](https://github.com/{repo}/pull/{pr}).',
+              '',
+              '**Note**: This space will be automatically deleted when the PR is closed or merged.',
+              '',
+              '## PR Details',
+              '',
+              f'- **Title**: {title}',
+              f'- **Branch**: \`{branch}\`',
+              f'- **Author**: @{author}',
+              '',
+              '---',
+              '',
+          ]
+          with open('hf-space/README.md', 'w') as f:
+              f.write('\\n'.join(content))
+          "
 
           # Append the rest of the demo README (skipping the frontmatter)
           tail -n +10 demo/README.md >> hf-space/README.md
@@ -174,7 +186,7 @@ EOF
             | **Live Preview** | [${{ steps.deploy.outputs.embed_url }}](${{ steps.deploy.outputs.embed_url }}) |
             | **Space Settings** | [${{ steps.deploy.outputs.space_url }}](${{ steps.deploy.outputs.space_url }}) |
 
-            > **Note**: The space may take 1-3 minutes to build after deployment. If you see a "Building" status, please wait and refresh.
+            **Note**: The space may take 1-3 minutes to build after deployment. If you see a "Building" status, please wait and refresh.
 
             <details>
             <summary>📋 Deployment Details</summary>
