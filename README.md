@@ -675,6 +675,7 @@ a run's color.
 
 * Pinned cards: click the 'pin' icon on any card to add it to the pinned section
 at the top for quick comparison.
+* Pinned card reordering: drag pinned cards or use arrow buttons to adjust order.
 
 * Settings: the right pane offers settings for charts and other visualizations.
 Important settings will persist across TensorBored sessions, when hosted at the

@@ -135,6 +135,50 @@ function buildCardMetadataList(tagMetadata: TagMetadata): CardMetadata[] {
   return results;
 }
 
+function reorderEntries<T>(
+  entries: T[],
+  previousIndex: number,
+  currentIndex: number
+): T[] {
+  if (previousIndex === currentIndex) {
+    return entries;
+  }
+  const nextEntries = entries.slice();
+  const [moved] = nextEntries.splice(previousIndex, 1);
+  nextEntries.splice(currentIndex, 0, moved);
+  return nextEntries;
+}
+
+function reorderPinnedCardCache(
+  cardToPinnedCopyCache: CardToPinnedCard,
+  orderedPinnedCards: CardToPinnedCard
+): CardToPinnedCard {
+  if (!cardToPinnedCopyCache.size || !orderedPinnedCards.size) {
+    return cardToPinnedCopyCache;
+  }
+  const orderedPinnedEntries = [...orderedPinnedCards.entries()];
+  const orderedPinnedKeys = new Set(orderedPinnedCards.keys());
+  const nextCardToPinnedCopyCache = new Map() as CardToPinnedCard;
+  let pinnedIndex = 0;
+  for (const [cardId, pinnedCardId] of cardToPinnedCopyCache.entries()) {
+    if (orderedPinnedKeys.has(cardId)) {
+      if (pinnedIndex < orderedPinnedEntries.length) {
+        const [nextCardId, nextPinnedCardId] =
+          orderedPinnedEntries[pinnedIndex];
+        nextCardToPinnedCopyCache.set(nextCardId, nextPinnedCardId);
+        pinnedIndex += 1;
+      }
+    } else {
+      nextCardToPinnedCopyCache.set(cardId, pinnedCardId);
+    }
+  }
+  for (; pinnedIndex < orderedPinnedEntries.length; pinnedIndex++) {
+    const [cardId, pinnedCardId] = orderedPinnedEntries[pinnedIndex];
+    nextCardToPinnedCopyCache.set(cardId, pinnedCardId);
+  }
+  return nextCardToPinnedCopyCache;
+}
+
 function getMaxStepIndex(
   cardId: CardId,
   cardMetadataMap: CardMetadataMap,
@@ -1230,6 +1274,40 @@ const reducer = createReducer(
       lastPinnedCardTime: nextLastPinnedCardTime,
     };
   }),
+  on(
+    actions.metricsPinnedCardsReordered,
+    (state, {previousIndex, currentIndex}) => {
+      const entries = [...state.cardToPinnedCopy.entries()];
+      const totalEntries = entries.length;
+      if (totalEntries < 2) {
+        return state;
+      }
+      if (
+        previousIndex < 0 ||
+        currentIndex < 0 ||
+        previousIndex >= totalEntries ||
+        currentIndex >= totalEntries ||
+        previousIndex === currentIndex
+      ) {
+        return state;
+      }
+      const nextEntries = reorderEntries(entries, previousIndex, currentIndex);
+      const nextCardToPinnedCopy = new Map(nextEntries) as CardToPinnedCard;
+      const nextPinnedCardToOriginal = new Map(
+        nextEntries.map(([cardId, pinnedCardId]) => [pinnedCardId, cardId])
+      ) as PinnedCardToCard;
+      const nextCardToPinnedCopyCache = reorderPinnedCardCache(
+        state.cardToPinnedCopyCache,
+        nextCardToPinnedCopy
+      );
+      return {
+        ...state,
+        cardToPinnedCopy: nextCardToPinnedCopy,
+        cardToPinnedCopyCache: nextCardToPinnedCopyCache,
+        pinnedCardToOriginal: nextPinnedCardToOriginal,
+      };
+    }
+  ),
   on(actions.linkedTimeToggled, (state) => {
     const nextLinkedTimeEnabled = !state.linkedTimeEnabled;
     let nextCardStepIndexMap = {...state.cardStepIndex};

@@ -20,15 +20,54 @@ limitations under the License.
     *ngTemplateOutlet="groupControls; context: {isBottomControl: false}"
   ></ng-container>
 
-  <div class="card-grid" [style.grid-template-columns]="gridTemplateColumn">
+  <div
+    class="card-grid"
+    [style.grid-template-columns]="gridTemplateColumn"
+    cdkDropList
+    [cdkDropListDisabled]="!allowPinnedReorder"
+    (cdkDropListDropped)="onPinnedCardDrop($event)"
+  >
     <div
-      *ngFor="let item of cardIdsWithMetadata; trackBy: trackByCards"
+      *ngFor="
+        let item of displayCardIdsWithMetadata;
+        trackBy: trackByCards;
+        let index = index
+      "
       class="card-space"
       [ngClass]="{
           'full-width': cardsAtFullWidth.has(item.cardId) || cardStateMap[item.cardId]?.fullWidth,
           'full-height': cardsAtFullHeight.has(item.cardId) || cardStateMap[item.cardId]?.tableExpanded
         }"
+      cdkDrag
+      [cdkDragDisabled]="!allowPinnedReorder"
+      [cdkDragStartDelay]="dragStartDelayMs"
     >
+      <div
+        class="pinned-card-controls"
+        *ngIf="allowPinnedReorder"
+        cdkDragHandle
+      >
+        <button
+          mat-icon-button
+          class="pinned-reorder-button"
+          i18n-aria-label="Move pinned card left"
+          aria-label="Move pinned card left"
+          [disabled]="!canMoveLeft(index)"
+          (click)="moveCardLeft(index)"
+        >
+          <mat-icon svgIcon="chevron_left_24px"></mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="pinned-reorder-button"
+          i18n-aria-label="Move pinned card right"
+          aria-label="Move pinned card right"
+          [disabled]="!canMoveRight(index)"
+          (click)="moveCardRight(index)"
+        >
+          <mat-icon svgIcon="chevron_right_24px"></mat-icon>
+        </button>
+      </div>
       <card-view
         [cardId]="item.cardId"
         [groupName]="groupName"

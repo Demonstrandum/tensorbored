@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+import {DragDropModule} from '@angular/cdk/drag-drop';
 import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
@@ -32,6 +33,7 @@ import {SuperimposedCardContainer} from './superimposed_card_container';
   exports: [SuperimposedCardContainer],
   imports: [
     CommonModule,
+    DragDropModule,
     ExperimentAliasModule,
     IntersectionObserverModule,
     LineChartModule,

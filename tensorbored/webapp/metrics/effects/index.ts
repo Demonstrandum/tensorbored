@@ -172,6 +172,7 @@ export class MetricsEffects implements OnInitEffects {
   private readonly loadSuperimposedTimeSeries$;
 
   private readonly addOrRemovePin$;
+  private readonly reorderPins$;
 
   private readonly loadSavedPins$;
 
@@ -387,6 +388,44 @@ export class MetricsEffects implements OnInitEffects {
       })
     );
 
+    this.reorderPins$ = this.actions$.pipe(
+      ofType(actions.metricsPinnedCardsReordered),
+      withLatestFrom(
+        this.store.select(selectors.getPinnedCardsWithMetadata),
+        this.store.select(selectors.getEnableGlobalPins),
+        this.store.select(selectors.getShouldPersistSettings),
+        this.store.select(selectors.getMetricsSavingPinsEnabled)
+      ),
+      filter(
+        ([
+          ,
+          ,
+          enableGlobalPinsFeature,
+          shouldPersistSettings,
+          isMetricsSavingPinsEnabled,
+        ]) =>
+          enableGlobalPinsFeature &&
+          shouldPersistSettings &&
+          isMetricsSavingPinsEnabled
+      ),
+      tap(([, pinnedCards]) => {
+        const cardInfos: CardUniqueInfo[] = pinnedCards.map((card) => {
+          const info: CardUniqueInfo = {
+            plugin: card.plugin,
+            tag: card.tag,
+          };
+          if (card.runId) {
+            info.runId = card.runId;
+          }
+          if (card.sample !== undefined) {
+            info.sample = card.sample;
+          }
+          return info;
+        });
+        this.savedPinsDataSource.setSavedPins(cardInfos);
+      })
+    );
+
     this.loadSavedPins$ = this.actions$.pipe(
       // Should be dispatch before stateRehydratedFromUrl.
       ofType(initAction),
@@ -522,6 +561,10 @@ export class MetricsEffects implements OnInitEffects {
            * Subscribes to: cardPinStateToggled.
            */
           this.addOrRemovePin$,
+          /**
+           * Subscribes to: metricsPinnedCardsReordered.
+           */
+          this.reorderPins$,
           /**
            * Subscribes to: dashboard shown (initAction).
            */

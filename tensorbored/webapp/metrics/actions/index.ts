@@ -282,6 +282,11 @@ export const metricsClearAllPinnedCards = createAction(
   '[Metrics] Clear all pinned cards'
 );
 
+export const metricsPinnedCardsReordered = createAction(
+  '[Metrics] Pinned Cards Reordered',
+  props<{previousIndex: number; currentIndex: number}>()
+);
+
 export const metricsEnableSavingPinsToggled = createAction(
   '[Metrics] Enable Saving Pins Toggled'
 );

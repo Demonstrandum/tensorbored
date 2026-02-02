@@ -19,7 +19,10 @@ import {skip, startWith} from 'rxjs/operators';
 import {State} from '../../../app_state';
 import {getEnableGlobalPins} from '../../../selectors';
 import {DeepReadonly} from '../../../util/types';
-import {metricsClearAllPinnedCards} from '../../actions';
+import {
+  metricsClearAllPinnedCards,
+  metricsPinnedCardsReordered,
+} from '../../actions';
 import {getLastPinnedCardTime, getPinnedCardsWithMetadata} from '../../store';
 import {CardObserver} from '../card_renderer/card_lazy_loader';
 import {CardIdWithMetadata} from '../metrics_view_types';
@@ -34,6 +37,7 @@ import {CardIdWithMetadata} from '../metrics_view_types';
       [cardObserver]="cardObserver"
       [globalPinsEnabled]="globalPinsEnabled$ | async"
       (onClearAllPinsClicked)="onClearAllPinsClicked()"
+      (onCardOrderChanged)="onCardOrderChanged($event)"
     ></metrics-pinned-view-component>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,5 +65,9 @@ export class PinnedViewContainer {
 
   onClearAllPinsClicked() {
     this.store.dispatch(metricsClearAllPinnedCards());
+  }
+
+  onCardOrderChanged(event: {previousIndex: number; currentIndex: number}) {
+    this.store.dispatch(metricsPinnedCardsReordered(event));
   }
 }
