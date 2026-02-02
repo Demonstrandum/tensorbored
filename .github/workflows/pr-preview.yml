@@ -1,12 +1,18 @@
 name: PR Preview Deployment
 
 on:
+  # Deploy after CI completes (to get the wheel artifact)
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
+  # Also trigger on PR close to clean up
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [closed]
 
 # Cancel in-progress runs for the same PR
 concurrency:
-  group: pr-preview-${{ github.event.pull_request.number }}
+  group: pr-preview-${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
   cancel-in-progress: true
 
 env:
@@ -18,12 +24,43 @@ env:
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
-    if: github.event.action != 'closed'
+    # Only deploy if CI succeeded and this is a PR (not a push to master)
+    if: |
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.pull_requests[0]
     permissions:
       pull-requests: write
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Get PR info
+        id: pr
+        run: |
+          PR_NUMBER=${{ github.event.workflow_run.pull_requests[0].number }}
+          echo "number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          echo "head_sha=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+
+      - name: Download wheel artifact from CI
+        uses: actions/download-artifact@v4
+        with:
+          name: tensorbored-wheel_py3.9
+          path: wheel
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get wheel filename
+        id: wheel
+        run: |
+          WHEEL_FILE=$(ls wheel/*.whl | head -1)
+          WHEEL_NAME=$(basename "$WHEEL_FILE")
+          echo "filename=${WHEEL_NAME}" >> $GITHUB_OUTPUT
+          echo "Found wheel: ${WHEEL_NAME}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,7 +80,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_NUMBER=${{ steps.pr.outputs.number }}
           SPACE_NAME="${SPACE_PREFIX}-${PR_NUMBER}"
           SPACE_REPO="${HF_USERNAME}/${SPACE_NAME}"
           SPACE_URL="https://huggingface.co/spaces/${SPACE_REPO}"
@@ -53,31 +90,23 @@ jobs:
           echo "space_url=${SPACE_URL}" >> $GITHUB_OUTPUT
           echo "embed_url=${EMBED_URL}" >> $GITHUB_OUTPUT
 
-          # Create space if it doesn't exist (will be a no-op if it exists)
-          python - <<EOF
+          # Create space if it doesn't exist
+          python3 -c "
           from huggingface_hub import HfApi, create_repo
           from huggingface_hub.utils import RepositoryNotFoundError
-
           api = HfApi()
-          repo_id = "${SPACE_REPO}"
-
+          repo_id = '${SPACE_REPO}'
           try:
-              api.repo_info(repo_id=repo_id, repo_type="space")
-              print(f"Space {repo_id} already exists")
+              api.repo_info(repo_id=repo_id, repo_type='space')
+              print(f'Space {repo_id} already exists')
           except RepositoryNotFoundError:
-              print(f"Creating space {repo_id}")
-              create_repo(
-                  repo_id=repo_id,
-                  repo_type="space",
-                  space_sdk="docker",
-                  private=False,
-              )
-              print(f"Created space {repo_id}")
-          EOF
+              print(f'Creating space {repo_id}')
+              create_repo(repo_id=repo_id, repo_type='space', space_sdk='docker', private=False)
+              print(f'Created space {repo_id}')
+          "
 
           # Clone the space
           git clone "https://user:${HF_TOKEN}@huggingface.co/spaces/${SPACE_REPO}" hf-space || {
-            # If clone fails, initialize a new repo
             mkdir -p hf-space
             cd hf-space
             git init
@@ -85,21 +114,54 @@ jobs:
             cd ..
           }
 
-          # Prepare the README with PR-specific metadata
-          # Using a separate script file to avoid YAML/Prettier parsing issues
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-          PR_BRANCH="${{ github.head_ref }}"
-          REPO="${{ github.repository }}"
+          # Copy the wheel
+          cp wheel/*.whl hf-space/
 
-          export PR_NUMBER PR_TITLE PR_AUTHOR PR_BRANCH REPO
+          # Create a modified Dockerfile that uses the local wheel
+          WHEEL_NAME="${{ steps.wheel.outputs.filename }}"
+          cat > hf-space/Dockerfile << 'DOCKERFILE_END'
+          # TensorBored PR Preview - Built from PR wheel
+          FROM python:3.11-slim
+
+          RUN apt-get update && apt-get install -y --no-install-recommends \
+              curl \
+              && rm -rf /var/lib/apt/lists/*
+
+          RUN useradd -m -u 1000 user
+          USER user
+          ENV PATH="/home/user/.local/bin:$PATH"
+
+          WORKDIR /app
+
+          # Copy and install the PR wheel (instead of PyPI)
+          COPY --chown=user *.whl /tmp/
+          RUN pip install --no-cache-dir --user /tmp/*.whl pillow>=10.0.0
+
+          COPY --chown=user generate_demo_data.py /app/generate_demo_data.py
+          COPY --chown=user start.sh /app/start.sh
+
+          RUN chmod +x /app/start.sh
+          RUN python /app/generate_demo_data.py
+
+          EXPOSE 7860
+          CMD ["/app/start.sh"]
+          DOCKERFILE_END
+
+          # Remove leading whitespace from Dockerfile
+          sed -i 's/^          //' hf-space/Dockerfile
+
+          # Generate README with PR info
+          PR_NUMBER_VAL="${PR_NUMBER}"
+          REPO_VAL="${{ github.repository }}"
+          HEAD_SHA="${{ steps.pr.outputs.head_sha }}"
+          SHORT_SHA="${HEAD_SHA:0:7}"
+
           python3 -c "
           import os
-          pr = os.environ['PR_NUMBER']
-          title = os.environ['PR_TITLE']
-          author = os.environ['PR_AUTHOR']
-          branch = os.environ['PR_BRANCH']
-          repo = os.environ['REPO']
+          pr = '${PR_NUMBER_VAL}'
+          repo = '${REPO_VAL}'
+          sha = '${SHORT_SHA}'
+          wheel = '${WHEEL_NAME}'
           content = [
               '---',
               f'title: TensorBored PR #{pr} Preview',
@@ -113,15 +175,10 @@ jobs:
               '',
               f'# TensorBored PR #{pr} Preview',
               '',
-              f'This is a **preview deployment** for [PR #{pr}](https://github.com/{repo}/pull/{pr}).',
+              f'Preview deployment for [PR #{pr}](https://github.com/{repo}/pull/{pr}).',
               '',
-              '**Note**: This space will be automatically deleted when the PR is closed or merged.',
-              '',
-              '## PR Details',
-              '',
-              f'- **Title**: {title}',
-              f'- **Branch**: \`{branch}\`',
-              f'- **Author**: @{author}',
+              f'**Wheel**: \`{wheel}\`',
+              f'**Commit**: [{sha}](https://github.com/{repo}/commit/{sha})',
               '',
               '---',
               '',
@@ -130,22 +187,12 @@ jobs:
               f.write('\\n'.join(content))
           "
 
-          # Append the rest of the demo README (skipping the frontmatter)
+          # Append demo README content
           tail -n +10 demo/README.md >> hf-space/README.md
 
-          # Copy demo files
-          cp demo/Dockerfile hf-space/
+          # Copy other demo files
           cp demo/generate_demo_data.py hf-space/
           cp demo/start.sh hf-space/
-
-          # Copy TensorBored custom modules
-          mkdir -p hf-space/tensorbored_plugins_core
-          cp tensorbored/plugins/core/profile_writer.py \
-            hf-space/tensorbored_plugins_core/
-          cp tensorbored/plugins/core/color_sampler.py \
-            hf-space/tensorbored_plugins_core/
-          cp tensorbored/plugins/core/__init__.py \
-            hf-space/tensorbored_plugins_core/
 
           # Commit and push
           cd hf-space
@@ -153,11 +200,11 @@ jobs:
 
           if git diff --staged --quiet; then
             echo "No changes to deploy"
-            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "deployed=false" >> $GITHUB_OUTPUT
           else
-            git commit -m "PR #${PR_NUMBER}: ${{ github.event.pull_request.title }}"
+            git commit -m "PR #${PR_NUMBER}: ${SHORT_SHA}"
             git push --set-upstream origin main || git push --set-upstream origin master
-            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "deployed=true" >> $GITHUB_OUTPUT
             echo "Deployed successfully!"
           fi
 
@@ -165,7 +212,7 @@ jobs:
         uses: peter-evans/find-comment@v3
         id: find-comment
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.pr.outputs.number }}
           comment-author: 'github-actions[bot]'
           body-includes: '<!-- pr-preview-comment -->'
 
@@ -173,34 +220,32 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.pr.outputs.number }}
           edit-mode: replace
           body: |
             <!-- pr-preview-comment -->
-            ## 🔍 Preview Deployment
-
-            Your PR preview is being deployed to HuggingFace Spaces!
+            ## Preview Deployment
 
             | Resource | Link |
             |----------|------|
             | **Live Preview** | [${{ steps.deploy.outputs.embed_url }}](${{ steps.deploy.outputs.embed_url }}) |
             | **Space Settings** | [${{ steps.deploy.outputs.space_url }}](${{ steps.deploy.outputs.space_url }}) |
 
-            **Note**: The space may take 1-3 minutes to build after deployment. If you see a "Building" status, please wait and refresh.
+            **Note**: The space may take 1-3 minutes to build. Refresh if you see "Building".
 
             <details>
-            <summary>📋 Deployment Details</summary>
+            <summary>Details</summary>
 
-            - **Space Name**: `${{ steps.deploy.outputs.space_name }}`
-            - **Commit**: ${{ github.sha }}
-            - **Deployed at**: ${{ github.event.pull_request.updated_at }}
+            - **Space**: `${{ steps.deploy.outputs.space_name }}`
+            - **Wheel**: `${{ steps.wheel.outputs.filename }}`
+            - **Commit**: `${{ steps.pr.outputs.head_sha }}`
 
-            This preview will be automatically deleted when the PR is closed or merged.
+            This preview will be deleted when the PR is closed.
             </details>
 
   cleanup-preview:
     runs-on: ubuntu-latest
-    if: github.event.action == 'closed'
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
     steps:
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -218,20 +263,18 @@ jobs:
           SPACE_NAME="${SPACE_PREFIX}-${PR_NUMBER}"
           SPACE_REPO="${HF_USERNAME}/${SPACE_NAME}"
 
-          python - <<EOF
+          python3 -c "
           from huggingface_hub import HfApi, delete_repo
           from huggingface_hub.utils import RepositoryNotFoundError
-
           api = HfApi()
-          repo_id = "${SPACE_REPO}"
-
+          repo_id = '${SPACE_REPO}'
           try:
-              api.repo_info(repo_id=repo_id, repo_type="space")
-              print(f"Deleting space {repo_id}")
-              delete_repo(repo_id=repo_id, repo_type="space")
-              print(f"Deleted space {repo_id}")
+              api.repo_info(repo_id=repo_id, repo_type='space')
+              print(f'Deleting space {repo_id}')
+              delete_repo(repo_id=repo_id, repo_type='space')
+              print(f'Deleted space {repo_id}')
           except RepositoryNotFoundError:
-              print(f"Space {repo_id} not found, nothing to delete")
-          EOF
+              print(f'Space {repo_id} not found, nothing to delete')
+          "
 
           echo "Cleanup complete for PR #${PR_NUMBER}"

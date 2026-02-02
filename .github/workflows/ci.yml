@@ -117,24 +117,24 @@ jobs:
           bazel test //tensorbored/summary/writer:event_file_writer_s3_test &&
           bazel test //tensorbored/compat/tensorflow_stub:gfile_fsspec_test &&
           bazel test //tensorbored/summary/writer:event_file_writer_fsspec_test
-      - name: 'Bazel: build Pip package (master branch TF build only)'
-        # Build wheel on every push to master for any repository.
-        if: matrix.tf_version_id == 'tf' && github.ref == 'refs/heads/master'
+      - name: 'Bazel: build Pip package (TF build only)'
+        # Build wheel on pushes to master and on PRs (for preview deployments)
+        if: matrix.tf_version_id == 'tf'
         run: |
           ./tensorbored/tools/set_nightly_version.sh
-          rm -rf /tmp/tensorbored_nightly_pip_package && mkdir /tmp/tensorbored_nightly_pip_package
-          bazel run //tensorbored/pip_package:build_pip_package -- /tmp/tensorbored_nightly_pip_package
-      - name: 'Upload Pip package as an artifact (master branch TF build only)'
-        # Upload wheel artifact on every push to master.
+          rm -rf /tmp/tensorbored_pip_package && mkdir /tmp/tensorbored_pip_package
+          bazel run //tensorbored/pip_package:build_pip_package -- /tmp/tensorbored_pip_package
+      - name: 'Upload Pip package as an artifact (TF build only)'
+        # Upload wheel artifact for master pushes and PRs.
         #
         # Note that upload-artifact GH action, starting in v4, requires the name of the uploaded
         # file(s) to be unique per workflow run, so make sure that the name is unique for each
         # "matrix" combination for which this is executed.
-        if: matrix.tf_version_id == 'tf' && github.ref == 'refs/heads/master'
+        if: matrix.tf_version_id == 'tf'
         uses: actions/upload-artifact@v4
         with:
-          name: tensorbored-nightly_py${{ matrix.python_version }}
-          path: /tmp/tensorbored_nightly_pip_package/*
+          name: tensorbored-wheel_py${{ matrix.python_version }}
+          path: /tmp/tensorbored_pip_package/*
 
   build-data-server-pip:
     runs-on: ${{ matrix.platform }}
