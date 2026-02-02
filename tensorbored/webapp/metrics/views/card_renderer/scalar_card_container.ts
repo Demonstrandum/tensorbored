@@ -96,6 +96,7 @@ import {
   getMetricsIgnoreOutliers,
   getMetricsScalarPartitionNonMonotonicX,
   getMetricsScalarSmoothing,
+  getMetricsTagMetadata,
   getMetricsTooltipSort,
   getMetricsXAxisType,
   getSuperimposedCardsWithMetadata,
@@ -117,7 +118,7 @@ import {
   getSelectableColumns,
 } from '../main_view/common_selectors';
 import {CardRenderer} from '../metrics_view_types';
-import {getTagDisplayName} from '../utils';
+import {getTagDisplayName, htmlToText} from '../utils';
 import {DataDownloadDialogContainer} from './data_download_dialog_container';
 import {
   MinMaxStep,
@@ -184,6 +185,7 @@ function areSeriesEqual(
       [smoothingEnabled]="smoothingEnabled$ | async"
       [superimposedCards]="superimposedCards$ | async"
       [tag]="tag$ | async"
+      [tagDescription]="tagDescription$ | async"
       [title]="title$ | async"
       [cardState]="cardState$ | async"
       [tooltipSort]="tooltipSort$ | async"
@@ -292,6 +294,7 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
   loadState$?: Observable<DataLoadState>;
   title$?: Observable<string>;
   tag$?: Observable<string>;
+  tagDescription$?: Observable<string>;
   isPinned$?: Observable<boolean>;
   dataSeries$?: Observable<ScalarCardDataSeries[]>;
   chartMetadataMap$?: Observable<ScalarCardSeriesMetadataMap>;
@@ -632,6 +635,18 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
       map((cardMetadata) => {
         return cardMetadata.tag;
       })
+    );
+
+    this.tagDescription$ = combineLatest([
+      cardMetadata$,
+      this.store.select(getMetricsTagMetadata),
+    ]).pipe(
+      map(([cardMetadata, tagMetadata]) => {
+        const descriptions =
+          tagMetadata[cardMetadata.plugin]?.tagDescriptions ?? {};
+        return htmlToText(descriptions[cardMetadata.tag] || '');
+      }),
+      startWith('')
     );
 
     this.cardState$ = this.store.select(getCardStateMap).pipe(

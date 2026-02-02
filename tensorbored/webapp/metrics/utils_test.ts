@@ -13,7 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import {PluginType} from './data_source';
-import {compareTagNames, groupCardIdWithMetdata} from './utils';
+import {
+  buildTagTooltip,
+  compareTagNames,
+  groupCardIdWithMetdata,
+  htmlToText,
+} from './utils';
 import {CardIdWithMetadata} from './views/metrics_view_types';
 
 function buildCardIdWithMetadata(
@@ -168,6 +173,26 @@ describe('metrics utils', () => {
       expect(sortTagNames(['0.2', '0.03'])).toEqual(['0.03', '0.2']);
       expect(sortTagNames(['0..2', '0..03'])).toEqual(['0..2', '0..03']);
       expect(sortTagNames(['.2', '.03'])).toEqual(['.2', '.03']);
+    });
+  });
+
+  describe('#htmlToText', () => {
+    it('strips HTML markup from descriptions', () => {
+      expect(htmlToText('<p>Hello <strong>world</strong>.</p>')).toBe(
+        'Hello world.'
+      );
+    });
+  });
+
+  describe('#buildTagTooltip', () => {
+    it('returns tag alone when description is empty', () => {
+      expect(buildTagTooltip('train/loss', '')).toBe('train/loss');
+    });
+
+    it('combines tag and description when provided', () => {
+      expect(buildTagTooltip('train/loss', 'The training loss.')).toBe(
+        'train/loss\nThe training loss.'
+      );
     });
   });
 });

@@ -66,6 +66,7 @@ def create_profile(
     superimposed_cards: Optional[List[Dict[str, Any]]] = None,
     run_selection: Optional[List[Dict[str, Any]]] = None,
     selected_runs: Optional[List[str]] = None,
+    metric_descriptions: Optional[Dict[str, str]] = None,
     tag_filter: str = "",
     run_filter: str = "",
     smoothing: float = 0.6,
@@ -95,6 +96,8 @@ def create_profile(
             - value: str (run id or run name)
             - selected: bool
         selected_runs: Convenience list of run names to select by default.
+        metric_descriptions: Mapping from metric tag name to a long-form
+            Markdown description for that metric.
         tag_filter: Regex pattern to filter tags.
         run_filter: Regex pattern to filter runs.
         smoothing: Scalar smoothing value (0.0 to 0.999).
@@ -129,6 +132,7 @@ def create_profile(
             "groupColors": group_colors or [],
             "superimposedCards": superimposed_cards or [],
             "runSelection": run_selection_entries,
+            "metricDescriptions": metric_descriptions or {},
             "tagFilter": tag_filter,
             "runFilter": run_filter,
             "smoothing": smoothing,
@@ -197,6 +201,7 @@ def set_default_profile(
     superimposed_cards: Optional[List[Dict[str, Any]]] = None,
     run_selection: Optional[List[Dict[str, Any]]] = None,
     selected_runs: Optional[List[str]] = None,
+    metric_descriptions: Optional[Dict[str, str]] = None,
     tag_filter: str = "",
     run_filter: str = "",
     smoothing: float = 0.6,
@@ -213,6 +218,8 @@ def set_default_profile(
         superimposed_cards: List of superimposed card definitions.
         run_selection: Optional run selection entries.
         selected_runs: Convenience list of run names to select by default.
+        metric_descriptions: Mapping from metric tag name to a long-form
+            Markdown description for that metric.
         tag_filter: Regex pattern to filter tags.
         run_filter: Regex pattern to filter runs.
         smoothing: Scalar smoothing value.
@@ -229,6 +236,7 @@ def set_default_profile(
         superimposed_cards=superimposed_cards,
         run_selection=run_selection,
         selected_runs=selected_runs,
+        metric_descriptions=metric_descriptions,
         tag_filter=tag_filter,
         run_filter=run_filter,
         smoothing=smoothing,

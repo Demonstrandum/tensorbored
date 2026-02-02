@@ -34,6 +34,7 @@ class ProfileWriterTest(unittest.TestCase):
         self.assertEqual(profile["data"]["pinnedCards"], [])
         self.assertEqual(profile["data"]["runColors"], [])
         self.assertEqual(profile["data"]["runSelection"], [])
+        self.assertEqual(profile["data"]["metricDescriptions"], {})
         self.assertEqual(profile["data"]["tagFilter"], "")
         self.assertEqual(profile["data"]["smoothing"], 0.6)
 
@@ -66,6 +67,9 @@ class ProfileWriterTest(unittest.TestCase):
             pinned_cards=[{"plugin": "scalars", "tag": "loss"}],
             run_colors={"train": "#0000ff"},
             selected_runs=["train", "eval"],
+            metric_descriptions={
+                "train/loss": "The loss used to optimize the model.",
+            },
             tag_filter="train.*",
             run_filter="exp1",
             smoothing=0.9,
@@ -82,6 +86,10 @@ class ProfileWriterTest(unittest.TestCase):
                 {"type": "RUN_NAME", "value": "train", "selected": True},
                 {"type": "RUN_NAME", "value": "eval", "selected": True},
             ],
+        )
+        self.assertEqual(
+            data["metricDescriptions"]["train/loss"],
+            "The loss used to optimize the model.",
         )
         self.assertEqual(data["tagFilter"], "train.*")
         self.assertEqual(data["runFilter"], "exp1")

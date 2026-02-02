@@ -28,6 +28,7 @@ from tensorbored.backend.event_processing import (
 )
 from tensorbored.data import provider
 from tensorbored.plugins import base_plugin
+from tensorbored.plugins.core import profile_writer
 from tensorbored.plugins.image import metadata as image_metadata
 from tensorbored.plugins.metrics import metrics_plugin
 
@@ -290,6 +291,41 @@ class MetricsPluginTest(tf.test.TestCase):
                 },
             },
             response["images"],
+        )
+
+    def test_tags_with_profile_descriptions(self):
+        self._write_scalar("run1", "scalars/tagA", None)
+        self._write_histogram("run1", "histograms/tagA", None)
+        self._write_image("run1", "images/tagA", 1, None)
+        profile_writer.set_default_profile(
+            self._logdir,
+            metric_descriptions={
+                "scalars/tagA": "Profile scalar description",
+                "histograms/tagA": "Profile histogram description",
+                "images/tagA": "Profile image description",
+            },
+        )
+        self._multiplexer.Reload()
+
+        response = self._plugin._tags_impl(context.RequestContext(), "eid")
+
+        self.assertEqual(
+            {
+                "scalars/tagA": "<p>Profile scalar description</p>",
+            },
+            response["scalars"]["tagDescriptions"],
+        )
+        self.assertEqual(
+            {
+                "histograms/tagA": "<p>Profile histogram description</p>",
+            },
+            response["histograms"]["tagDescriptions"],
+        )
+        self.assertEqual(
+            {
+                "images/tagA": "<p>Profile image description</p>",
+            },
+            response["images"]["tagDescriptions"],
         )
 
     def test_tags_conflicting_description(self):
