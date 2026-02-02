@@ -30,6 +30,7 @@ import {
   SymbolFn,
   timeFormatter,
   TooltipColumn,
+  AxisScaleType,
   XComponents,
   XType,
   Y_TOOLTIP_FORMATTER_PRECISION,
@@ -200,6 +201,12 @@ class VzLineChart2<SeriesMetadata = {}> extends LegacyElementMixin(
    */
   @property({type: String})
   xType: XType | null = null;
+
+  /**
+   * Scale type for numeric X axes (step/relative). Wall time always uses time scale.
+   */
+  @property({type: String})
+  xScaleType: AxisScaleType = AxisScaleType.LINEAR;
 
   /**
    * We accept a function for creating an XComponents object instead of such
@@ -450,6 +457,7 @@ class VzLineChart2<SeriesMetadata = {}> extends LegacyElementMixin(
   @observe(
     'xComponentsCreationMethod',
     'xType',
+    'xScaleType',
     'yValueAccessor',
     'yScaleType',
     'isAttached'
@@ -470,7 +478,8 @@ class VzLineChart2<SeriesMetadata = {}> extends LegacyElementMixin(
       if (!this.xType && !normalXComponentsCreationMethod) {
         normalXComponentsCreationMethod = stepX;
       } else if (this.xType) {
-        normalXComponentsCreationMethod = () => getXComponents(this.xType);
+        normalXComponentsCreationMethod = () =>
+          getXComponents(this.xType, this.xScaleType);
       }
       if (
         !normalXComponentsCreationMethod ||

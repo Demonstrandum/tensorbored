@@ -24,7 +24,12 @@ import {runsColorScale} from '../../../components/tf_color_scale/colorScale';
 import {RequestDataCallback} from '../../../components/tf_dashboard_common/data-loader-behavior';
 import '../../../components/tf_dashboard_common/tf-downloader';
 import '../../../components/tf_line_chart_data_loader/tf-line-chart-data-loader';
-import {ScalarDatum} from '../../../components/vz_chart_helpers/vz-chart-helpers';
+import {
+  AxisScaleType,
+  ScalarDatum,
+  XType,
+} from '../../../components/vz_chart_helpers/vz-chart-helpers';
+import {YScaleType} from '../../../components/vz_line_chart2/line-chart';
 import '../../../components/vz_line_chart2/vz-line-chart2';
 import {DEFAULT_TOOLTIP_COLUMNS} from '../../../components/vz_line_chart2/vz-line-chart2';
 
@@ -75,7 +80,6 @@ export class TfScalarCard extends PolymerElement {
         ignore-y-outliers="[[ignoreYOutliers]]"
         load-data-callback="[[_loadDataCallback]]"
         load-key="[[tag]]"
-        log-scale-active="[[_logScaleActive]]"
         request-manager="[[requestManager]]"
         smoothing-enabled="[[smoothingEnabled]]"
         smoothing-weight="[[smoothingWeight]]"
@@ -83,7 +87,9 @@ export class TfScalarCard extends PolymerElement {
         tooltip-columns="[[_tooltipColumns]]"
         tooltip-position="auto"
         tooltip-sorting-method="[[tooltipSortingMethod]]"
+        x-scale-type="[[_xScaleType]]"
         x-type="[[xType]]"
+        y-scale-type="[[_yScaleType]]"
       >
       </tf-line-chart-data-loader>
     </div>
@@ -94,11 +100,19 @@ export class TfScalarCard extends PolymerElement {
         on-tap="_toggleExpanded"
       ></paper-icon-button>
       <paper-icon-button
-        selected$="[[_logScaleActive]]"
+        selected$="[[_isNonLinearScale(_yScaleType)]]"
         icon="line-weight"
-        on-tap="_toggleLogScale"
-        title="Toggle y-axis log scale"
+        on-tap="_toggleYScaleType"
+        title="[[_getYScaleTitle(_yScaleType)]]"
       ></paper-icon-button>
+      <template is="dom-if" if="[[_canToggleXScaleType(xType)]]">
+        <paper-icon-button
+          selected$="[[_isNonLinearScale(_xScaleType)]]"
+          icon="swap-horiz"
+          on-tap="_toggleXScaleType"
+          title="[[_getXScaleTitle(_xScaleType)]]"
+        ></paper-icon-button>
+      </template>
       <paper-icon-button
         icon="settings-overscan"
         on-tap="_resetDomain"
@@ -367,8 +381,11 @@ export class TfScalarCard extends PolymerElement {
   })
   _expanded: boolean = false;
 
-  @property({type: Boolean})
-  _logScaleActive: boolean;
+  @property({type: String})
+  _yScaleType: YScaleType = YScaleType.LINEAR;
+
+  @property({type: String})
+  _xScaleType: AxisScaleType = AxisScaleType.LINEAR;
 
   @property({type: Array})
   _tooltipColumns: unknown[] = (() => {
@@ -402,8 +419,64 @@ export class TfScalarCard extends PolymerElement {
     this.redraw();
   }
 
-  _toggleLogScale() {
-    this.set('_logScaleActive', !this._logScaleActive);
+  _toggleYScaleType() {
+    this.set('_yScaleType', this._getNextYScaleType(this._yScaleType));
+  }
+
+  _toggleXScaleType() {
+    this.set('_xScaleType', this._getNextXScaleType(this._xScaleType));
+  }
+
+  _getNextYScaleType(scaleType: YScaleType): YScaleType {
+    switch (scaleType) {
+      case YScaleType.LINEAR:
+        return YScaleType.LOG;
+      case YScaleType.LOG:
+        return YScaleType.SYMLOG;
+      case YScaleType.SYMLOG:
+      default:
+        return YScaleType.LINEAR;
+    }
+  }
+
+  _getNextXScaleType(scaleType: AxisScaleType): AxisScaleType {
+    switch (scaleType) {
+      case AxisScaleType.LINEAR:
+        return AxisScaleType.LOG;
+      case AxisScaleType.LOG:
+        return AxisScaleType.SYMLOG;
+      case AxisScaleType.SYMLOG:
+      default:
+        return AxisScaleType.LINEAR;
+    }
+  }
+
+  _getScaleLabel(scaleType: AxisScaleType | YScaleType): string {
+    switch (scaleType) {
+      case AxisScaleType.LOG:
+        return 'Log';
+      case AxisScaleType.SYMLOG:
+        return 'SymLog';
+      case AxisScaleType.LINEAR:
+      default:
+        return 'Linear';
+    }
+  }
+
+  _getYScaleTitle(scaleType: YScaleType): string {
+    return `Y-axis scale: ${this._getScaleLabel(scaleType)}`;
+  }
+
+  _getXScaleTitle(scaleType: AxisScaleType): string {
+    return `X-axis scale: ${this._getScaleLabel(scaleType)}`;
+  }
+
+  _isNonLinearScale(scaleType: AxisScaleType | YScaleType): boolean {
+    return scaleType !== AxisScaleType.LINEAR;
+  }
+
+  _canToggleXScaleType(xType: string): boolean {
+    return xType === XType.STEP || xType === XType.RELATIVE;
   }
 
   _resetDomain() {

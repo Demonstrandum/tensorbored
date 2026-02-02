@@ -15,6 +15,8 @@ limitations under the License.
 import * as d3 from 'd3';
 import * as _ from 'lodash';
 import * as Plottable from 'plottable';
+import {LogScale} from '../vz_line_chart2/log-scale';
+import {SymLogScale} from '../vz_line_chart2/symlog-scale';
 
 export interface Datum {
   wall_time: Date;
@@ -75,6 +77,12 @@ export enum XType {
    * or calculating from "wall_time" if it isn't.
    */
   WALL_TIME = 'wall_time',
+}
+
+export enum AxisScaleType {
+  LINEAR = 'linear',
+  LOG = 'log',
+  SYMLOG = 'symlog',
 }
 
 export type SymbolFn = (series: string) => Plottable.SymbolFactory;
@@ -185,17 +193,33 @@ export function accessorize(key: string): Plottable.IAccessor<number> {
 
 export interface XComponents {
   /* tslint:disable */
-  scale: Plottable.Scales.Linear | Plottable.Scales.Time;
+  scale: Plottable.QuantitativeScale<number> | Plottable.Scales.Time;
   axis: Plottable.Axes.Numeric | Plottable.Axes.Time;
   accessor: Plottable.IAccessor<number | Date>;
 }
 
 export const stepFormatter = d3.format(`.${STEP_FORMATTER_PRECISION}~s`);
 
-export function stepX(): XComponents {
-  let scale = new Plottable.Scales.Linear();
-  scale.tickGenerator(Plottable.Scales.TickGenerators.integerTickGenerator());
-  let axis = new Plottable.Axes.Numeric(scale, 'bottom');
+function createNumericScale(
+  scaleType: AxisScaleType
+): Plottable.QuantitativeScale<number> {
+  switch (scaleType) {
+    case AxisScaleType.LOG:
+      return new LogScale();
+    case AxisScaleType.SYMLOG:
+      return new SymLogScale();
+    case AxisScaleType.LINEAR:
+    default:
+      return new Plottable.Scales.Linear();
+  }
+}
+
+export function stepX(scaleType: AxisScaleType = AxisScaleType.LINEAR) {
+  const scale = createNumericScale(scaleType);
+  if (scaleType === AxisScaleType.LINEAR) {
+    scale.tickGenerator(Plottable.Scales.TickGenerators.integerTickGenerator());
+  }
+  const axis = new Plottable.Axes.Numeric(scale, 'bottom');
   axis.formatter(stepFormatter);
   return {
     scale: scale,
@@ -256,8 +280,8 @@ export let relativeFormatter = (n: number) => {
   return ret + seconds + 's';
 };
 
-export function relativeX(): XComponents {
-  let scale = new Plottable.Scales.Linear();
+export function relativeX(scaleType: AxisScaleType = AxisScaleType.LINEAR) {
+  const scale = createNumericScale(scaleType);
   return {
     scale: scale,
     axis: new Plottable.Axes.Numeric(scale, 'bottom'),
@@ -265,14 +289,17 @@ export function relativeX(): XComponents {
   };
 }
 
-export function getXComponents(xType: string): XComponents {
+export function getXComponents(
+  xType: string,
+  scaleType: AxisScaleType = AxisScaleType.LINEAR
+): XComponents {
   switch (xType) {
     case XType.STEP:
-      return stepX();
+      return stepX(scaleType);
     case XType.WALL_TIME:
       return wallX();
     case XType.RELATIVE:
-      return relativeX();
+      return relativeX(scaleType);
     default:
       throw new Error('invalid xType: ' + xType);
   }
