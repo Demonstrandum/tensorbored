@@ -19,7 +19,9 @@ limitations under the License.
     <span class="tag">
       <tb-truncated-path
         class="tag-path"
-        [attr.title]="getTagTooltip(tag, tagDescription)"
+        [matTooltip]="getTagTooltip(tag, tagDescription)"
+        matTooltipClass="tb-tag-tooltip"
+        matTooltipShowDelay="0"
         value="{{ title }}"
       ></tb-truncated-path>
       <vis-linked-time-selection-warning

@@ -17,7 +17,9 @@ limitations under the License.
 <div class="heading" cdkDragHandle>
   <div class="tag">
     <tb-truncated-path
-      [attr.title]="getTagTooltip(tag, tagDescription)"
+      [matTooltip]="getTagTooltip(tag, tagDescription)"
+      matTooltipClass="tb-tag-tooltip"
+      matTooltipShowDelay="0"
       [value]="title"
     ></tb-truncated-path>
     <vis-linked-time-selection-warning
