@@ -1,0 +1,46 @@
+name: PR Preview Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+
+env:
+  SPACE_PREFIX: tensorbored-pr
+  HF_USERNAME: Demonstrandum
+
+jobs:
+  cleanup-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
+
+      - name: Delete HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          SPACE_NAME="${SPACE_PREFIX}-${PR_NUMBER}"
+          SPACE_REPO="${HF_USERNAME}/${SPACE_NAME}"
+
+          python3 << EOF
+          from huggingface_hub import HfApi, delete_repo
+          from huggingface_hub.utils import RepositoryNotFoundError
+
+          api = HfApi()
+          repo_id = "${SPACE_REPO}"
+
+          try:
+              api.repo_info(repo_id=repo_id, repo_type="space")
+              print(f"Deleting space {repo_id}")
+              delete_repo(repo_id=repo_id, repo_type="space")
+              print(f"Deleted!")
+          except RepositoryNotFoundError:
+              print(f"Space {repo_id} not found, nothing to delete")
+          EOF
+
+          echo "Cleanup complete for PR #${PR_NUMBER}"

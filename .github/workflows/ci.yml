@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write # For PR preview deployment comments
 
 env:
   # Keep this Bazel version in sync with the `versions.check` directive
@@ -117,24 +118,24 @@ jobs:
           bazel test //tensorbored/summary/writer:event_file_writer_s3_test &&
           bazel test //tensorbored/compat/tensorflow_stub:gfile_fsspec_test &&
           bazel test //tensorbored/summary/writer:event_file_writer_fsspec_test
-      - name: 'Bazel: build Pip package (master branch TF build only)'
-        # Build wheel on every push to master for any repository.
-        if: matrix.tf_version_id == 'tf' && github.ref == 'refs/heads/master'
+      - name: 'Bazel: build Pip package (TF build only)'
+        # Build wheel on pushes to master and on PRs (for preview deployments)
+        if: matrix.tf_version_id == 'tf'
         run: |
           ./tensorbored/tools/set_nightly_version.sh
-          rm -rf /tmp/tensorbored_nightly_pip_package && mkdir /tmp/tensorbored_nightly_pip_package
-          bazel run //tensorbored/pip_package:build_pip_package -- /tmp/tensorbored_nightly_pip_package
-      - name: 'Upload Pip package as an artifact (master branch TF build only)'
-        # Upload wheel artifact on every push to master.
+          rm -rf /tmp/tensorbored_pip_package && mkdir /tmp/tensorbored_pip_package
+          bazel run //tensorbored/pip_package:build_pip_package -- /tmp/tensorbored_pip_package
+      - name: 'Upload Pip package as an artifact (TF build only)'
+        # Upload wheel artifact for master pushes and PRs.
         #
         # Note that upload-artifact GH action, starting in v4, requires the name of the uploaded
         # file(s) to be unique per workflow run, so make sure that the name is unique for each
         # "matrix" combination for which this is executed.
-        if: matrix.tf_version_id == 'tf' && github.ref == 'refs/heads/master'
+        if: matrix.tf_version_id == 'tf'
         uses: actions/upload-artifact@v4
         with:
-          name: tensorbored-nightly_py${{ matrix.python_version }}
-          path: /tmp/tensorbored_nightly_pip_package/*
+          name: tensorbored-wheel_py${{ matrix.python_version }}
+          path: /tmp/tensorbored_pip_package/*
 
   build-data-server-pip:
     runs-on: ${{ matrix.platform }}
@@ -376,3 +377,148 @@ jobs:
       - run: ./tensorbored/tools/do_not_submit_test.sh
       - run: ./tensorbored/tools/license_test.sh
       - run: ./tensorbored/tools/whitespace_hygiene_test.py
+
+  deploy-pr-preview:
+    runs-on: ubuntu-22.04
+    needs: build
+    # Only deploy previews for PRs, not pushes to master
+    if: github.event_name == 'pull_request'
+    env:
+      SPACE_PREFIX: tensorbored-pr
+      HF_USERNAME: Demonstrandum
+    steps:
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Download wheel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tensorbored-wheel_py3.9
+          path: wheel
+
+      - name: Get wheel filename
+        id: wheel
+        run: |
+          WHEEL_FILE=$(ls wheel/*.whl | head -1)
+          WHEEL_NAME=$(basename "$WHEEL_FILE")
+          echo "filename=${WHEEL_NAME}" >> $GITHUB_OUTPUT
+          echo "Found wheel: ${WHEEL_NAME}"
+
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # v4.3.0
+        with:
+          python-version: '3.11'
+
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
+
+      - name: Prepare Space files
+        id: deploy
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          SPACE_NAME="${SPACE_PREFIX}-${PR_NUMBER}"
+          SPACE_REPO="${HF_USERNAME}/${SPACE_NAME}"
+          SPACE_URL="https://huggingface.co/spaces/${SPACE_REPO}"
+          EMBED_URL="https://${HF_USERNAME}-${SPACE_NAME}.hf.space"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          WHEEL_NAME="${{ steps.wheel.outputs.filename }}"
+
+          echo "space_name=${SPACE_NAME}" >> $GITHUB_OUTPUT
+          echo "space_repo=${SPACE_REPO}" >> $GITHUB_OUTPUT
+          echo "space_url=${SPACE_URL}" >> $GITHUB_OUTPUT
+          echo "embed_url=${EMBED_URL}" >> $GITHUB_OUTPUT
+
+          mkdir -p hf-space
+
+          # Copy wheel and demo files
+          cp wheel/*.whl hf-space/
+          cp demo/Dockerfile hf-space/
+          cp demo/generate_demo_data.py hf-space/
+          cp demo/start.sh hf-space/
+
+          # Generate PR-specific README (needs PR number in frontmatter)
+          cat > hf-space/README.md << EOF
+          ---
+          title: TensorBored PR #${PR_NUMBER} Preview
+          emoji: "\U0001F50D"
+          colorFrom: yellow
+          colorTo: purple
+          sdk: docker
+          pinned: false
+          license: apache-2.0
+          ---
+
+          # TensorBored PR #${PR_NUMBER} Preview
+
+          Preview for [PR #${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER}).
+
+          **Wheel**: \`${WHEEL_NAME}\`
+          **Commit**: [${SHORT_SHA}](https://github.com/${{ github.repository }}/commit/${GITHUB_SHA})
+
+          ---
+
+          EOF
+          sed -i 's/^          //' hf-space/README.md
+          tail -n +10 demo/README.md >> hf-space/README.md
+
+      - name: Upload to HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          SPACE_REPO="${{ steps.deploy.outputs.space_repo }}"
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+
+          python3 << PYPYTHON
+          from huggingface_hub import HfApi, create_repo
+          from huggingface_hub.utils import RepositoryNotFoundError
+
+          api = HfApi()
+          repo_id = "${SPACE_REPO}"
+
+          try:
+              api.repo_info(repo_id=repo_id, repo_type="space")
+              print(f"Space {repo_id} exists")
+          except RepositoryNotFoundError:
+              print(f"Creating space {repo_id}")
+              create_repo(repo_id=repo_id, repo_type="space", space_sdk="docker", private=False)
+
+          print(f"Uploading to {repo_id}")
+          api.upload_folder(
+              folder_path="hf-space",
+              repo_id=repo_id,
+              repo_type="space",
+              commit_message="PR #${PR_NUMBER}: ${SHORT_SHA}",
+          )
+          print("Done!")
+          PYPYTHON
+
+      - name: Find existing comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- pr-preview-comment -->'
+
+      - name: Post PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            <!-- pr-preview-comment -->
+            ## Preview Deployment
+
+            | | |
+            |-|-|
+            | **Live Preview** | [${{ steps.deploy.outputs.embed_url }}](${{ steps.deploy.outputs.embed_url }}) |
+            | **Space** | [${{ steps.deploy.outputs.space_url }}](${{ steps.deploy.outputs.space_url }}) |
+
+            Build may take 1-3 min. This preview is deleted when the PR closes.
+
+            <details>
+            <summary>Details</summary>
+
+            - Wheel: `${{ steps.wheel.outputs.filename }}`
+            - Commit: ${{ github.sha }}
+            </details>
