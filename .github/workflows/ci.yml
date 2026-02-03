@@ -439,8 +439,8 @@ jobs:
           ---
           title: TensorBored PR #${PR_NUMBER} Preview
           emoji: "\U0001F50D"
-          colorFrom: orange
-          colorTo: yellow
+          colorFrom: yellow
+          colorTo: purple
           sdk: docker
           pinned: false
           license: apache-2.0
