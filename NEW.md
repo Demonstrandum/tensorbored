@@ -4,37 +4,36 @@ TensorBored is a fork of TensorBoard with enhanced features for PyTorch workflow
 
 ## Quick Feature List
 
-- **Dashboard Profiles** - Save, load, and share complete dashboard configurations
+- **Dashboard Profiles** - No more URL length limits; configure dashboards programmatically and cache in localStorage
 - **Superimposed Plots** - Combine multiple metrics on a single chart for easy comparison
 - **Pinned Card Reordering** - Drag-and-drop to reorganize your pinned charts
-- **Profile Writer API** - Configure dashboards from Python training scripts
-- **Color Sampler** - Generate perceptually uniform color palettes for runs
-- **Persistent Settings** - Your customizations survive page refreshes
-- **PR Preview Deployments** - Automatic Hugging Face Space previews for PRs
-- **Offline-First Design** - Works entirely without internet access
+- **Programmatic Run Colors** - Set colors from your training harness, or get stable hash-based colors automatically
+- **Log/Symlog X-Axis** - Log scale for x-axis, plus symlog scale for plots with negative values
+- **Persistent Settings** - Tag filters, run selections, and customizations survive page refreshes
 
 ---
 
 ## Dashboard Profiles
 
-Profiles let you save and restore your entire dashboard state including pinned cards, run colors, filters, and smoothing settings.
+Traditional TensorBoard stores dashboard state in the URL, which hits browser URL length limits with complex configurations. TensorBored profiles solve this:
 
-### Features
-
-- **Save/Load** - Save current state with a name, load it later
-- **Import/Export** - Share profiles as JSON files with teammates
-- **Backend Defaults** - Training scripts can set default profiles via `profile_writer`
-- **Automatic Persistence** - Active profile persists across browser sessions
+- **No URL limits** - Profiles are stored in browser localStorage, not the URL
+- **Programmatic configuration** - Set default profiles from your Python training harness
+- **Shareable** - Export/import profiles as JSON files to share with teammates
+- **Automatic persistence** - Active profile persists across browser sessions
 
 ### Usage
 
-Access profiles via the bookmark icon in the top bar. The menu provides options to:
+Access profiles via the flag icon in the top bar. The menu provides options to:
 - Save current dashboard state
 - Load saved profiles
 - Export profiles as JSON for sharing
 - Import profiles from teammates
+- View the raw profile JSON
 
 ### Python API
+
+Configure your dashboard before users even open it:
 
 ```python
 from tensorbored.plugins.core import profile_writer
@@ -48,8 +47,11 @@ profile_writer.set_default_profile(
     ],
     run_colors={'train': '#2196F3', 'eval': '#4CAF50'},
     smoothing=0.8,
+    tag_filter='loss|accuracy',
 )
 ```
+
+When users open TensorBored pointed at this logdir, they get your pre-configured view automatically.
 
 ---
 
@@ -62,7 +64,7 @@ Compare multiple metrics on a single chart by superimposing them.
 - Overlay different tags on one chart (e.g., train/loss + eval/loss)
 - Each tag gets a distinct color
 - Dynamically add/remove tags from superimposed charts
-- Title automatically updates to reflect included metrics
+- Title automatically updates to reflect included metrics (e.g., "loss" → "loss + accuracy")
 
 ### Usage
 
@@ -77,39 +79,59 @@ Compare multiple metrics on a single chart by superimposing them.
 
 Organize your pinned cards in any order you prefer.
 
-### Features
-
 - Drag-and-drop pinned cards to reorder them
 - Use arrow buttons for precise positioning
 - Order persists with profiles
 
 ---
 
-## Color Sampler Module
+## Programmatic Run Colors
 
-Generate distinguishable colors for runs programmatically.
+### Stable Colors by Default
 
-### API
+In stock TensorBoard, run colors change randomly on page refresh. TensorBored computes colors deterministically from the run ID/name hash, so:
+
+- **Consistent colors** - Same run always gets the same color
+- **Refresh-safe** - Colors don't shuffle when you reload the page
+- **Cross-session stable** - Colors stay the same across browser sessions
+
+### Set Colors from Your Harness
+
+For full control, set run colors programmatically:
 
 ```python
-from tensorbored.plugins.core import color_sampler
+from tensorbored.plugins.core import profile_writer
 
-# Generate N colors
-colors = color_sampler.sample_colors(5)
-
-# Get colors for specific runs
-run_colors = color_sampler.colors_for_runs(['exp1', 'exp2', 'exp3'])
-
-# For many runs (>8), use varied lightness
-colors = color_sampler.sample_colors_varied(15)
-
-# Palette types
-colors = color_sampler.palette_categorical(8)   # High contrast
-colors = color_sampler.palette_sequential(5)    # Light to dark
-colors = color_sampler.palette_diverging(5)     # Two-ended
+profile_writer.set_default_profile(
+    logdir='/path/to/logs',
+    name='My Experiment',
+    run_colors={
+        'baseline': '#9E9E9E',
+        'experiment_v1': '#2196F3',
+        'experiment_v2': '#4CAF50',
+    },
+)
 ```
 
-Colors are generated in OKLCH color space for perceptual uniformity.
+If you don't specify colors, the stable hash-based colors are used.
+
+---
+
+## Log Scale and Symlog for X-Axis
+
+### Log Scale X-Axis
+
+For experiments with exponential step ranges, use log scale on the x-axis to see early training details without losing late-stage visibility.
+
+### Symlog Scale
+
+When plotting metrics that can go negative (like some loss functions or gradients), standard log scale breaks. Symlog (symmetric log) handles this:
+
+- Linear near zero
+- Logarithmic for large positive and negative values
+- Smooth transition between regions
+
+This lets you visualize metrics spanning many orders of magnitude in both directions.
 
 ---
 
@@ -119,30 +141,7 @@ The tag filter (regex search bar) remembers your preferences:
 
 - When you clear the filter, it stays cleared on refresh
 - User preferences override profile defaults
-- Stored in browser localStorage
-
----
-
-## PR Preview Deployments
-
-Pull requests automatically get preview deployments on Hugging Face Spaces.
-
-### How It Works
-
-1. When a PR is opened/updated, CI builds a wheel
-2. A Hugging Face Space is created/updated with the build
-3. A comment is posted on the PR with preview links
-4. Space is deleted when PR is closed
-
----
-
-## Offline-First Design
-
-TensorBored works entirely offline:
-
-- No external network requests during normal operation
-- All assets bundled locally
-- Suitable for air-gapped environments
+- No more fighting with a filter that keeps resetting
 
 ---
 
