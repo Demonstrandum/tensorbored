@@ -18,6 +18,7 @@ import {Action, createAction, createSelector, Store} from '@ngrx/store';
 import {forkJoin, merge, Observable, of} from 'rxjs';
 import {
   catchError,
+  debounceTime,
   throttleTime,
   filter,
   map,
@@ -27,6 +28,8 @@ import {
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
+
+const TAG_FILTER_STORAGE_KEY = '_tb_tag_filter.v1';
 import * as routingActions from '../../app_routing/actions';
 import {State} from '../../app_state';
 import * as coreActions from '../../core/actions';
@@ -540,6 +543,43 @@ export class MetricsEffects implements OnInitEffects {
       })
     );
 
+    // Persist tag filter to localStorage when user changes it
+    this.persistTagFilter$ = this.actions$.pipe(
+      ofType(actions.metricsTagFilterChanged),
+      debounceTime(200),
+      tap(({tagFilter}) => {
+        // Store the user-set tag filter value. Empty string means user cleared it.
+        window.localStorage.setItem(
+          TAG_FILTER_STORAGE_KEY,
+          JSON.stringify({value: tagFilter, timestamp: Date.now()})
+        );
+      })
+    );
+
+    // Load tag filter from localStorage on navigation (overrides profile value if set)
+    this.loadTagFilterFromStorage$ = this.actions$.pipe(
+      ofType(routingActions.navigated),
+      take(1),
+      map(() => {
+        const stored = window.localStorage.getItem(TAG_FILTER_STORAGE_KEY);
+        if (!stored) {
+          return null;
+        }
+        try {
+          const parsed = JSON.parse(stored) as {value?: string; timestamp?: number};
+          // Only apply if the value exists (including empty string which means cleared)
+          if (typeof parsed.value === 'string') {
+            return parsed.value;
+          }
+        } catch {
+          // Invalid JSON, ignore
+        }
+        return null;
+      }),
+      filter((value): value is string => value !== null),
+      map((tagFilter) => actions.metricsTagFilterChanged({tagFilter}))
+    );
+
     this.dataEffects$ = createEffect(
       () => {
         return merge(
@@ -576,12 +616,25 @@ export class MetricsEffects implements OnInitEffects {
           /**
            * Subscribes to: metricsEnableSavingPinsToggled.
            */
-          this.addOrRemovePinsOnToggle$
+          this.addOrRemovePinsOnToggle$,
+          /**
+           * Subscribes to: metricsTagFilterChanged - persists to localStorage.
+           */
+          this.persistTagFilter$
         );
       },
       {dispatch: false}
     );
+
+    // Effect that dispatches action to load tag filter from localStorage
+    this.applyTagFilterFromStorage$ = createEffect(() =>
+      this.loadTagFilterFromStorage$
+    );
   }
+
+  private readonly persistTagFilter$;
+  private readonly loadTagFilterFromStorage$;
+  readonly applyTagFilterFromStorage$;
 }
 
 export const TEST_ONLY = {
