@@ -37,7 +37,7 @@ import {ProfileMetadata} from '../types';
           : 'Profiles'
       "
     >
-      <mat-icon svgIcon="flag_24px"></mat-icon>
+      <mat-icon svgIcon="settings_24px"></mat-icon>
       <span *ngIf="hasUnsavedChanges" class="unsaved-dot"></span>
     </button>
 
@@ -86,7 +86,7 @@ import {ProfileMetadata} from '../types';
       >
         <mat-icon
           [svgIcon]="
-            profile.name === activeProfileName ? 'done_24px' : 'flag_24px'
+            profile.name === activeProfileName ? 'done_24px' : 'settings_24px'
           "
         ></mat-icon>
         <span class="profile-item-content">
@@ -107,19 +107,11 @@ import {ProfileMetadata} from '../types';
       <mat-divider></mat-divider>
 
       <!-- View/Export/Import -->
-      <button
-        mat-menu-item
-        (click)="onViewClicked()"
-        [disabled]="!activeProfileName"
-      >
+      <button mat-menu-item (click)="onViewClicked()">
         <mat-icon svgIcon="info_outline_24px"></mat-icon>
         <span>View JSON...</span>
       </button>
-      <button
-        mat-menu-item
-        (click)="onExportClicked()"
-        [disabled]="!activeProfileName"
-      >
+      <button mat-menu-item (click)="onExportClicked()">
         <mat-icon svgIcon="get_app_24px"></mat-icon>
         <span>Export JSON</span>
       </button>
@@ -180,11 +172,14 @@ import {ProfileMetadata} from '../types';
 
       .profile-menu-trigger {
         position: relative;
-        color: inherit;
+      }
+
+      .profile-menu-trigger mat-icon {
+        color: white;
       }
 
       .profile-menu-trigger.has-profile mat-icon {
-        color: #ff9800;
+        color: #ffb74d;
       }
 
       .unsaved-dot {
