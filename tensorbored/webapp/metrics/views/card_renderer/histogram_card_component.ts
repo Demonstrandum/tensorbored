@@ -28,6 +28,7 @@ import {
   TimeProperty,
 } from '../../../widgets/histogram/histogram_types';
 import {TimeSelection, XAxisType} from '../../types';
+import {buildTagTooltip} from '../utils';
 import {TimeSelectionView} from './utils';
 
 @Component({
@@ -43,6 +44,7 @@ export class HistogramCardComponent {
   @Input() loadState!: DataLoadState;
   @Input() title!: string;
   @Input() tag!: string;
+  @Input() tagDescription: string | null = null;
   @Input() runId!: string;
   @Input() data!: HistogramDatum[];
   @Input() mode!: HistogramMode;
@@ -58,6 +60,10 @@ export class HistogramCardComponent {
   @Output() onLinkedTimeSelectionChanged =
     new EventEmitter<TimeSelectionWithAffordance>();
   @Output() onLinkedTimeToggled = new EventEmitter();
+
+  getTagTooltip(tag: string, description: string | null): string {
+    return buildTagTooltip(tag, description ?? '');
+  }
 
   timeProperty(xAxisType: XAxisType) {
     switch (xAxisType) {

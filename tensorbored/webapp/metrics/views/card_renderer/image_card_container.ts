@@ -52,10 +52,11 @@ import {
   getMetricsImageContrastInMilli,
   getMetricsImageShowActualSize,
   getMetricsLinkedTimeSelection,
+  getMetricsTagMetadata,
 } from '../../store';
 import {CardId, CardMetadata} from '../../types';
 import {CardRenderer} from '../metrics_view_types';
-import {getTagDisplayName} from '../utils';
+import {getTagDisplayName, htmlToText} from '../utils';
 import {maybeClipTimeSelectionView, TimeSelectionView} from './utils';
 
 const DISTANCE_RATIO = 0.1;
@@ -75,6 +76,7 @@ type ImageCardMetadata = CardMetadata & {
       [loadState]="loadState$ | async"
       [title]="title$ | async"
       [tag]="tag$ | async"
+      [tagDescription]="tagDescription$ | async"
       [runId]="runId$ | async"
       [sample]="sample$ | async"
       [numSample]="numSample$ | async"
@@ -138,6 +140,7 @@ export class ImageCardContainer implements CardRenderer, OnInit, OnDestroy {
   loadState$?: Observable<DataLoadState>;
   title$?: Observable<string>;
   tag$?: Observable<string>;
+  tagDescription$?: Observable<string>;
   runId$?: Observable<string>;
   sample$?: Observable<number>;
   numSample$?: Observable<number>;
@@ -243,6 +246,17 @@ export class ImageCardContainer implements CardRenderer, OnInit, OnDestroy {
     this.tag$ = cardMetadata$.pipe(
       map((cardMetadata) => {
         return cardMetadata.tag;
+      })
+    );
+
+    this.tagDescription$ = combineLatest([
+      cardMetadata$,
+      this.store.select(getMetricsTagMetadata),
+    ]).pipe(
+      map(([cardMetadata, tagMetadata]) => {
+        const descriptions =
+          tagMetadata[cardMetadata.plugin]?.tagDescriptions ?? {};
+        return htmlToText(descriptions[cardMetadata.tag] || '');
       })
     );
 

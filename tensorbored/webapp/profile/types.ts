@@ -49,6 +49,8 @@ export interface RunSelectionEntry {
   selected: boolean;
 }
 
+export type MetricDescriptions = Record<string, string>;
+
 /**
  * GroupBy configuration for profiles.
  */
@@ -107,6 +109,11 @@ export interface ProfileData {
    * Tag filter text.
    */
   tagFilter: string;
+
+  /**
+   * Optional long-form descriptions per metric tag.
+   */
+  metricDescriptions?: MetricDescriptions;
 
   /**
    * Run selector regex filter.
@@ -171,6 +178,7 @@ export function createEmptyProfile(name: string): ProfileData {
     superimposedCards: [],
     runSelection: [],
     tagFilter: '',
+    metricDescriptions: {},
     runFilter: '',
     smoothing: 0.6,
     groupBy: null,
@@ -203,6 +211,14 @@ export function isValidProfile(data: unknown): data is ProfileData {
     return false;
   }
   if (typeof profile.tagFilter !== 'string') return false;
+  if (
+    profile.metricDescriptions !== undefined &&
+    (typeof profile.metricDescriptions !== 'object' ||
+      profile.metricDescriptions === null ||
+      Array.isArray(profile.metricDescriptions))
+  ) {
+    return false;
+  }
   if (typeof profile.runFilter !== 'string') return false;
   if (typeof profile.smoothing !== 'number') return false;
 
@@ -242,6 +258,16 @@ export function isValidProfile(data: unknown): data is ProfileData {
         return false;
       }
       if (typeof entry.selected !== 'boolean') {
+        return false;
+      }
+    }
+  }
+
+  if (profile.metricDescriptions) {
+    for (const [tag, description] of Object.entries(
+      profile.metricDescriptions
+    )) {
+      if (typeof tag !== 'string' || typeof description !== 'string') {
         return false;
       }
     }

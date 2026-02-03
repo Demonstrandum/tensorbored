@@ -70,3 +70,7 @@ $metrics-min-card-height: 320px;
   padding: 16px;
   text-align: center;
 }
+
+:host ::ng-deep .tb-tag-tooltip {
+  white-space: pre-line;
+}

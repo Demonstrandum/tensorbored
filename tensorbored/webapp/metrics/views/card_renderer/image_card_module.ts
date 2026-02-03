@@ -19,6 +19,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatSliderModule} from '@angular/material/slider';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {TruncatedPathModule} from '../../../widgets/text/truncated_path_module';
 import {ImageCardComponent} from './image_card_component';
 import {ImageCardContainer} from './image_card_container';
@@ -37,6 +38,7 @@ import {VisLinkedTimeSelectionWarningModule} from './vis_linked_time_selection_w
     MatIconModule,
     MatProgressSpinnerModule,
     MatSliderModule,
+    MatTooltipModule,
     RunNameModule,
     TruncatedPathModule,
     VisLinkedTimeSelectionWarningModule,

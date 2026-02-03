@@ -18,6 +18,7 @@ import {NgModule} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {HistogramModule} from '../../../widgets/histogram/histogram_module';
 import {TruncatedPathModule} from '../../../widgets/text/truncated_path_module';
 import {HistogramCardComponent} from './histogram_card_component';
@@ -35,6 +36,7 @@ import {VisLinkedTimeSelectionWarningModule} from './vis_linked_time_selection_w
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     RunNameModule,
     TruncatedPathModule,
     VisLinkedTimeSelectionWarningModule,

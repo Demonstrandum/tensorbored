@@ -47,11 +47,12 @@ import {
   getMetricsHistogramMode,
   getMetricsLinkedTimeSelection,
   getMetricsRangeSelectionEnabled,
+  getMetricsTagMetadata,
   getMetricsXAxisType,
 } from '../../store';
 import {CardId, CardMetadata} from '../../types';
 import {CardRenderer} from '../metrics_view_types';
-import {getTagDisplayName} from '../utils';
+import {getTagDisplayName, htmlToText} from '../utils';
 import {
   maybeClipTimeSelectionView,
   maybeOmitTimeSelectionEnd,
@@ -72,6 +73,7 @@ type HistogramCardMetadata = CardMetadata & {
       [loadState]="loadState$ | async"
       [title]="title$ | async"
       [tag]="tag$ | async"
+      [tagDescription]="tagDescription$ | async"
       [runId]="runId$ | async"
       [data]="data$ | async"
       [mode]="mode$ | async"
@@ -115,6 +117,7 @@ export class HistogramCardContainer implements CardRenderer, OnInit {
   loadState$?: Observable<DataLoadState>;
   title$?: Observable<string>;
   tag$?: Observable<string>;
+  tagDescription$?: Observable<string>;
   runId$?: Observable<string>;
   data$?: Observable<HistogramDatum[]>;
   mode$;
@@ -225,6 +228,17 @@ export class HistogramCardContainer implements CardRenderer, OnInit {
     this.tag$ = cardMetadata$.pipe(
       map((cardMetadata) => {
         return cardMetadata.tag;
+      })
+    );
+
+    this.tagDescription$ = combineLatest([
+      cardMetadata$,
+      this.store.select(getMetricsTagMetadata),
+    ]).pipe(
+      map(([cardMetadata, tagMetadata]) => {
+        const descriptions =
+          tagMetadata[cardMetadata.plugin]?.tagDescriptions ?? {};
+        return htmlToText(descriptions[cardMetadata.tag] || '');
       })
     );
 

@@ -23,6 +23,7 @@ import {
 } from '@angular/core';
 import {DataLoadState} from '../../../types/data';
 import {RunColorScale} from '../../../types/ui';
+import {buildTagTooltip} from '../utils';
 import {TimeSelectionView} from './utils';
 
 const TICK_WIDTH = 12; // In px
@@ -45,6 +46,7 @@ export class ImageCardComponent {
   @Input() loadState!: DataLoadState;
   @Input() title!: string;
   @Input() tag!: string;
+  @Input() tagDescription: string | null = null;
   @Input() runId!: string;
   @Input() sample!: number;
   @Input() numSample!: number;
@@ -64,6 +66,10 @@ export class ImageCardComponent {
   @Output() onActualSizeToggle = new EventEmitter<void>();
   @Output() stepIndexChange = new EventEmitter<number>();
   @Output() onPinClicked = new EventEmitter<boolean>();
+
+  getTagTooltip(tag: string, description: string | null): string {
+    return buildTagTooltip(tag, description ?? '');
+  }
 
   cssFilter() {
     const brightnessScale = this.brightnessInMilli / 1000;

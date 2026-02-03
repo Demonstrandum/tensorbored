@@ -52,6 +52,7 @@ import {
   SuperimposedCardId,
   SuperimposedCardMetadata,
 } from '../../types';
+import {buildTagTooltip} from '../utils';
 import {
   MinMaxStep,
   ScalarCardDataSeries,
@@ -104,6 +105,7 @@ export class ScalarCardComponent<Downloader> {
   @Input() smoothingEnabled!: boolean;
   @Input() superimposedCards: SuperimposedCardMetadata[] = [];
   @Input() tag!: string;
+  @Input() tagDescription: string | null = null;
   @Input() title!: string;
   @Input() tooltipSort!: TooltipSort;
   @Input() xAxisType!: XAxisType;
@@ -163,6 +165,10 @@ export class ScalarCardComponent<Downloader> {
   xScaleTypeOverride: ScaleType | null = null;
   isViewBoxOverridden: boolean = false;
   additionalItemsCount = 0;
+
+  getTagTooltip(tag: string, description: string | null): string {
+    return buildTagTooltip(tag, description ?? '');
+  }
 
   /**
    * Cycles through y-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR

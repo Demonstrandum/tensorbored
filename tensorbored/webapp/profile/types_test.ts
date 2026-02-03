@@ -39,6 +39,7 @@ describe('profile types', () => {
       expect(profile.superimposedCards).toEqual([]);
       expect(profile.runSelection).toEqual([]);
       expect(profile.tagFilter).toBe('');
+      expect(profile.metricDescriptions).toEqual({});
       expect(profile.runFilter).toBe('');
       expect(profile.smoothing).toBe(0.6);
       expect(profile.groupBy).toBeNull();
@@ -157,6 +158,15 @@ describe('profile types', () => {
       expect(isValidProfile(invalidProfile)).toBe(false);
     });
 
+    it('returns false for invalid metricDescriptions', () => {
+      const profile = createEmptyProfile('Test');
+      const invalidProfile = {
+        ...profile,
+        metricDescriptions: ['nope'],
+      } as any;
+      expect(isValidProfile(invalidProfile)).toBe(false);
+    });
+
     it('returns true with valid pinned cards', () => {
       const profile = createEmptyProfile('Test');
       profile.pinnedCards = [{plugin: 'scalars', tag: 'loss'}];
@@ -180,6 +190,12 @@ describe('profile types', () => {
       profile.runSelection = [
         {type: RunSelectionEntryType.RUN_ID, value: 'exp/run', selected: true},
       ];
+      expect(isValidProfile(profile)).toBe(true);
+    });
+
+    it('returns true with valid metricDescriptions', () => {
+      const profile = createEmptyProfile('Test');
+      profile.metricDescriptions = {loss: 'Training loss'};
       expect(isValidProfile(profile)).toBe(true);
     });
   });

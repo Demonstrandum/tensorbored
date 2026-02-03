@@ -16,6 +16,7 @@
 
 import collections
 import json
+import os
 
 from werkzeug import wrappers
 
@@ -136,21 +137,53 @@ def _get_run_tag_info(mapping):
     return {run: sorted(mapping[run]) for run in mapping}
 
 
-def _format_basic_mapping(mapping):
+def _get_available_tags(mapping):
+    """Returns a set of all tag names in a mapping."""
+    tags = set()
+    for tag_to_content in mapping.values():
+        tags.update(tag_to_content.keys())
+    return tags
+
+
+def _merge_profile_tag_descriptions(
+    tag_descriptions, available_tags, profile_descriptions
+):
+    """Fills in tag descriptions from profile defaults when missing."""
+    if not profile_descriptions:
+        return tag_descriptions
+    for tag in available_tags:
+        if tag in tag_descriptions:
+            continue
+        description = profile_descriptions.get(tag)
+        if description:
+            tag_descriptions[tag] = plugin_util.markdown_to_safe_html(
+                description
+            )
+    return tag_descriptions
+
+
+def _format_basic_mapping(mapping, profile_descriptions=None):
     """Prepares a scalar or histogram mapping for client consumption.
 
     Args:
         mapping: a nested map `d` such that `d[run][tag]` is a time series
           produced by DataProvider's `list_*` methods.
+        profile_descriptions: optional map of tag names to descriptions loaded
+          from the default profile.
 
     Returns:
         A dict with the following fields:
             runTagInfo: the return type of `_get_run_tag_info`
             tagDescriptions: the return type of `_get_tag_to_description`
     """
+    tag_descriptions = _merge_profile_tag_descriptions(
+        _get_tag_to_description(mapping),
+        _get_available_tags(mapping),
+        profile_descriptions,
+    )
     return {
         "runTagInfo": _get_run_tag_info(mapping),
-        "tagDescriptions": _get_tag_to_description(mapping),
+        "tagDescriptions": tag_descriptions,
     }
 
 
@@ -212,19 +245,26 @@ def _get_tag_run_image_info(mapping):
     return dict(tag_run_image_info)
 
 
-def _format_image_mapping(mapping):
+def _format_image_mapping(mapping, profile_descriptions=None):
     """Prepares an image mapping for client consumption.
 
     Args:
         mapping: the result of DataProvider's `list_blob_sequences`.
+        profile_descriptions: optional map of tag names to descriptions loaded
+          from the default profile.
 
     Returns:
         A dict with the following fields:
             tagRunSampledInfo: the return type of `_get_tag_run_image_info`
             tagDescriptions: the return type of `_get_tag_description_info`
     """
+    tag_descriptions = _merge_profile_tag_descriptions(
+        _get_tag_to_description(mapping),
+        _get_available_tags(mapping),
+        profile_descriptions,
+    )
     return {
-        "tagDescriptions": _get_tag_to_description(mapping),
+        "tagDescriptions": tag_descriptions,
         "tagRunSampledInfo": _get_tag_run_image_info(mapping),
     }
 
@@ -242,6 +282,10 @@ class MetricsPlugin(base_plugin.TBPlugin):
                 it contains a valid `data_provider`.
         """
         self._data_provider = context.data_provider
+        logdir_spec = (
+            getattr(context.flags, "logdir_spec", "") if context.flags else ""
+        )
+        self._logdir = context.logdir or logdir_spec
 
         # For histograms, use a round number + 1 since sampling includes both start
         # and end steps, so N+1 samples corresponds to dividing the step sequence
@@ -307,6 +351,7 @@ class MetricsPlugin(base_plugin.TBPlugin):
             A nested dict 'd' with keys in ("scalars", "histograms", "images")
                 and values being the return type of _format_*mapping.
         """
+        profile_descriptions = self._read_profile_metric_descriptions()
         scalar_mapping = self._data_provider.list_scalars(
             ctx,
             experiment_id=experiment,
@@ -345,10 +390,51 @@ class MetricsPlugin(base_plugin.TBPlugin):
         )
 
         result = {}
-        result["scalars"] = _format_basic_mapping(scalar_mapping)
-        result["histograms"] = _format_basic_mapping(histogram_mapping)
-        result["images"] = _format_image_mapping(image_mapping)
+        result["scalars"] = _format_basic_mapping(
+            scalar_mapping, profile_descriptions
+        )
+        result["histograms"] = _format_basic_mapping(
+            histogram_mapping, profile_descriptions
+        )
+        result["images"] = _format_image_mapping(
+            image_mapping, profile_descriptions
+        )
         return result
+
+    def _profile_path(self):
+        """Returns a path to the default profile file, or None if unavailable."""
+        logdir = self._logdir or ""
+        if not logdir or ("," in logdir) or (":" in logdir):
+            return None
+        if not os.path.isdir(logdir):
+            return None
+        return os.path.join(logdir, ".tensorboard", "default_profile.json")
+
+    def _read_profile_metric_descriptions(self):
+        """Reads metric descriptions from the default profile, if present."""
+        path = self._profile_path()
+        if not path or not os.path.exists(path):
+            return {}
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return {}
+        if not isinstance(data, dict):
+            return {}
+        profile_data = data.get("data")
+        if not isinstance(profile_data, dict):
+            return {}
+        descriptions = profile_data.get("metricDescriptions")
+        if not isinstance(descriptions, dict):
+            return {}
+        return {
+            tag: description
+            for tag, description in descriptions.items()
+            if isinstance(tag, str)
+            and isinstance(description, str)
+            and description
+        }
 
     def _filter_by_version(self, mapping, parse_metadata, version_checker):
         """Filter `DataProvider.list_*` output by summary metadata version."""
