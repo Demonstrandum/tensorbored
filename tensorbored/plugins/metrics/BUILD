@@ -52,6 +52,7 @@ py_test(
         "//tensorbored/backend/event_processing:event_multiplexer",
         "//tensorbored/data:provider",
         "//tensorbored/plugins:base_plugin",
+        "//tensorbored/plugins/core:profile_writer",
         "//tensorbored/plugins/image:metadata",
         "//tensorbored/util:test_util",
         "@org_pocoo_werkzeug",
