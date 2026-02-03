@@ -15,12 +15,11 @@ limitations under the License.
 import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
-import {take, withLatestFrom} from 'rxjs/operators';
+import {take} from 'rxjs/operators';
 import {State} from '../../app_state';
 import {ProfileMetadata, ProfileData} from '../types';
 import * as profileSelectors from '../store/profile_selectors';
 import * as profileActions from '../actions/profile_actions';
-import {ProfileDataSource} from '../data_source/profile_data_source';
 
 @Component({
   selector: 'tb-profile-menu',
@@ -45,16 +44,15 @@ import {ProfileDataSource} from '../data_source/profile_data_source';
 export class ProfileMenuContainer {
   readonly profiles$: Observable<ProfileMetadata[]>;
   readonly activeProfileName$: Observable<string | null>;
+  readonly activeProfile$: Observable<ProfileData | null>;
   readonly hasUnsavedChanges$: Observable<boolean>;
 
-  constructor(
-    private readonly store: Store<State>,
-    private readonly profileDataSource: ProfileDataSource
-  ) {
+  constructor(private readonly store: Store<State>) {
     this.profiles$ = this.store.select(profileSelectors.getAvailableProfiles);
     this.activeProfileName$ = this.store.select(
       profileSelectors.getActiveProfileName
     );
+    this.activeProfile$ = this.store.select(profileSelectors.getActiveProfile);
     this.hasUnsavedChanges$ = this.store.select(
       profileSelectors.getHasUnsavedChanges
     );
@@ -84,17 +82,13 @@ export class ProfileMenuContainer {
   }
 
   onViewJson(): void {
-    this.activeProfileName$.pipe(take(1)).subscribe((activeProfileName) => {
-      if (!activeProfileName) {
+    this.activeProfile$.pipe(take(1)).subscribe((profile) => {
+      if (!profile) {
         alert('No active profile to view.');
         return;
       }
-      const profile = this.profileDataSource.loadProfile(activeProfileName);
-      if (!profile) {
-        alert(`Profile "${activeProfileName}" not found.`);
-        return;
-      }
       const json = JSON.stringify(profile, null, 2);
+      const activeProfileName = profile.name;
       // Create a simple modal to show the JSON
       const modal = document.createElement('div');
       modal.style.cssText = `
