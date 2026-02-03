@@ -707,15 +707,18 @@ export const getSuperimposedCardMetadataMap = createSelector(
 
 /**
  * Returns the metadata for a specific superimposed card.
+ * Uses memoize to create a selector factory that takes the card ID as a parameter.
  */
-export const getSuperimposedCardMetadata = createSelector(
-  getSuperimposedCardMetadataMap,
-  (
-    metadataMap: SuperimposedCardMetadataMap,
-    superimposedCardId: SuperimposedCardId
-  ): SuperimposedCardMetadata | null => {
-    return metadataMap[superimposedCardId] ?? null;
-  }
+export const getSuperimposedCardMetadata = memoize(
+  (superimposedCardId: SuperimposedCardId) =>
+    createSelector(
+      getSuperimposedCardMetadataMap,
+      (
+        metadataMap: SuperimposedCardMetadataMap
+      ): SuperimposedCardMetadata | null => {
+        return metadataMap[superimposedCardId] ?? null;
+      }
+    )
 );
 
 /**
