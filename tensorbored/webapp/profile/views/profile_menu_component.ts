@@ -29,7 +29,6 @@ import {ProfileMetadata} from '../types';
       [matMenuTriggerFor]="profileMenu"
       class="profile-menu-trigger"
       [class.has-profile]="activeProfileName !== null"
-      [class.has-unsaved]="hasUnsavedChanges"
       [title]="
         activeProfileName
           ? 'Profile: ' +
@@ -38,16 +37,20 @@ import {ProfileMetadata} from '../types';
           : 'Profiles'
       "
     >
-      <mat-icon>bookmark</mat-icon>
+      <mat-icon svgIcon="flag_24px"></mat-icon>
       <span *ngIf="hasUnsavedChanges" class="unsaved-dot"></span>
     </button>
 
     <mat-menu #profileMenu="matMenu" class="profile-menu">
       <!-- Active Profile Header -->
-      <div class="menu-header" *ngIf="activeProfileName">
+      <div
+        class="menu-header"
+        *ngIf="activeProfileName"
+        (click)="$event.stopPropagation()"
+      >
         <span class="active-profile-label">Active:</span>
         <span class="active-profile-name">{{ activeProfileName }}</span>
-        <span *ngIf="hasUnsavedChanges" class="unsaved-badge">unsaved</span>
+        <span *ngIf="hasUnsavedChanges" class="unsaved-badge">*</span>
       </div>
       <mat-divider *ngIf="activeProfileName"></mat-divider>
 
@@ -57,18 +60,22 @@ import {ProfileMetadata} from '../types';
         (click)="onSaveClicked()"
         [disabled]="!activeProfileName"
       >
-        <mat-icon>save</mat-icon>
+        <mat-icon svgIcon="done_24px"></mat-icon>
         <span>Save</span>
       </button>
       <button mat-menu-item (click)="onSaveAsClicked()">
-        <mat-icon>save_as</mat-icon>
+        <mat-icon svgIcon="edit_24px"></mat-icon>
         <span>Save As...</span>
       </button>
 
       <mat-divider></mat-divider>
 
       <!-- Load Section -->
-      <div class="menu-section-label" *ngIf="profiles.length > 0">
+      <div
+        class="menu-section-label"
+        *ngIf="profiles.length > 0"
+        (click)="$event.stopPropagation()"
+      >
         Saved Profiles
       </div>
       <button
@@ -77,9 +84,11 @@ import {ProfileMetadata} from '../types';
         (click)="onLoadProfile(profile.name)"
         [class.active-item]="profile.name === activeProfileName"
       >
-        <mat-icon>{{
-          profile.name === activeProfileName ? 'check' : 'description'
-        }}</mat-icon>
+        <mat-icon
+          [svgIcon]="
+            profile.name === activeProfileName ? 'done_24px' : 'flag_24px'
+          "
+        ></mat-icon>
         <span class="profile-item-content">
           <span class="profile-name">{{ profile.name }}</span>
           <span class="profile-date">{{
@@ -87,23 +96,35 @@ import {ProfileMetadata} from '../types';
           }}</span>
         </span>
       </button>
-      <div class="empty-message" *ngIf="profiles.length === 0">
+      <div
+        class="empty-message"
+        *ngIf="profiles.length === 0"
+        (click)="$event.stopPropagation()"
+      >
         No saved profiles
       </div>
 
       <mat-divider></mat-divider>
 
-      <!-- Import/Export -->
+      <!-- View/Export/Import -->
+      <button
+        mat-menu-item
+        (click)="onViewClicked()"
+        [disabled]="!activeProfileName"
+      >
+        <mat-icon svgIcon="info_outline_24px"></mat-icon>
+        <span>View JSON...</span>
+      </button>
       <button
         mat-menu-item
         (click)="onExportClicked()"
         [disabled]="!activeProfileName"
       >
-        <mat-icon>download</mat-icon>
-        <span>Export</span>
+        <mat-icon svgIcon="get_app_24px"></mat-icon>
+        <span>Export JSON</span>
       </button>
       <button mat-menu-item (click)="onImportClicked()">
-        <mat-icon>upload</mat-icon>
+        <mat-icon svgIcon="open_in_new_24px"></mat-icon>
         <span>Import...</span>
       </button>
 
@@ -115,7 +136,7 @@ import {ProfileMetadata} from '../types';
         (click)="onDeactivateClicked()"
         [disabled]="!activeProfileName"
       >
-        <mat-icon>clear</mat-icon>
+        <mat-icon svgIcon="close_24px"></mat-icon>
         <span>Deactivate</span>
       </button>
       <button
@@ -123,7 +144,7 @@ import {ProfileMetadata} from '../types';
         [matMenuTriggerFor]="deleteMenu"
         [disabled]="profiles.length === 0"
       >
-        <mat-icon>delete</mat-icon>
+        <mat-icon svgIcon="clear_24px"></mat-icon>
         <span>Delete...</span>
       </button>
     </mat-menu>
@@ -135,7 +156,7 @@ import {ProfileMetadata} from '../types';
         *ngFor="let profile of profiles"
         (click)="onDeleteProfile(profile.name)"
       >
-        <mat-icon>delete_outline</mat-icon>
+        <mat-icon svgIcon="clear_24px"></mat-icon>
         <span>{{ profile.name }}</span>
       </button>
       <mat-divider *ngIf="profiles.length > 0"></mat-divider>
@@ -145,42 +166,49 @@ import {ProfileMetadata} from '../types';
         (click)="onClearAllClicked()"
         class="danger-item"
       >
-        <mat-icon>delete_sweep</mat-icon>
+        <mat-icon svgIcon="clear_24px"></mat-icon>
         <span>Clear All</span>
       </button>
     </mat-menu>
   `,
   styles: [
     `
+      :host {
+        display: flex;
+        align-items: center;
+      }
+
       .profile-menu-trigger {
         position: relative;
+        color: inherit;
       }
 
-      .profile-menu-trigger.has-profile {
-        color: var(--tb-primary, #1976d2);
+      .profile-menu-trigger.has-profile mat-icon {
+        color: #ff9800;
       }
 
-      .profile-menu-trigger.has-unsaved .unsaved-dot {
+      .unsaved-dot {
         position: absolute;
-        top: 6px;
-        right: 6px;
-        width: 8px;
-        height: 8px;
+        top: 8px;
+        right: 8px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        background-color: var(--tb-warning, #ff9800);
+        background-color: #f44336;
       }
 
       .menu-header {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 12px 16px;
-        background: var(--tb-bg-secondary, #f5f5f5);
+        padding: 8px 16px;
+        background: rgba(0, 0, 0, 0.04);
+        min-height: 32px;
       }
 
       .active-profile-label {
         font-size: 12px;
-        color: var(--tb-text-secondary, #666);
+        color: #666;
       }
 
       .active-profile-name {
@@ -189,20 +217,19 @@ import {ProfileMetadata} from '../types';
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        max-width: 180px;
       }
 
       .unsaved-badge {
-        font-size: 10px;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: var(--tb-warning, #ff9800);
-        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        color: #f44336;
       }
 
       .menu-section-label {
         font-size: 11px;
         font-weight: 500;
-        color: var(--tb-text-secondary, #666);
+        color: #666;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         padding: 8px 16px 4px;
@@ -221,32 +248,32 @@ import {ProfileMetadata} from '../types';
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        max-width: 200px;
+        max-width: 180px;
       }
 
       .profile-date {
         font-size: 11px;
-        color: var(--tb-text-secondary, #888);
+        color: #888;
       }
 
       .active-item {
-        background-color: var(--tb-selected-bg, rgba(25, 118, 210, 0.08));
+        background-color: rgba(255, 152, 0, 0.1);
       }
 
       .empty-message {
         padding: 12px 16px;
-        color: var(--tb-text-secondary, #888);
+        color: #888;
         font-size: 13px;
         font-style: italic;
       }
 
       .danger-item {
-        color: var(--tb-error, #d32f2f);
+        color: #d32f2f;
       }
 
       ::ng-deep .profile-menu {
-        min-width: 240px;
-        max-width: 320px;
+        min-width: 220px;
+        max-width: 300px;
       }
     `,
   ],
@@ -261,6 +288,7 @@ export class ProfileMenuComponent {
   @Output() saveAs = new EventEmitter<void>();
   @Output() load = new EventEmitter<string>();
   @Output() delete = new EventEmitter<string>();
+  @Output() viewJson = new EventEmitter<void>();
   @Output() export = new EventEmitter<void>();
   @Output() import = new EventEmitter<void>();
   @Output() deactivate = new EventEmitter<void>();
@@ -299,6 +327,10 @@ export class ProfileMenuComponent {
 
   onDeleteProfile(name: string): void {
     this.delete.emit(name);
+  }
+
+  onViewClicked(): void {
+    this.viewJson.emit();
   }
 
   onExportClicked(): void {
