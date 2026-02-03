@@ -1,20 +1,23 @@
 name: Deploy Demo to HuggingFace Spaces
 
 on:
-  # Only deploy after Wheel Prerelease publishes to PyPI
+  # Deploy after Wheel Prerelease completes (uses built wheel, not PyPI)
   workflow_run:
     workflows: ['Wheel Prerelease']
     types:
       - completed
     branches:
       - master
-  # Allow manual trigger (assumes PyPI already has latest)
+  # Manual trigger will use latest wheel artifact from CI
   workflow_dispatch:
+
+permissions:
+  actions: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: >
+    if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion == 'success')
@@ -22,47 +25,98 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Git
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
+      - name: Download wheel artifact (workflow_run)
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: tensorbored-rc-wheel
+          path: wheel
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clone HuggingFace Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          git clone \
-            "https://user:${HF_TOKEN}@huggingface.co/spaces/Demonstrandum/tensorbored-sample" \
-            hf-space
+      - name: Download wheel artifact (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: wheel-prerelease.yml
+          name: tensorbored-rc-wheel
+          path: wheel
+          branch: master
 
-      - name: Copy files to Space
+      - name: Get wheel info
+        id: wheel
         run: |
+          WHEEL_FILE=$(ls wheel/*.whl | head -1)
+          WHEEL_NAME=$(basename "$WHEEL_FILE")
+          echo "filename=${WHEEL_NAME}" >> $GITHUB_OUTPUT
+          echo "Using wheel: ${WHEEL_NAME}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
+
+      - name: Prepare Space files
+        run: |
+          mkdir -p hf-space
+
+          # Copy wheel
+          cp wheel/*.whl hf-space/
+
+          # Create Dockerfile that uses local wheel
+          cat > hf-space/Dockerfile << 'EOF'
+          FROM python:3.11-slim
+
+          RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+          RUN useradd -m -u 1000 user
+          USER user
+          ENV PATH="/home/user/.local/bin:$PATH"
+          WORKDIR /app
+
+          # Install from local wheel (not PyPI)
+          COPY --chown=user *.whl /tmp/
+          RUN pip install --no-cache-dir --user /tmp/*.whl pillow>=10.0.0
+
+          COPY --chown=user generate_demo_data.py /app/
+          COPY --chown=user start.sh /app/
+          RUN chmod +x /app/start.sh
+          RUN python /app/generate_demo_data.py
+
+          EXPOSE 7860
+          CMD ["/app/start.sh"]
+          EOF
+          sed -i 's/^          //' hf-space/Dockerfile
+
           # Copy demo files
-          cp demo/Dockerfile hf-space/
           cp demo/README.md hf-space/
           cp demo/generate_demo_data.py hf-space/
           cp demo/start.sh hf-space/
 
-          # Copy TensorBored custom modules
-          mkdir -p hf-space/tensorbored_plugins_core
-          cp tensorbored/plugins/core/profile_writer.py \
-            hf-space/tensorbored_plugins_core/
-          cp tensorbored/plugins/core/color_sampler.py \
-            hf-space/tensorbored_plugins_core/
-          cp tensorbored/plugins/core/__init__.py \
-            hf-space/tensorbored_plugins_core/
-
-      - name: Push to HuggingFace Space
+      - name: Upload to HuggingFace Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          cd hf-space
-          git add -A
+          WHEEL_NAME="${{ steps.wheel.outputs.filename }}"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
 
-          if git diff --staged --quiet; then
-            echo "No changes to deploy"
-          else
-            git commit -m "Deploy from GitHub Actions"
-            git push
-            echo "Deployed successfully!"
-          fi
+          python3 << EOF
+          from huggingface_hub import HfApi
+
+          api = HfApi()
+          repo_id = "Demonstrandum/tensorbored-sample"
+
+          print(f"Uploading to {repo_id}")
+          print(f"Wheel: ${WHEEL_NAME}")
+
+          api.upload_folder(
+              folder_path="hf-space",
+              repo_id=repo_id,
+              repo_type="space",
+              commit_message="Deploy ${WHEEL_NAME} (${SHORT_SHA})",
+          )
+          print("Deployed successfully!")
+          EOF
