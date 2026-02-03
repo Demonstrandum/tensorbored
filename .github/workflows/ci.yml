@@ -430,7 +430,7 @@ jobs:
 
           # Copy wheel and demo files
           cp wheel/*.whl hf-space/
-          cp demo/Dockerfile.wheel hf-space/Dockerfile
+          cp demo/Dockerfile hf-space/
           cp demo/generate_demo_data.py hf-space/
           cp demo/start.sh hf-space/
 

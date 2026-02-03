@@ -61,7 +61,7 @@ jobs:
         run: |
           mkdir -p hf-space
           cp wheel/*.whl hf-space/
-          cp demo/Dockerfile.wheel hf-space/Dockerfile
+          cp demo/Dockerfile hf-space/
           cp demo/README.md hf-space/
           cp demo/generate_demo_data.py hf-space/
           cp demo/start.sh hf-space/
