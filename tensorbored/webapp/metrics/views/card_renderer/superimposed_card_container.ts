@@ -12,6 +12,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+
+// Fallback color palette for when run colors are not yet assigned.
+const FALLBACK_COLORS = [
+  '#425066',
+  '#12b5cb',
+  '#e52592',
+  '#f9ab00',
+  '#9334e6',
+  '#7cb342',
+  '#7678ed',
+];
+
+function hashString(str: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+function getFallbackColor(runId: string): string {
+  return FALLBACK_COLORS[hashString(runId) % FALLBACK_COLORS.length];
+}
+
 import {
   ChangeDetectionStrategy,
   Component,
@@ -396,9 +421,11 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
               originalRunId,
             } = partitioned;
 
-            // Use tag-based color, falling back to run color if available
+            // Use run color if available, then tag-based color, then hash-based fallback
             const color =
-              colorMap[originalRunId] ?? tagColors.get(tag) ?? '#fff';
+              colorMap[originalRunId] ??
+              tagColors.get(tag) ??
+              getFallbackColor(originalRunId);
 
             metadataMap[seriesId] = {
               type: SeriesType.ORIGINAL,

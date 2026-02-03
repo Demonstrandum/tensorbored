@@ -12,6 +12,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+
+// Fallback color palette for when run colors are not yet assigned.
+const FALLBACK_COLORS = [
+  '#425066',
+  '#12b5cb',
+  '#e52592',
+  '#f9ab00',
+  '#9334e6',
+  '#7cb342',
+  '#7678ed',
+];
+
+function hashString(str: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+function getFallbackColor(runId: string): string {
+  return FALLBACK_COLORS[hashString(runId) % FALLBACK_COLORS.length];
+}
+
 import {
   ChangeDetectionStrategy,
   Component,
@@ -67,9 +92,8 @@ export class CardViewContainer {
       map((colorMap) => {
         return (runId: string) => {
           if (!colorMap.hasOwnProperty(runId)) {
-            // Assign white when no colors are assigned to a run by user or
-            // by color grouping scheme.
-            return '#fff';
+            // Use hash-based fallback when no colors are assigned
+            return getFallbackColor(runId);
           }
           return colorMap[runId];
         };
