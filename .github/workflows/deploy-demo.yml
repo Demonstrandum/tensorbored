@@ -90,3 +90,78 @@ jobs:
           )
           print("Deployed successfully!")
           EOF
+
+      - name: Wait for HuggingFace Space build
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python3 << 'EOF'
+          import os
+          import sys
+          import time
+          from huggingface_hub import HfApi
+
+          api = HfApi()
+          repo_id = "Demonstrandum/tensorbored-sample"
+
+          print(f"Waiting for Space build to complete: {repo_id}")
+          print("=" * 60)
+
+          # Poll for build status with timeout
+          max_wait_seconds = 600  # 10 minutes
+          poll_interval = 15  # seconds
+          elapsed = 0
+
+          while elapsed < max_wait_seconds:
+              try:
+                  space_info = api.space_info(repo_id=repo_id)
+                  runtime = space_info.runtime
+
+                  if runtime is None:
+                      print(f"[{elapsed}s] Space runtime info not available yet...")
+                      time.sleep(poll_interval)
+                      elapsed += poll_interval
+                      continue
+
+                  stage = runtime.stage
+                  print(f"[{elapsed}s] Build stage: {stage}")
+
+                  # Check for terminal states
+                  if stage == "RUNNING":
+                      print("\n" + "=" * 60)
+                      print("SUCCESS: Space is running!")
+                      print("=" * 60)
+                      sys.exit(0)
+                  elif stage in ("BUILD_ERROR", "RUNTIME_ERROR", "CONFIG_ERROR"):
+                      print("\n" + "=" * 60)
+                      print(f"FAILURE: Space build failed with stage: {stage}")
+                      if hasattr(runtime, 'error_message') and runtime.error_message:
+                          print(f"Error message: {runtime.error_message}")
+                      print("=" * 60)
+                      sys.exit(1)
+                  elif stage == "PAUSED":
+                      print("\n" + "=" * 60)
+                      print("WARNING: Space is paused (may need to restart)")
+                      print("=" * 60)
+                      sys.exit(0)
+                  elif stage in ("BUILDING", "STARTING", "NO_APP_FILE"):
+                      # Still in progress, continue polling
+                      time.sleep(poll_interval)
+                      elapsed += poll_interval
+                  else:
+                      # Unknown stage, wait and see
+                      print(f"[{elapsed}s] Unknown stage '{stage}', continuing to poll...")
+                      time.sleep(poll_interval)
+                      elapsed += poll_interval
+
+              except Exception as e:
+                  print(f"[{elapsed}s] Error checking space status: {e}")
+                  time.sleep(poll_interval)
+                  elapsed += poll_interval
+
+          # Timeout reached
+          print("\n" + "=" * 60)
+          print(f"TIMEOUT: Build did not complete within {max_wait_seconds} seconds")
+          print("=" * 60)
+          sys.exit(1)
+          EOF

@@ -491,9 +491,103 @@ jobs:
           print("Done!")
           PYPYTHON
 
+      - name: Wait for HuggingFace Space build
+        id: hf-build
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          SPACE_REPO="${{ steps.deploy.outputs.space_repo }}"
+
+          python3 << 'PYPYTHON'
+          import os
+          import sys
+          import time
+          from huggingface_hub import HfApi
+
+          api = HfApi()
+          repo_id = os.environ.get("SPACE_REPO", "${SPACE_REPO}")
+
+          print(f"Waiting for Space build to complete: {repo_id}")
+          print("=" * 60)
+
+          # Poll for build status with timeout
+          max_wait_seconds = 600  # 10 minutes
+          poll_interval = 15  # seconds
+          elapsed = 0
+          final_status = "unknown"
+
+          while elapsed < max_wait_seconds:
+              try:
+                  space_info = api.space_info(repo_id=repo_id)
+                  runtime = space_info.runtime
+
+                  if runtime is None:
+                      print(f"[{elapsed}s] Space runtime info not available yet...")
+                      time.sleep(poll_interval)
+                      elapsed += poll_interval
+                      continue
+
+                  stage = runtime.stage
+                  print(f"[{elapsed}s] Build stage: {stage}")
+
+                  # Check for terminal states
+                  if stage == "RUNNING":
+                      print("\n" + "=" * 60)
+                      print("SUCCESS: Space is running!")
+                      print("=" * 60)
+                      final_status = "success"
+                      break
+                  elif stage in ("BUILD_ERROR", "RUNTIME_ERROR", "CONFIG_ERROR"):
+                      print("\n" + "=" * 60)
+                      print(f"FAILURE: Space build failed with stage: {stage}")
+                      if hasattr(runtime, 'error_message') and runtime.error_message:
+                          print(f"Error message: {runtime.error_message}")
+                      print("=" * 60)
+                      final_status = "failure"
+                      break
+                  elif stage == "PAUSED":
+                      print("\n" + "=" * 60)
+                      print("WARNING: Space is paused (may need to restart)")
+                      print("=" * 60)
+                      final_status = "success"
+                      break
+                  elif stage in ("BUILDING", "STARTING", "NO_APP_FILE"):
+                      # Still in progress, continue polling
+                      time.sleep(poll_interval)
+                      elapsed += poll_interval
+                  else:
+                      # Unknown stage, wait and see
+                      print(f"[{elapsed}s] Unknown stage '{stage}', continuing to poll...")
+                      time.sleep(poll_interval)
+                      elapsed += poll_interval
+
+              except Exception as e:
+                  print(f"[{elapsed}s] Error checking space status: {e}")
+                  time.sleep(poll_interval)
+                  elapsed += poll_interval
+
+          if final_status == "unknown":
+              print("\n" + "=" * 60)
+              print(f"TIMEOUT: Build did not complete within {max_wait_seconds} seconds")
+              print("=" * 60)
+              final_status = "timeout"
+
+          # Write status to output file for GitHub Actions
+          with open(os.environ.get("GITHUB_OUTPUT", "/dev/null"), "a") as f:
+              f.write(f"status={final_status}\n")
+
+          # Exit with error for failures (but not timeouts - we'll report those in the comment)
+          if final_status == "failure":
+              sys.exit(1)
+          PYPYTHON
+        env:
+          SPACE_REPO: ${{ steps.deploy.outputs.space_repo }}
+
       - name: Find existing comment
         uses: peter-evans/find-comment@v3
         id: find-comment
+        # Always run so we can update the comment even on failure
+        if: always()
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
@@ -501,6 +595,8 @@ jobs:
 
       - name: Post PR comment
         uses: peter-evans/create-or-update-comment@v4
+        # Always run so we can update the comment even on failure
+        if: always()
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
@@ -511,14 +607,16 @@ jobs:
 
             | | |
             |-|-|
+            | **Status** | ${{ steps.hf-build.outputs.status == 'success' && '✅ Running' || steps.hf-build.outputs.status == 'failure' && '❌ Build Failed' || steps.hf-build.outputs.status == 'timeout' && '⏳ Build Timeout' || '🔄 Building...' }} |
             | **Live Preview** | [${{ steps.deploy.outputs.embed_url }}](${{ steps.deploy.outputs.embed_url }}) |
             | **Space** | [${{ steps.deploy.outputs.space_url }}](${{ steps.deploy.outputs.space_url }}) |
 
-            Build may take 1-3 min. This preview is deleted when the PR closes.
+            ${{ steps.hf-build.outputs.status == 'failure' && '⚠️ **The HuggingFace Space build failed.** Check the [Space logs](' || '' }}${{ steps.hf-build.outputs.status == 'failure' && steps.deploy.outputs.space_url || '' }}${{ steps.hf-build.outputs.status == 'failure' && ') for details.' || '' }}
 
             <details>
             <summary>Details</summary>
 
             - Wheel: `${{ steps.wheel.outputs.filename }}`
             - Commit: ${{ github.sha }}
+            - Build status: ${{ steps.hf-build.outputs.status }}
             </details>
