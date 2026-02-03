@@ -1684,13 +1684,18 @@ const reducer = createReducer(
       return state;
     }
 
+    const newTags = [...metadata.tags, tag];
+    // Update the title to reflect all tags (format: "tag1 + tag2 + tag3")
+    const newTitle = newTags.join(' + ');
+
     return {
       ...state,
       superimposedCardMetadataMap: {
         ...state.superimposedCardMetadataMap,
         [superimposedCardId]: {
           ...metadata,
-          tags: [...metadata.tags, tag],
+          tags: newTags,
+          title: newTitle,
         },
       },
     };
@@ -1720,6 +1725,9 @@ const reducer = createReducer(
       };
     }
 
+    // Update the title to reflect remaining tags
+    const newTitle = newTags.join(' + ');
+
     return {
       ...state,
       superimposedCardMetadataMap: {
@@ -1727,6 +1735,7 @@ const reducer = createReducer(
         [superimposedCardId]: {
           ...metadata,
           tags: newTags,
+          title: newTitle,
         },
       },
     };
