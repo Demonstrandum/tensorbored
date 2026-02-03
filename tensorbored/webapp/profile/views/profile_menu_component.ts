@@ -30,7 +30,13 @@ import {ProfileMetadata} from '../types';
       class="profile-menu-trigger"
       [class.has-profile]="activeProfileName !== null"
       [class.has-unsaved]="hasUnsavedChanges"
-      [title]="activeProfileName ? 'Profile: ' + activeProfileName + (hasUnsavedChanges ? ' (unsaved)' : '') : 'Profiles'"
+      [title]="
+        activeProfileName
+          ? 'Profile: ' +
+            activeProfileName +
+            (hasUnsavedChanges ? ' (unsaved)' : '')
+          : 'Profiles'
+      "
     >
       <mat-icon>bookmark</mat-icon>
       <span *ngIf="hasUnsavedChanges" class="unsaved-dot"></span>
@@ -76,7 +82,9 @@ import {ProfileMetadata} from '../types';
         }}</mat-icon>
         <span class="profile-item-content">
           <span class="profile-name">{{ profile.name }}</span>
-          <span class="profile-date">{{ formatDate(profile.lastModifiedTimestamp) }}</span>
+          <span class="profile-date">{{
+            formatDate(profile.lastModifiedTimestamp)
+          }}</span>
         </span>
       </button>
       <div class="empty-message" *ngIf="profiles.length === 0">

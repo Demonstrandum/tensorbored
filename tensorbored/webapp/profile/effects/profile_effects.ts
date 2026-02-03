@@ -246,7 +246,8 @@ export class ProfileEffects {
         // Check if user has a tag filter stored in localStorage.
         // If so, prefer that over the profile's tag filter.
         let tagFilter = profile.tagFilter;
-        const storedTagFilter = window.localStorage.getItem('_tb_tag_filter.v1');
+        const storedTagFilter =
+          window.localStorage.getItem('_tb_tag_filter.v1');
         if (storedTagFilter) {
           try {
             const parsed = JSON.parse(storedTagFilter) as {value?: string};

@@ -566,7 +566,10 @@ export class MetricsEffects implements OnInitEffects {
           return null;
         }
         try {
-          const parsed = JSON.parse(stored) as {value?: string; timestamp?: number};
+          const parsed = JSON.parse(stored) as {
+            value?: string;
+            timestamp?: number;
+          };
           // Only apply if the value exists (including empty string which means cleared)
           if (typeof parsed.value === 'string') {
             return parsed.value;
@@ -627,8 +630,8 @@ export class MetricsEffects implements OnInitEffects {
     );
 
     // Effect that dispatches action to load tag filter from localStorage
-    this.applyTagFilterFromStorage$ = createEffect(() =>
-      this.loadTagFilterFromStorage$
+    this.applyTagFilterFromStorage$ = createEffect(
+      () => this.loadTagFilterFromStorage$
     );
   }
 
