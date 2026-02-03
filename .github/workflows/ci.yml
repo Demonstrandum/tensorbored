@@ -427,29 +427,15 @@ jobs:
           echo "embed_url=${EMBED_URL}" >> $GITHUB_OUTPUT
 
           mkdir -p hf-space
+
+          # Copy wheel and demo files
           cp wheel/*.whl hf-space/
+          cp demo/Dockerfile.wheel hf-space/Dockerfile
+          cp demo/generate_demo_data.py hf-space/
+          cp demo/start.sh hf-space/
 
-          # Dockerfile
-          cat > hf-space/Dockerfile << 'DKRFILE'
-          FROM python:3.11-slim
-          RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-          RUN useradd -m -u 1000 user
-          USER user
-          ENV PATH="/home/user/.local/bin:$PATH"
-          WORKDIR /app
-          COPY --chown=user *.whl /tmp/
-          RUN pip install --no-cache-dir --user /tmp/*.whl pillow>=10.0.0
-          COPY --chown=user generate_demo_data.py /app/
-          COPY --chown=user start.sh /app/
-          RUN chmod +x /app/start.sh
-          RUN python /app/generate_demo_data.py
-          EXPOSE 7860
-          CMD ["/app/start.sh"]
-          DKRFILE
-          sed -i 's/^          //' hf-space/Dockerfile
-
-          # README
-          cat > hf-space/README.md << RDME
+          # Generate PR-specific README (needs PR number in frontmatter)
+          cat > hf-space/README.md << EOF
           ---
           title: TensorBored PR #${PR_NUMBER} Preview
           emoji: "\U0001F50D"
@@ -469,12 +455,9 @@ jobs:
 
           ---
 
-          RDME
+          EOF
           sed -i 's/^          //' hf-space/README.md
           tail -n +10 demo/README.md >> hf-space/README.md
-
-          cp demo/generate_demo_data.py hf-space/
-          cp demo/start.sh hf-space/
 
       - name: Upload to HuggingFace Space
         env:
