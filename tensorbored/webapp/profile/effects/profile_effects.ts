@@ -242,8 +242,24 @@ export class ProfileEffects {
   applyProfileToMetrics$ = createEffect(() =>
     this.actions$.pipe(
       ofType(profileActions.profileActivated),
-      map(({profile}) =>
-        metricsActions.profileMetricsSettingsApplied({
+      map(({profile, source}) => {
+        // Check if user has a tag filter stored in localStorage.
+        // If so, prefer that over the profile's tag filter.
+        let tagFilter = profile.tagFilter;
+        const storedTagFilter = window.localStorage.getItem('_tb_tag_filter.v1');
+        if (storedTagFilter) {
+          try {
+            const parsed = JSON.parse(storedTagFilter) as {value?: string};
+            if (typeof parsed.value === 'string') {
+              // User has explicitly set/cleared the tag filter - use that instead
+              tagFilter = parsed.value;
+            }
+          } catch {
+            // Invalid JSON, use profile's tagFilter
+          }
+        }
+
+        return metricsActions.profileMetricsSettingsApplied({
           pinnedCards: profile.pinnedCards,
           superimposedCards: profile.superimposedCards.map((card) => ({
             id: card.id,
@@ -251,10 +267,10 @@ export class ProfileEffects {
             tags: card.tags,
             runId: card.runId,
           })),
-          tagFilter: profile.tagFilter,
+          tagFilter,
           smoothing: profile.smoothing,
-        })
-      )
+        });
+      })
     )
   );
 
@@ -327,9 +343,11 @@ export class ProfileEffects {
           }
         }
 
+        // Runs not explicitly listed in the profile selection should be visible
+        // by default. Only runs explicitly set to false should be hidden.
         for (const run of runs) {
           if (!selectionMap.has(run.id)) {
-            selectionMap.set(run.id, false);
+            selectionMap.set(run.id, true);
           }
         }
 
