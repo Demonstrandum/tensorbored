@@ -1,39 +1,49 @@
 name: Deploy Demo to HuggingFace Spaces
 
 on:
-  workflow_run:
-    workflows: ['Wheel Prerelease']
-    types:
-      - completed
-    branches:
-      - master
+  # Called by wheel-prerelease workflow after successful build
+  workflow_call:
+    secrets:
+      HF_TOKEN:
+        required: true
+
+  # Manual trigger with option to specify workflow run
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Workflow run ID to download artifact from (optional)'
+        required: false
+        type: string
 
 permissions:
+  contents: read
   actions: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download wheel artifact (workflow_run)
-        if: github.event_name == 'workflow_run'
+      - name: Download wheel artifact (workflow_call)
+        if: github.event_name == 'workflow_call'
         uses: actions/download-artifact@v4
         with:
           name: tensorbored-rc-wheel
           path: wheel
-          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download wheel artifact (workflow_dispatch with run_id)
+        if: github.event_name == 'workflow_dispatch' && inputs.run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: tensorbored-rc-wheel
+          path: wheel
+          run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download wheel artifact (workflow_dispatch)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Download wheel artifact (workflow_dispatch without run_id)
+        if: github.event_name == 'workflow_dispatch' && inputs.run_id == ''
         uses: dawidd6/action-download-artifact@v3
         with:
           workflow: wheel-prerelease.yml
