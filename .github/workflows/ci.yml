@@ -495,9 +495,8 @@ jobs:
         id: hf-build
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          SPACE_REPO: ${{ steps.deploy.outputs.space_repo }}
         run: |
-          SPACE_REPO="${{ steps.deploy.outputs.space_repo }}"
-
           python3 << 'PYPYTHON'
           import os
           import sys
@@ -505,7 +504,7 @@ jobs:
           from huggingface_hub import HfApi
 
           api = HfApi()
-          repo_id = os.environ.get("SPACE_REPO", "${SPACE_REPO}")
+          repo_id = os.environ.get("SPACE_REPO")
 
           print(f"Waiting for Space build to complete: {repo_id}")
           print("=" * 60)
@@ -580,8 +579,6 @@ jobs:
           if final_status == "failure":
               sys.exit(1)
           PYPYTHON
-        env:
-          SPACE_REPO: ${{ steps.deploy.outputs.space_repo }}
 
       - name: Find existing comment
         uses: peter-evans/find-comment@v3
