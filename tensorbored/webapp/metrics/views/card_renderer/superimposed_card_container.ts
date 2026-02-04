@@ -98,6 +98,7 @@ import {getFilteredRenderableRunsIds} from '../main_view/common_selectors';
       [xScaleType]="xScaleType$ | async"
       [useDarkMode]="useDarkMode$ | async"
       [forceSvg]="forceSvg$ | async"
+      [userViewBox]="null"
       (onDeleteCard)="onDeleteCard()"
       (onRemoveTag)="onRemoveTag($event)"
       observeIntersection
