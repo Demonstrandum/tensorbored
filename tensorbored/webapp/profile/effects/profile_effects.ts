@@ -394,21 +394,25 @@ export class ProfileEffects {
           runs,
         ]) => {
           // Convert pinned cards to CardUniqueInfo format
-          const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map(
-            (card: CardIdWithMetadata) => {
-              const info: CardUniqueInfo = {
-                plugin: card.plugin,
-                tag: card.tag,
-              };
-              if (isSingleRunPlugin(card.plugin) && card.runId) {
-                info.runId = card.runId;
-              }
-              if (isSampledPlugin(card.plugin) && card.sample !== undefined) {
-                info.sample = card.sample;
-              }
-              return info;
+          const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map((card) => {
+            const info: CardUniqueInfo = {
+              plugin: card.plugin,
+              tag: card.tag,
+            };
+            if (isSingleRunPlugin(card.plugin) && card.runId) {
+              info.runId = card.runId;
             }
-          );
+            if (isSampledPlugin(card.plugin) && card.sample !== undefined) {
+              info.sample = card.sample;
+            }
+            if (card.tags !== undefined) {
+              info.tags = [...card.tags];
+            }
+            if (card.title !== undefined) {
+              info.title = card.title;
+            }
+            return info;
+          });
 
           // Include unresolved imported pinned cards
           const allPinnedCards = [...pinnedCardsInfo, ...unresolvedPinnedCards];
