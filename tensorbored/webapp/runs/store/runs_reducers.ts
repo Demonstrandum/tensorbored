@@ -455,24 +455,19 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
     runsActions.profileRunsSettingsApplied,
     (state, {runColors, groupColors, groupBy, runFilter}) => {
       // Merge profile run color overrides into existing overrides.
-      // Only replace if profile explicitly provides colors, otherwise preserve
-      // existing colors that were computed from run grouping.
-      const nextRunColorOverride =
-        runColors.length > 0
-          ? new Map<string, string>(
-              runColors.map(({runId, color}) => [runId, color])
-            )
-          : state.runColorOverrideForGroupBy;
+      // Start with existing colors (from localStorage), then overlay profile colors.
+      // This ensures manually set colors persist while profile colors take precedence.
+      const nextRunColorOverride = new Map(state.runColorOverrideForGroupBy);
+      for (const {runId, color} of runColors) {
+        nextRunColorOverride.set(runId, color);
+      }
 
       // Merge profile group colors into existing group colors.
-      // Only replace if profile explicitly provides group colors, otherwise
-      // preserve existing colors assigned by the color grouping logic.
-      const nextGroupKeyToColorId =
-        groupColors.length > 0
-          ? new Map<string, number>(
-              groupColors.map(({groupKey, colorId}) => [groupKey, colorId])
-            )
-          : state.groupKeyToColorId;
+      // Start with existing group colors, then overlay profile group colors.
+      const nextGroupKeyToColorId = new Map(state.groupKeyToColorId);
+      for (const {groupKey, colorId} of groupColors) {
+        nextGroupKeyToColorId.set(groupKey, colorId);
+      }
 
       // Apply groupBy settings
       let userSetGroupByKey = state.userSetGroupByKey;

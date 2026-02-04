@@ -37,7 +37,7 @@ import {ProfileMetadata} from '../types';
           : 'Profiles'
       "
     >
-      <mat-icon svgIcon="settings_24px"></mat-icon>
+      <mat-icon svgIcon="bookmark_24px"></mat-icon>
       <span *ngIf="hasUnsavedChanges" class="unsaved-dot"></span>
     </button>
 
@@ -86,7 +86,7 @@ import {ProfileMetadata} from '../types';
       >
         <mat-icon
           [svgIcon]="
-            profile.name === activeProfileName ? 'done_24px' : 'settings_24px'
+            profile.name === activeProfileName ? 'done_24px' : 'bookmark_24px'
           "
         ></mat-icon>
         <span class="profile-item-content">
@@ -178,18 +178,15 @@ import {ProfileMetadata} from '../types';
         color: white;
       }
 
-      .profile-menu-trigger.has-profile mat-icon {
-        color: #ffb74d;
-      }
-
       .unsaved-dot {
         position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 6px;
-        height: 6px;
+        top: 6px;
+        right: 6px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
-        background-color: #f44336;
+        background-color: #ff9800;
+        border: 1px solid rgba(255, 255, 255, 0.5);
       }
 
       .menu-header {
