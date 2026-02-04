@@ -28,6 +28,15 @@ limitations under the License.
     <span class="controls">
       <button
         mat-icon-button
+        [class.full-width-active]="showFullWidth"
+        (click)="toggleFullWidth()"
+        title="Toggle full width"
+        aria-label="Toggle full width"
+      >
+        <mat-icon svgIcon="fullscreen_24px"></mat-icon>
+      </button>
+      <button
+        mat-icon-button
         [disabled]="!lineChart || !(lineChart.getIsViewBoxOverridden() | async)"
         (click)="resetDomain()"
         title="Fit line chart domains to data"

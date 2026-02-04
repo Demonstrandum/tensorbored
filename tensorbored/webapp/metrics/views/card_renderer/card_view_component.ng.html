@@ -25,12 +25,25 @@ limitations under the License.
     (pinStateChanged)="onPinStateChanged()"
   ></image-card>
 
-  <scalar-card
-    *ngSwitchCase="PluginType.SCALARS"
-    [cardId]="cardId"
-    [groupName]="groupName"
-    (pinStateChanged)="onPinStateChanged()"
-  ></scalar-card>
+  <ng-container *ngSwitchCase="PluginType.SCALARS">
+    <!-- Render superimposed card for multi-tag cards, regular scalar card otherwise -->
+    <superimposed-card-integrated
+      *ngIf="isSuperimposed"
+      [cardId]="cardId"
+      [tags]="tags"
+      [title]="cardTitle"
+      [runColorScale]="runColorScale"
+      (fullWidthChanged)="onFullWidthChanged($event)"
+      (fullHeightChanged)="onFullHeightChanged($event)"
+      (pinStateChanged)="onPinStateChanged()"
+    ></superimposed-card-integrated>
+    <scalar-card
+      *ngIf="!isSuperimposed"
+      [cardId]="cardId"
+      [groupName]="groupName"
+      (pinStateChanged)="onPinStateChanged()"
+    ></scalar-card>
+  </ng-container>
 
   <histogram-card
     *ngSwitchCase="PluginType.HISTOGRAMS"

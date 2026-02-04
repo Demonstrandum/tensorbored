@@ -82,6 +82,21 @@ export class SuperimposedCardComponent {
   @Output() onDeleteCard = new EventEmitter<void>();
   @Output() onRemoveTag = new EventEmitter<string>();
   @Output() onViewBoxChange = new EventEmitter<Extent | null>();
+  @Output() onFullWidthChanged = new EventEmitter<boolean>();
+  @Output() onFullHeightChanged = new EventEmitter<boolean>();
+
+  showFullWidth = false;
+  showFullHeight = false;
+
+  toggleFullWidth() {
+    this.showFullWidth = !this.showFullWidth;
+    this.onFullWidthChanged.emit(this.showFullWidth);
+  }
+
+  toggleFullHeight() {
+    this.showFullHeight = !this.showFullHeight;
+    this.onFullHeightChanged.emit(this.showFullHeight);
+  }
 
   @ViewChild(LineChartComponent)
   lineChart?: LineChartComponent;

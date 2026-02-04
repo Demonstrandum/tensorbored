@@ -723,17 +723,42 @@ export const getSuperimposedCardMetadata = memoize(
 
 /**
  * Returns the list of superimposed cards with their metadata.
+ * This combines both the old system (superimposedCardList/superimposedCardMetadataMap)
+ * and the new unified system (multi-tag cards in cardList/cardMetadataMap).
  */
 export const getSuperimposedCardsWithMetadata = createSelector(
   getSuperimposedCardList,
   getSuperimposedCardMetadataMap,
+  selectMetricsState,
   (
-    cardList: SuperimposedCardId[],
-    metadataMap: SuperimposedCardMetadataMap
+    oldCardList: SuperimposedCardId[],
+    oldMetadataMap: SuperimposedCardMetadataMap,
+    state: MetricsState
   ): SuperimposedCardMetadata[] => {
-    return cardList
-      .filter((id) => metadataMap[id])
-      .map((id) => metadataMap[id]);
+    const result: SuperimposedCardMetadata[] = [];
+
+    // Add cards from the old system
+    for (const id of oldCardList) {
+      if (oldMetadataMap[id]) {
+        result.push(oldMetadataMap[id]);
+      }
+    }
+
+    // Add multi-tag cards from the new unified system
+    for (const cardId of state.cardList) {
+      const metadata = state.cardMetadataMap[cardId];
+      if (metadata && metadata.tags && metadata.tags.length > 1) {
+        // Convert CardMetadata to SuperimposedCardMetadata format
+        result.push({
+          id: cardId,
+          title: metadata.title || metadata.tags.join(' + '),
+          tags: metadata.tags,
+          runId: metadata.runId,
+        });
+      }
+    }
+
+    return result;
   }
 );
 
@@ -823,4 +848,76 @@ export const getSuperimposedCardLoadState = memoize(
         return DataLoadState.NOT_LOADED;
       }
     )
+);
+
+/**
+ * Returns time series data for a list of tags.
+ * Used by integrated superimposed cards that have tags directly rather than
+ * looking them up from superimposedCardMetadataMap.
+ */
+export const getTimeSeriesForTags = memoize((tags: string[]) =>
+  createSelector(
+    selectMetricsState,
+    (state: MetricsState): Record<string, DeepReadonly<RunToSeries> | null> => {
+      const result: Record<string, DeepReadonly<RunToSeries> | null> = {};
+      for (const tag of tags) {
+        const loadable = storeUtils.getTimeSeriesLoadable(
+          state.timeSeriesData,
+          PluginType.SCALARS,
+          tag
+        );
+        result[tag] = loadable?.runToSeries ?? null;
+      }
+      return result;
+    }
+  )
+);
+
+/**
+ * Returns the load state for a list of tags.
+ * Used by integrated superimposed cards.
+ */
+export const getLoadStateForTags = memoize((tags: string[]) =>
+  createSelector(selectMetricsState, (state: MetricsState): DataLoadState => {
+    if (tags.length === 0) {
+      return DataLoadState.NOT_LOADED;
+    }
+
+    let hasLoading = false;
+    let hasLoaded = false;
+
+    for (const tag of tags) {
+      const loadable = storeUtils.getTimeSeriesLoadable(
+        state.timeSeriesData,
+        PluginType.SCALARS,
+        tag
+      );
+      if (!loadable) {
+        return DataLoadState.NOT_LOADED;
+      }
+
+      const runIds = storeUtils.getRunIds(
+        state.tagMetadata,
+        PluginType.SCALARS,
+        tag
+      );
+      for (const runId of runIds) {
+        const loadState = loadable.runToLoadState[runId];
+        if (loadState === DataLoadState.LOADING) {
+          hasLoading = true;
+        }
+        if (loadState === DataLoadState.LOADED) {
+          hasLoaded = true;
+        }
+      }
+    }
+
+    if (hasLoading) {
+      return DataLoadState.LOADING;
+    }
+    if (hasLoaded) {
+      return DataLoadState.LOADED;
+    }
+    return DataLoadState.NOT_LOADED;
+  })
 );

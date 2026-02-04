@@ -44,6 +44,8 @@ const RUN_COLOR_UPDATE_THROTTLE_TIME_IN_MS = 350;
       [cardId]="cardId"
       [groupName]="groupName"
       [pluginType]="pluginType"
+      [tags]="tags"
+      [cardTitle]="cardTitle"
       [runColorScale]="runColorScale$ | async"
       (fullWidthChanged)="onFullWidthChanged($event)"
       (fullHeightChanged)="onFullHeightChanged($event)"
@@ -80,6 +82,14 @@ export class CardViewContainer {
   @Input() cardId!: CardId;
   @Input() groupName!: string | null;
   @Input() pluginType!: PluginType;
+  /**
+   * For multi-tag (superimposed) cards, this array contains all tags.
+   */
+  @Input() tags?: string[];
+  /**
+   * Title for multi-tag cards.
+   */
+  @Input() cardTitle?: string;
 
   @Output() fullWidthChanged = new EventEmitter<boolean>();
   @Output() fullHeightChanged = new EventEmitter<boolean>();

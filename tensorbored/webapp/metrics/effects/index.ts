@@ -105,7 +105,27 @@ const getCardFetchInfo = createSelector(
     if (!maybeMetadata) {
       return null;
     }
-    return {...maybeMetadata, loadState, id: cardId};
+    // Explicitly construct CardFetchInfo to handle optional properties correctly
+    const result: CardFetchInfo = {
+      plugin: maybeMetadata.plugin,
+      tag: maybeMetadata.tag,
+      runId: maybeMetadata.runId,
+      loadState,
+      id: cardId,
+    };
+    if (maybeMetadata.sample !== undefined) {
+      result.sample = maybeMetadata.sample;
+    }
+    if (maybeMetadata.numSample !== undefined) {
+      result.numSample = maybeMetadata.numSample;
+    }
+    if (maybeMetadata.tags !== undefined) {
+      result.tags = [...maybeMetadata.tags];
+    }
+    if (maybeMetadata.title !== undefined) {
+      result.title = maybeMetadata.title;
+    }
+    return result;
   }
 );
 
