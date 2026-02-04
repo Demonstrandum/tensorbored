@@ -1832,9 +1832,14 @@ const reducer = createReducer(
         delete nextCardStateMap[cardId];
       }
 
-      // Apply superimposed cards from profile
-      const nextSuperimposedCardMetadataMap: SuperimposedCardMetadataMap = {};
-      const nextSuperimposedCardList: SuperimposedCardId[] = [];
+      // Apply superimposed cards from profile - merge with existing
+      const nextSuperimposedCardMetadataMap: SuperimposedCardMetadataMap = {
+        ...state.superimposedCardMetadataMap,
+      };
+      const existingIds = new Set(state.superimposedCardList);
+      const nextSuperimposedCardList: SuperimposedCardId[] = [
+        ...state.superimposedCardList,
+      ];
 
       for (const card of superimposedCards) {
         const metadata: SuperimposedCardMetadata = {
@@ -1844,7 +1849,9 @@ const reducer = createReducer(
           runId: card.runId,
         };
         nextSuperimposedCardMetadataMap[card.id] = metadata;
-        nextSuperimposedCardList.push(card.id);
+        if (!existingIds.has(card.id)) {
+          nextSuperimposedCardList.push(card.id);
+        }
       }
 
       return {
@@ -1868,7 +1875,38 @@ const reducer = createReducer(
         superimposedCardList: nextSuperimposedCardList,
       };
     }
-  )
+  ),
+
+  // Load superimposed cards from localStorage
+  on(actions.superimposedCardsLoaded, (state, {superimposedCards}) => {
+    // Merge loaded cards with existing (don't overwrite if IDs conflict)
+    const nextSuperimposedCardMetadataMap: SuperimposedCardMetadataMap = {
+      ...state.superimposedCardMetadataMap,
+    };
+    const existingIds = new Set(state.superimposedCardList);
+    const nextSuperimposedCardList: SuperimposedCardId[] = [
+      ...state.superimposedCardList,
+    ];
+
+    for (const card of superimposedCards) {
+      if (!existingIds.has(card.id)) {
+        const metadata: SuperimposedCardMetadata = {
+          id: card.id,
+          title: card.title,
+          tags: card.tags,
+          runId: card.runId,
+        };
+        nextSuperimposedCardMetadataMap[card.id] = metadata;
+        nextSuperimposedCardList.push(card.id);
+      }
+    }
+
+    return {
+      ...state,
+      superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
+      superimposedCardList: nextSuperimposedCardList,
+    };
+  })
 );
 
 export function reducers(state: MetricsState | undefined, action: Action) {

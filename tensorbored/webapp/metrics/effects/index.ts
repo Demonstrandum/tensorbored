@@ -30,6 +30,44 @@ import {
 } from 'rxjs/operators';
 
 const TAG_FILTER_STORAGE_KEY = '_tb_tag_filter.v1';
+const SUPERIMPOSED_CARDS_STORAGE_KEY = '_tb_superimposed_cards.v1';
+
+type StoredSuperimposedCard = {
+  id: string;
+  title: string;
+  tags: string[];
+  runId: string | null;
+};
+
+type StoredSuperimposedCardsV1 = {
+  version: 1;
+  cards: StoredSuperimposedCard[];
+};
+
+function safeParseStoredSuperimposedCards(
+  serialized: string | null
+): StoredSuperimposedCardsV1 {
+  if (!serialized) {
+    return {version: 1, cards: []};
+  }
+  try {
+    const parsed = JSON.parse(serialized) as Partial<StoredSuperimposedCardsV1>;
+    if (parsed.version !== 1 || !Array.isArray(parsed.cards)) {
+      return {version: 1, cards: []};
+    }
+    // Validate each card has required fields
+    const validCards = parsed.cards.filter(
+      (card) =>
+        typeof card.id === 'string' &&
+        typeof card.title === 'string' &&
+        Array.isArray(card.tags) &&
+        card.tags.length > 0
+    );
+    return {version: 1, cards: validCards};
+  } catch {
+    return {version: 1, cards: []};
+  }
+}
 import * as routingActions from '../../app_routing/actions';
 import {State} from '../../app_state';
 import * as coreActions from '../../core/actions';
@@ -51,6 +89,7 @@ import {
   getCardLoadState,
   getCardMetadata,
   getMetricsTagMetadataLoadState,
+  getSuperimposedCardsWithMetadata,
 } from '../store';
 import {CardId, CardMetadata, CardUniqueInfo, PluginType} from '../types';
 
@@ -583,6 +622,51 @@ export class MetricsEffects implements OnInitEffects {
       map((tagFilter) => actions.metricsTagFilterChanged({tagFilter}))
     );
 
+    // Persist superimposed cards to localStorage when they change
+    this.persistSuperimposedCards$ = this.actions$.pipe(
+      ofType(
+        actions.superimposedCardCreated,
+        actions.superimposedCardTagAdded,
+        actions.superimposedCardTagRemoved,
+        actions.superimposedCardDeleted,
+        actions.superimposedCardTitleChanged,
+        actions.superimposedCardCreatedFromCards
+      ),
+      debounceTime(200),
+      withLatestFrom(this.store.select(getSuperimposedCardsWithMetadata)),
+      tap(([, superimposedCards]) => {
+        const payload: StoredSuperimposedCardsV1 = {
+          version: 1,
+          cards: superimposedCards.map((card) => ({
+            id: card.id,
+            title: card.title,
+            tags: card.tags,
+            runId: card.runId,
+          })),
+        };
+        window.localStorage.setItem(
+          SUPERIMPOSED_CARDS_STORAGE_KEY,
+          JSON.stringify(payload)
+        );
+      })
+    );
+
+    // Load superimposed cards from localStorage on navigation
+    this.loadSuperimposedCardsFromStorage$ = this.actions$.pipe(
+      ofType(routingActions.navigated),
+      take(1),
+      map(() => {
+        const stored = safeParseStoredSuperimposedCards(
+          window.localStorage.getItem(SUPERIMPOSED_CARDS_STORAGE_KEY)
+        );
+        return stored.cards;
+      }),
+      filter((cards) => cards.length > 0),
+      map((cards) =>
+        actions.superimposedCardsLoaded({superimposedCards: cards})
+      )
+    );
+
     this.dataEffects$ = createEffect(
       () => {
         return merge(
@@ -623,7 +707,11 @@ export class MetricsEffects implements OnInitEffects {
           /**
            * Subscribes to: metricsTagFilterChanged - persists to localStorage.
            */
-          this.persistTagFilter$
+          this.persistTagFilter$,
+          /**
+           * Subscribes to: superimposed card changes - persists to localStorage.
+           */
+          this.persistSuperimposedCards$
         );
       },
       {dispatch: false}
@@ -633,11 +721,19 @@ export class MetricsEffects implements OnInitEffects {
     this.applyTagFilterFromStorage$ = createEffect(
       () => this.loadTagFilterFromStorage$
     );
+
+    // Effect that dispatches action to load superimposed cards from localStorage
+    this.applySuperimposedCardsFromStorage$ = createEffect(
+      () => this.loadSuperimposedCardsFromStorage$
+    );
   }
 
   private readonly persistTagFilter$;
   private readonly loadTagFilterFromStorage$;
   readonly applyTagFilterFromStorage$;
+  private readonly persistSuperimposedCards$;
+  private readonly loadSuperimposedCardsFromStorage$;
+  readonly applySuperimposedCardsFromStorage$;
 }
 
 export const TEST_ONLY = {
