@@ -434,6 +434,13 @@ jobs:
           cp demo/generate_demo_data.py hf-space/
           cp demo/start.sh hf-space/
 
+          # Create cache-busting file to force Docker layer invalidation.
+          # Without this, HuggingFace Spaces may use cached pip install with old wheel.
+          echo "wheel=${WHEEL_NAME}" > hf-space/.build-version
+          echo "commit=${SHORT_SHA}" >> hf-space/.build-version
+          echo "timestamp=$(date -u +%Y%m%d%H%M%S)" >> hf-space/.build-version
+          cat hf-space/.build-version
+
           # Generate PR-specific README (needs PR number in frontmatter)
           cat > hf-space/README.md << EOF
           ---

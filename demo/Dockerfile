@@ -14,7 +14,10 @@ ENV PATH="/home/user/.local/bin:$PATH"
 
 WORKDIR /app
 
-# Install from wheel (copied by CI)
+# Cache-busting: this file changes with each deployment to force pip reinstall.
+# HuggingFace Spaces caches Docker layers aggressively, so without this the old
+# wheel would be used even when a new one is uploaded.
+COPY --chown=user .build-version /tmp/.build-version
 COPY --chown=user *.whl /tmp/
 RUN pip install --no-cache-dir --user /tmp/*.whl pillow>=10.0.0
 
