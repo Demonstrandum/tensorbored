@@ -1833,15 +1833,28 @@ const reducer = createReducer(
       }
 
       // Apply superimposed cards from profile - merge with existing
+      // Check for duplicates by comparing tag sets (sorted), not just IDs
       const nextSuperimposedCardMetadataMap: SuperimposedCardMetadataMap = {
         ...state.superimposedCardMetadataMap,
       };
       const existingIds = new Set(state.superimposedCardList);
+      const existingTagSets = new Set(
+        state.superimposedCardList
+          .filter((id) => state.superimposedCardMetadataMap[id])
+          .map((id) =>
+            [...state.superimposedCardMetadataMap[id].tags].sort().join('|')
+          )
+      );
       const nextSuperimposedCardList: SuperimposedCardId[] = [
         ...state.superimposedCardList,
       ];
 
       for (const card of superimposedCards) {
+        const tagSetKey = [...card.tags].sort().join('|');
+        // Skip if a card with the same tags already exists
+        if (existingTagSets.has(tagSetKey)) {
+          continue;
+        }
         const metadata: SuperimposedCardMetadata = {
           id: card.id,
           title: card.title,
@@ -1851,6 +1864,7 @@ const reducer = createReducer(
         nextSuperimposedCardMetadataMap[card.id] = metadata;
         if (!existingIds.has(card.id)) {
           nextSuperimposedCardList.push(card.id);
+          existingTagSets.add(tagSetKey);
         }
       }
 
@@ -1879,16 +1893,28 @@ const reducer = createReducer(
 
   // Load superimposed cards from localStorage
   on(actions.superimposedCardsLoaded, (state, {superimposedCards}) => {
-    // Merge loaded cards with existing (don't overwrite if IDs conflict)
+    // Merge loaded cards with existing (check duplicates by tags, not just IDs)
     const nextSuperimposedCardMetadataMap: SuperimposedCardMetadataMap = {
       ...state.superimposedCardMetadataMap,
     };
     const existingIds = new Set(state.superimposedCardList);
+    const existingTagSets = new Set(
+      state.superimposedCardList
+        .filter((id) => state.superimposedCardMetadataMap[id])
+        .map((id) =>
+          [...state.superimposedCardMetadataMap[id].tags].sort().join('|')
+        )
+    );
     const nextSuperimposedCardList: SuperimposedCardId[] = [
       ...state.superimposedCardList,
     ];
 
     for (const card of superimposedCards) {
+      const tagSetKey = [...card.tags].sort().join('|');
+      // Skip if a card with the same tags already exists
+      if (existingTagSets.has(tagSetKey)) {
+        continue;
+      }
       if (!existingIds.has(card.id)) {
         const metadata: SuperimposedCardMetadata = {
           id: card.id,
@@ -1898,6 +1924,7 @@ const reducer = createReducer(
         };
         nextSuperimposedCardMetadataMap[card.id] = metadata;
         nextSuperimposedCardList.push(card.id);
+        existingTagSets.add(tagSetKey);
       }
     }
 
