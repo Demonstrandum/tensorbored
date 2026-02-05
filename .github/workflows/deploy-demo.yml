@@ -93,13 +93,25 @@ jobs:
           SHORT_SHA="${GITHUB_SHA:0:7}"
 
           python3 << EOF
-          from huggingface_hub import HfApi
+          from huggingface_hub import HfApi, list_repo_files
 
           api = HfApi()
           repo_id = "Demonstrandum/tensorbored-sample"
 
           print(f"Uploading to {repo_id}")
           print(f"Wheel: ${WHEEL_NAME}")
+
+          # Delete old wheel files to avoid pip install conflicts
+          # (Dockerfile uses *.whl which would match multiple versions)
+          try:
+              existing_files = list_repo_files(repo_id=repo_id, repo_type="space")
+              old_wheels = [f for f in existing_files if f.endswith('.whl')]
+              if old_wheels:
+                  print(f"Deleting {len(old_wheels)} old wheel file(s): {old_wheels}")
+                  for wheel_file in old_wheels:
+                      api.delete_file(path_in_repo=wheel_file, repo_id=repo_id, repo_type="space")
+          except Exception as e:
+              print(f"Warning: Could not check/delete old wheels: {e}")
 
           api.upload_folder(
               folder_path="hf-space",
