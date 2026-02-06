@@ -89,9 +89,10 @@ limitations under the License.
       [style.display]="showFilteredView ? 'none' : ''"
       [cardObserver]="cardObserver"
     ></metrics-pinned-view>
-    <!-- NOTE: Superimposed (multi-tag) cards now appear in the main card grid with other cards.
-         The separate superimposed-cards-view has been removed as part of the card system unification.
-         Multi-tag cards are created via the "superimpose" action and appear as regular cards. -->
+    <metrics-superimposed-cards-view
+      [style.display]="showFilteredView ? 'none' : ''"
+      [cardObserver]="cardObserver"
+    ></metrics-superimposed-cards-view>
     <div *ngIf="initialTagsLoading" class="loading-container">
       <mat-spinner diameter="36"></mat-spinner>
     </div>
