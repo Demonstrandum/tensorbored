@@ -260,8 +260,25 @@ export class ProfileEffects {
           }
         }
 
+        // Check if user has pinned cards stored in localStorage.
+        // If the profile has no pinned cards, prefer localStorage pins.
+        let pinnedCards = profile.pinnedCards;
+        if (pinnedCards.length === 0) {
+          const storedPins = window.localStorage.getItem('tb-saved-pins');
+          if (storedPins) {
+            try {
+              const parsed = JSON.parse(storedPins);
+              if (Array.isArray(parsed)) {
+                pinnedCards = parsed;
+              }
+            } catch {
+              // Invalid JSON, use profile's (empty) pinnedCards
+            }
+          }
+        }
+
         return metricsActions.profileMetricsSettingsApplied({
-          pinnedCards: profile.pinnedCards,
+          pinnedCards,
           superimposedCards: profile.superimposedCards.map((card) => ({
             id: card.id,
             title: card.title,

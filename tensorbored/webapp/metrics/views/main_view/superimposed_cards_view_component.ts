@@ -38,8 +38,14 @@ import {SuperimposedCardMetadata} from '../../types';
         <div
           *ngFor="let card of superimposedCards; trackBy: trackByCard"
           class="card-wrapper"
+          [class.full-width]="cardsAtFullWidth.has(card.id)"
+          [class.full-height]="cardsAtFullHeight.has(card.id)"
         >
-          <superimposed-card [superimposedCardId]="card.id"></superimposed-card>
+          <superimposed-card
+            [superimposedCardId]="card.id"
+            (fullWidthChanged)="onFullWidthChanged(card.id, $event)"
+            (fullHeightChanged)="onFullHeightChanged(card.id, $event)"
+          ></superimposed-card>
         </div>
       </div>
     </ng-container>
@@ -51,7 +57,26 @@ export class SuperimposedCardsViewComponent {
   @Input() cardObserver!: CardObserver;
   @Input() superimposedCards: SuperimposedCardMetadata[] = [];
 
+  cardsAtFullWidth = new Set<string>();
+  cardsAtFullHeight = new Set<string>();
+
   trackByCard(index: number, card: SuperimposedCardMetadata): string {
     return card.id;
+  }
+
+  onFullWidthChanged(cardId: string, showFullWidth: boolean) {
+    if (showFullWidth) {
+      this.cardsAtFullWidth.add(cardId);
+    } else {
+      this.cardsAtFullWidth.delete(cardId);
+    }
+  }
+
+  onFullHeightChanged(cardId: string, showFullHeight: boolean) {
+    if (showFullHeight) {
+      this.cardsAtFullHeight.add(cardId);
+    } else {
+      this.cardsAtFullHeight.delete(cardId);
+    }
   }
 }

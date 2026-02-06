@@ -101,6 +101,8 @@ import {getFilteredRenderableRunsIds} from '../main_view/common_selectors';
       [userViewBox]="null"
       (onDeleteCard)="onDeleteCard()"
       (onRemoveTag)="onRemoveTag($event)"
+      (onFullWidthChanged)="fullWidthChanged.emit($event)"
+      (onFullHeightChanged)="fullHeightChanged.emit($event)"
       observeIntersection
       (onVisibilityChange)="onVisibilityChange($event)"
     ></superimposed-card-component>
@@ -144,6 +146,8 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
 
   @Input() superimposedCardId!: SuperimposedCardId;
   @Output() deleted = new EventEmitter<void>();
+  @Output() fullWidthChanged = new EventEmitter<boolean>();
+  @Output() fullHeightChanged = new EventEmitter<boolean>();
 
   isVisible = false;
   loadState$?: Observable<DataLoadState>;
