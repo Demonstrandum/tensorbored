@@ -37,21 +37,6 @@ export class CardViewComponent {
   @Input() groupName!: string | null;
   @Input() pluginType!: PluginType;
   @Input() runColorScale!: RunColorScale;
-  /**
-   * For multi-tag (superimposed) cards, this array contains all tags.
-   */
-  @Input() tags?: string[];
-  /**
-   * Title for multi-tag cards.
-   */
-  @Input() cardTitle?: string;
-
-  /**
-   * Returns true if this is a superimposed (multi-tag) card.
-   */
-  get isSuperimposed(): boolean {
-    return Boolean(this.tags && this.tags.length > 1);
-  }
 
   @Output() fullWidthChanged = new EventEmitter<boolean>();
   @Output() fullHeightChanged = new EventEmitter<boolean>();

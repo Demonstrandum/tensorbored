@@ -27,15 +27,13 @@ import {TruncatedPathModule} from '../../../widgets/text/truncated_path_module';
 
 import {SuperimposedCardComponent} from './superimposed_card_component';
 import {SuperimposedCardContainer} from './superimposed_card_container';
-import {SuperimposedCardIntegrated} from './superimposed_card_integrated';
 
 @NgModule({
   declarations: [
     SuperimposedCardComponent,
     SuperimposedCardContainer,
-    SuperimposedCardIntegrated,
   ],
-  exports: [SuperimposedCardContainer, SuperimposedCardIntegrated],
+  exports: [SuperimposedCardContainer],
   imports: [
     CommonModule,
     DragDropModule,

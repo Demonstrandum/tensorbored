@@ -423,7 +423,6 @@ tf_ng_module(
     srcs = [
         "superimposed_card_component.ts",
         "superimposed_card_container.ts",
-        "superimposed_card_integrated.ts",
         "superimposed_card_module.ts",
     ],
     assets = [
