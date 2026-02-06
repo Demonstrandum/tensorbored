@@ -33,51 +33,26 @@ $_title-to-heading-gap: 12px;
 .heading {
   $heading-content-gap: 4px;
 
-  align-items: start;
+  align-items: center;
   display: grid;
   grid-template-areas:
-    'card-info controls'
+    'tag controls'
     'run spinner';
   grid-template-columns: 1fr auto;
   font-size: 14px;
   margin-bottom: $heading-content-gap;
 }
 
-.card-info {
-  grid-area: card-info;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  overflow: hidden;
-}
-
 .tag {
   align-items: center;
   display: flex;
   gap: 5px;
+  grid-area: tag;
   overflow: hidden;
 
   vis-selected-time-clipped {
     line-height: 0;
   }
-}
-
-.tag-description {
-  @include tb-theme-foreground-prop(color, secondary-text);
-  font-size: 12px;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tag-path {
-  @include tb-theme-foreground-prop(color, secondary-text);
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .run {

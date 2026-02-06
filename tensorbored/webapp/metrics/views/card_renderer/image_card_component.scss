@@ -52,39 +52,10 @@ $_title-to-heading-gap: 12px;
   grid-template-columns: 1fr max-content;
 }
 
-.line.card-info-line {
-  align-items: start;
-}
-
-.card-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  overflow: hidden;
-}
-
 .tag {
   align-items: center;
   display: flex;
   gap: 5px;
-}
-
-.tag-description {
-  @include tb-theme-foreground-prop(color, secondary-text);
-  font-size: 12px;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tag-path-label {
-  @include tb-theme-foreground-prop(color, secondary-text);
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .metadata {

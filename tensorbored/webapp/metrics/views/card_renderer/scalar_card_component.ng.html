@@ -17,20 +17,16 @@ limitations under the License.
 <div class="always-visible">
   <div class="heading" cdkDragHandle>
     <span class="name">
-      <span class="tag">
-        <tb-truncated-path
-          [matTooltip]="tag"
-          matTooltipShowDelay="0"
-          value="{{ title }}"
-        ></tb-truncated-path>
-        <vis-linked-time-selection-warning
-          [isClipped]="linkedTimeSelection && linkedTimeSelection.clipped"
-        ></vis-linked-time-selection-warning>
-      </span>
-      <span *ngIf="tagDescription" class="tag-description"
-        >{{ tagDescription }}</span
-      >
-      <span class="tag-path">tag: {{ tag }}</span>
+      <tb-truncated-path
+        class="tag"
+        [matTooltip]="getTagTooltip(tag, tagDescription)"
+        matTooltipClass="tb-tag-tooltip"
+        matTooltipShowDelay="0"
+        value="{{ title }}"
+      ></tb-truncated-path>
+      <vis-linked-time-selection-warning
+        [isClipped]="linkedTimeSelection && linkedTimeSelection.clipped"
+      ></vis-linked-time-selection-warning>
     </span>
     <span class="controls">
       <button

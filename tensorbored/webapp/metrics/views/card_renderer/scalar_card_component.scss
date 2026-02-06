@@ -66,40 +66,20 @@ $_data_table_initial_height: 100px;
   position: relative;
 
   .name {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-    overflow: hidden;
-
-    .tag {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .tag-description {
-      @include tb-theme-foreground-prop(color, secondary-text);
-      font-size: 12px;
-      line-height: 1.3;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .tag-path {
-      @include tb-theme-foreground-prop(color, secondary-text);
-      font-size: 11px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    align-items: center;
+    display: grid;
+    gap: 5px;
+    grid-template-columns: auto auto;
   }
 
   vis-selected-time-clipped {
     font-size: 1.2em;
     line-height: 0;
   }
+}
+
+.tag {
+  overflow: hidden;
 }
 
 .controls {

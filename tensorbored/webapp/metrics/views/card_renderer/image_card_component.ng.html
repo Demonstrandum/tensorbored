@@ -15,23 +15,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <div class="heading" cdkDragHandle>
-  <div class="line card-info-line">
-    <span class="card-info">
-      <span class="tag">
-        <tb-truncated-path
-          [matTooltip]="tag"
-          matTooltipShowDelay="0"
-          value="{{ title }}"
-        ></tb-truncated-path>
-        <vis-linked-time-selection-warning
-          [isClipped]="linkedTimeSelection && linkedTimeSelection.clipped"
-          [isClosestStepHighlighted]="isClosestStepHighlighted"
-        ></vis-linked-time-selection-warning>
-      </span>
-      <span *ngIf="tagDescription" class="tag-description"
-        >{{ tagDescription }}</span
-      >
-      <span class="tag-path-label">tag: {{ tag }}</span>
+  <div class="line">
+    <span class="tag">
+      <tb-truncated-path
+        class="tag-path"
+        [matTooltip]="getTagTooltip(tag, tagDescription)"
+        matTooltipClass="tb-tag-tooltip"
+        matTooltipShowDelay="0"
+        value="{{ title }}"
+      ></tb-truncated-path>
+      <vis-linked-time-selection-warning
+        [isClipped]="linkedTimeSelection && linkedTimeSelection.clipped"
+        [isClosestStepHighlighted]="isClosestStepHighlighted"
+      ></vis-linked-time-selection-warning>
     </span>
     <span class="controls">
       <button
