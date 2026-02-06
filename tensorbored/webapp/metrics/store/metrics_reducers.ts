@@ -1935,12 +1935,11 @@ const reducer = createReducer(
     }
   ),
 
-  // Load superimposed cards from localStorage into the unified card system
+  // Load superimposed cards from localStorage
   on(actions.superimposedCardsLoaded, (state, {superimposedCards}) => {
-    // Build set of existing tag combinations (from both old and new systems)
+    // Build set of existing tag combinations
     const existingTagSets = new Set<string>();
 
-    // Check old system
     for (const id of state.superimposedCardList) {
       const metadata = state.superimposedCardMetadataMap[id];
       if (metadata) {
@@ -1948,17 +1947,11 @@ const reducer = createReducer(
       }
     }
 
-    // Check new system (multi-tag cards in cardList)
-    for (const cardId of state.cardList) {
-      const metadata = state.cardMetadataMap[cardId];
-      if (metadata?.tags && metadata.tags.length > 1) {
-        existingTagSets.add([...metadata.tags].sort().join('|'));
-      }
-    }
-
-    // Add loaded cards to the unified card system
-    const nextCardMetadataMap = {...state.cardMetadataMap};
-    const nextCardList = [...state.cardList];
+    // Add loaded cards to superimposed card state
+    const nextSuperimposedCardList = [...state.superimposedCardList];
+    const nextSuperimposedCardMetadataMap = {
+      ...state.superimposedCardMetadataMap,
+    };
 
     for (const card of superimposedCards) {
       const tagSetKey = [...card.tags].sort().join('|');
@@ -1967,25 +1960,22 @@ const reducer = createReducer(
         continue;
       }
 
-      // Create a CardMetadata for the unified system
-      const cardMetadata: CardMetadata = {
-        plugin: PluginType.SCALARS,
-        tag: card.tags[0],
-        tags: card.tags,
+      const metadata: SuperimposedCardMetadata = {
+        id: card.id,
         title: card.title,
-        runId: card.runId,
+        tags: [...card.tags],
+        runId: card.runId ?? null,
       };
-      const cardId = getCardId(cardMetadata);
 
-      nextCardMetadataMap[cardId] = cardMetadata;
-      nextCardList.push(cardId);
+      nextSuperimposedCardList.push(card.id);
+      nextSuperimposedCardMetadataMap[card.id] = metadata;
       existingTagSets.add(tagSetKey);
     }
 
     return {
       ...state,
-      cardMetadataMap: nextCardMetadataMap,
-      cardList: nextCardList,
+      superimposedCardList: nextSuperimposedCardList,
+      superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
     };
   })
 );
