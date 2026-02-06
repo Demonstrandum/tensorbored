@@ -37,7 +37,7 @@ import {ProfileMetadata} from '../types';
           : 'Profiles'
       "
     >
-      <mat-icon svgIcon="person_24px"></mat-icon>
+      <mat-icon svgIcon="keep_24px"></mat-icon>
       <span *ngIf="hasUnsavedChanges" class="unsaved-dot"></span>
     </button>
 
@@ -86,7 +86,7 @@ import {ProfileMetadata} from '../types';
       >
         <mat-icon
           [svgIcon]="
-            profile.name === activeProfileName ? 'done_24px' : 'person_24px'
+            profile.name === activeProfileName ? 'done_24px' : 'keep_24px'
           "
         ></mat-icon>
         <span class="profile-item-content">

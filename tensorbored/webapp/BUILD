@@ -373,7 +373,6 @@ tf_svg_bundle(
         "@com_google_material_design_icon//:notifications_none_24px.svg",
         "@com_google_material_design_icon//:open_in_new_24px.svg",
         "@com_google_material_design_icon//:palette_24px.svg",
-        "@com_google_material_design_icon//:person_24px.svg",
         "@com_google_material_design_icon//:refresh_24px.svg",
         "@com_google_material_design_icon//:search_24px.svg",
         "@com_google_material_design_icon//:settings_24px.svg",
