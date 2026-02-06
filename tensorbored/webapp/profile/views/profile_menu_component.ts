@@ -37,11 +37,11 @@ import {ProfileMetadata} from '../types';
           : 'Profiles'
       "
     >
-      <mat-icon svgIcon="keep_24px"></mat-icon>
+      <mat-icon svgIcon="settings_backup_restore_24px"></mat-icon>
       <span *ngIf="hasUnsavedChanges" class="unsaved-dot"></span>
     </button>
 
-    <mat-menu #profileMenu="matMenu" class="profile-menu">
+    <mat-menu #profileMenu="matMenu" class="profile-dropdown-menu">
       <!-- Active Profile Header -->
       <div
         class="menu-header"
@@ -85,9 +85,8 @@ import {ProfileMetadata} from '../types';
         [class.active-item]="profile.name === activeProfileName"
       >
         <mat-icon
-          [svgIcon]="
-            profile.name === activeProfileName ? 'done_24px' : 'keep_24px'
-          "
+          *ngIf="profile.name === activeProfileName"
+          svgIcon="done_24px"
         ></mat-icon>
         <span class="profile-item-content">
           <span class="profile-name">{{ profile.name }}</span>
@@ -263,7 +262,7 @@ import {ProfileMetadata} from '../types';
         color: #d32f2f;
       }
 
-      ::ng-deep .profile-menu {
+      ::ng-deep .profile-dropdown-menu {
         min-width: 220px;
         max-width: 300px;
       }

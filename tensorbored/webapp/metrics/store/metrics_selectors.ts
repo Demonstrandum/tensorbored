@@ -723,42 +723,17 @@ export const getSuperimposedCardMetadata = memoize(
 
 /**
  * Returns the list of superimposed cards with their metadata.
- * This combines both the old system (superimposedCardList/superimposedCardMetadataMap)
- * and the new unified system (multi-tag cards in cardList/cardMetadataMap).
  */
 export const getSuperimposedCardsWithMetadata = createSelector(
   getSuperimposedCardList,
   getSuperimposedCardMetadataMap,
-  selectMetricsState,
   (
-    oldCardList: SuperimposedCardId[],
-    oldMetadataMap: SuperimposedCardMetadataMap,
-    state: MetricsState
+    cardList: SuperimposedCardId[],
+    metadataMap: SuperimposedCardMetadataMap
   ): SuperimposedCardMetadata[] => {
-    const result: SuperimposedCardMetadata[] = [];
-
-    // Add cards from the old system
-    for (const id of oldCardList) {
-      if (oldMetadataMap[id]) {
-        result.push(oldMetadataMap[id]);
-      }
-    }
-
-    // Add multi-tag cards from the new unified system
-    for (const cardId of state.cardList) {
-      const metadata = state.cardMetadataMap[cardId];
-      if (metadata && metadata.tags && metadata.tags.length > 1) {
-        // Convert CardMetadata to SuperimposedCardMetadata format
-        result.push({
-          id: cardId,
-          title: metadata.title || metadata.tags.join(' + '),
-          tags: metadata.tags,
-          runId: metadata.runId,
-        });
-      }
-    }
-
-    return result;
+    return cardList
+      .filter((id) => metadataMap[id])
+      .map((id) => metadataMap[id]);
   }
 );
 

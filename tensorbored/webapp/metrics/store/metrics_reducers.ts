@@ -1659,24 +1659,17 @@ const reducer = createReducer(
   }),
 
   // Superimposed (multi-tag) card reducers
-  // These cards are now stored in the main cardList/cardMetadataMap
+  // These use the dedicated superimposedCardList/superimposedCardMetadataMap
   on(actions.superimposedCardCreated, (state, {title, tags, runId}) => {
-    // Create a multi-tag card in the main card system
-    const cardMetadata: CardMetadata = {
-      plugin: PluginType.SCALARS,
-      tag: tags[0], // Primary tag for backwards compatibility
-      tags: tags,
-      title: title,
-      runId: runId ?? null,
-    };
-    const cardId = getCardId(cardMetadata);
+    // Generate a unique ID for the superimposed card
+    const superimposedCardId = `superimposed-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Check if card with same tags already exists
     const existingTagSets = new Set(
-      state.cardList
-        .filter((id) => state.cardMetadataMap[id]?.tags?.length)
+      state.superimposedCardList
+        .filter((id) => state.superimposedCardMetadataMap[id])
         .map((id) =>
-          [...(state.cardMetadataMap[id].tags || [])].sort().join('|')
+          [...state.superimposedCardMetadataMap[id].tags].sort().join('|')
         )
     );
     const tagSetKey = [...tags].sort().join('|');
@@ -1684,149 +1677,56 @@ const reducer = createReducer(
       return state; // Duplicate, don't add
     }
 
+    const metadata: SuperimposedCardMetadata = {
+      id: superimposedCardId,
+      title: title || tags.join(' + '),
+      tags: [...tags],
+      runId: runId ?? null,
+    };
+
     return {
       ...state,
-      cardMetadataMap: {
-        ...state.cardMetadataMap,
-        [cardId]: cardMetadata,
+      superimposedCardList: [...state.superimposedCardList, superimposedCardId],
+      superimposedCardMetadataMap: {
+        ...state.superimposedCardMetadataMap,
+        [superimposedCardId]: metadata,
       },
-      cardList: [...state.cardList, cardId],
     };
   }),
 
   on(actions.superimposedCardTagAdded, (state, {superimposedCardId, tag}) => {
-    // Check both old system and new system
-    const oldMetadata = state.superimposedCardMetadataMap[superimposedCardId];
-    const newMetadata = state.cardMetadataMap[superimposedCardId];
+    const metadata = state.superimposedCardMetadataMap[superimposedCardId];
+    if (!metadata) {
+      return state;
+    }
 
-    if (oldMetadata) {
-      // Old system - keep for backwards compatibility during migration
-      if (oldMetadata.tags.includes(tag)) {
-        return state;
-      }
-      const newTags = [...oldMetadata.tags, tag];
-      const newTitle = newTags.join(' + ');
-      return {
-        ...state,
-        superimposedCardMetadataMap: {
-          ...state.superimposedCardMetadataMap,
-          [superimposedCardId]: {
-            ...oldMetadata,
-            tags: newTags,
-            title: newTitle,
-          },
+    if (metadata.tags.includes(tag)) {
+      return state;
+    }
+
+    const newTags = [...metadata.tags, tag];
+    const newTitle = newTags.join(' + ');
+    return {
+      ...state,
+      superimposedCardMetadataMap: {
+        ...state.superimposedCardMetadataMap,
+        [superimposedCardId]: {
+          ...metadata,
+          tags: newTags,
+          title: newTitle,
         },
-      };
-    }
-
-    if (newMetadata && newMetadata.tags) {
-      // New system
-      if (newMetadata.tags.includes(tag)) {
-        return state;
-      }
-      const newTags = [...newMetadata.tags, tag];
-      const newTitle = newTags.join(' + ');
-
-      // Create new card ID with updated metadata
-      const updatedMetadata: CardMetadata = {
-        ...newMetadata,
-        tags: newTags,
-        title: newTitle,
-      };
-      const newCardId = getCardId(updatedMetadata);
-
-      // Remove old card, add new one
-      const nextCardMetadataMap = {...state.cardMetadataMap};
-      delete nextCardMetadataMap[superimposedCardId];
-      nextCardMetadataMap[newCardId] = updatedMetadata;
-
-      return {
-        ...state,
-        cardMetadataMap: nextCardMetadataMap,
-        cardList: state.cardList
-          .filter((id) => id !== superimposedCardId)
-          .concat(newCardId),
-      };
-    }
-
-    return state;
+      },
+    };
   }),
 
   on(actions.superimposedCardTagRemoved, (state, {superimposedCardId, tag}) => {
-    // Check both old system and new system
-    const oldMetadata = state.superimposedCardMetadataMap[superimposedCardId];
-    const newMetadata = state.cardMetadataMap[superimposedCardId];
-
-    if (oldMetadata) {
-      // Old system
-      const newTags = oldMetadata.tags.filter((t) => t !== tag);
-      if (newTags.length === 0) {
-        const nextSuperimposedCardMetadataMap = {
-          ...state.superimposedCardMetadataMap,
-        };
-        delete nextSuperimposedCardMetadataMap[superimposedCardId];
-        return {
-          ...state,
-          superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
-          superimposedCardList: state.superimposedCardList.filter(
-            (id) => id !== superimposedCardId
-          ),
-        };
-      }
-      const newTitle = newTags.join(' + ');
-      return {
-        ...state,
-        superimposedCardMetadataMap: {
-          ...state.superimposedCardMetadataMap,
-          [superimposedCardId]: {
-            ...oldMetadata,
-            tags: newTags,
-            title: newTitle,
-          },
-        },
-      };
+    const metadata = state.superimposedCardMetadataMap[superimposedCardId];
+    if (!metadata) {
+      return state;
     }
 
-    if (newMetadata && newMetadata.tags) {
-      // New system
-      const newTags = newMetadata.tags.filter((t) => t !== tag);
-      if (newTags.length === 0) {
-        const nextCardMetadataMap = {...state.cardMetadataMap};
-        delete nextCardMetadataMap[superimposedCardId];
-        return {
-          ...state,
-          cardMetadataMap: nextCardMetadataMap,
-          cardList: state.cardList.filter((id) => id !== superimposedCardId),
-        };
-      }
-
-      const newTitle = newTags.join(' + ');
-      const updatedMetadata: CardMetadata = {
-        ...newMetadata,
-        tags: newTags,
-        title: newTitle,
-      };
-      const newCardId = getCardId(updatedMetadata);
-
-      const nextCardMetadataMap = {...state.cardMetadataMap};
-      delete nextCardMetadataMap[superimposedCardId];
-      nextCardMetadataMap[newCardId] = updatedMetadata;
-
-      return {
-        ...state,
-        cardMetadataMap: nextCardMetadataMap,
-        cardList: state.cardList
-          .filter((id) => id !== superimposedCardId)
-          .concat(newCardId),
-      };
-    }
-
-    return state;
-  }),
-
-  on(actions.superimposedCardDeleted, (state, {superimposedCardId}) => {
-    // Check both old system and new system
-    if (state.superimposedCardMetadataMap[superimposedCardId]) {
+    const newTags = metadata.tags.filter((t) => t !== tag);
+    if (newTags.length === 0) {
       const nextSuperimposedCardMetadataMap = {
         ...state.superimposedCardMetadataMap,
       };
@@ -1840,17 +1740,36 @@ const reducer = createReducer(
       };
     }
 
-    if (state.cardMetadataMap[superimposedCardId]) {
-      const nextCardMetadataMap = {...state.cardMetadataMap};
-      delete nextCardMetadataMap[superimposedCardId];
-      return {
-        ...state,
-        cardMetadataMap: nextCardMetadataMap,
-        cardList: state.cardList.filter((id) => id !== superimposedCardId),
-      };
+    const newTitle = newTags.join(' + ');
+    return {
+      ...state,
+      superimposedCardMetadataMap: {
+        ...state.superimposedCardMetadataMap,
+        [superimposedCardId]: {
+          ...metadata,
+          tags: newTags,
+          title: newTitle,
+        },
+      },
+    };
+  }),
+
+  on(actions.superimposedCardDeleted, (state, {superimposedCardId}) => {
+    if (!state.superimposedCardMetadataMap[superimposedCardId]) {
+      return state;
     }
 
-    return state;
+    const nextSuperimposedCardMetadataMap = {
+      ...state.superimposedCardMetadataMap,
+    };
+    delete nextSuperimposedCardMetadataMap[superimposedCardId];
+    return {
+      ...state,
+      superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
+      superimposedCardList: state.superimposedCardList.filter(
+        (id) => id !== superimposedCardId
+      ),
+    };
   }),
 
   on(
