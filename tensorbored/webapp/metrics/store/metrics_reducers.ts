@@ -1662,7 +1662,9 @@ const reducer = createReducer(
   // These use the dedicated superimposedCardList/superimposedCardMetadataMap
   on(actions.superimposedCardCreated, (state, {title, tags, runId}) => {
     // Generate a unique ID for the superimposed card
-    const superimposedCardId = `superimposed-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const superimposedCardId = `superimposed-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
 
     // Check if card with same tags already exists
     const existingTagSets = new Set(

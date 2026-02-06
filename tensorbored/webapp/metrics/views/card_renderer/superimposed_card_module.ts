@@ -29,10 +29,7 @@ import {SuperimposedCardComponent} from './superimposed_card_component';
 import {SuperimposedCardContainer} from './superimposed_card_container';
 
 @NgModule({
-  declarations: [
-    SuperimposedCardComponent,
-    SuperimposedCardContainer,
-  ],
+  declarations: [SuperimposedCardComponent, SuperimposedCardContainer],
   exports: [SuperimposedCardContainer],
   imports: [
     CommonModule,
