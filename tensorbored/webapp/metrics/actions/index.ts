@@ -381,3 +381,18 @@ export const profileMetricsSettingsApplied = createAction(
     smoothing: number;
   }>()
 );
+
+/**
+ * Action to load superimposed cards from localStorage.
+ */
+export const superimposedCardsLoaded = createAction(
+  '[Metrics] Superimposed Cards Loaded',
+  props<{
+    superimposedCards: Array<{
+      id: string;
+      title: string;
+      tags: string[];
+      runId: string | null;
+    }>;
+  }>()
+);

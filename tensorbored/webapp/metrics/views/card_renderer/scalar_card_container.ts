@@ -38,6 +38,7 @@ import {
 } from 'rxjs/operators';
 import {State} from '../../../app_state';
 import {ExperimentAlias} from '../../../experiments/types';
+import {DeepReadonly} from '../../../util/types';
 import {
   actions as hparamsActions,
   selectors as hparamsSelectors,
@@ -334,8 +335,8 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
   private readonly ngUnsubscribe = new Subject<void>();
 
   private isScalarCardMetadata(
-    cardMetadata: CardMetadata
-  ): cardMetadata is ScalarCardMetadata {
+    cardMetadata: DeepReadonly<CardMetadata>
+  ): cardMetadata is DeepReadonly<ScalarCardMetadata> {
     const {plugin} = cardMetadata;
     return plugin === PluginType.SCALARS;
   }

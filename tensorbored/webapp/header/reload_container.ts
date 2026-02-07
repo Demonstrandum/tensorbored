@@ -44,7 +44,9 @@ const isReloadDisabledByPlugin = createSelector(
       [class.loading]="isReloading$ | async"
       mat-icon-button
       (click)="triggerReload()"
-      [title]="getReloadTitle(lastLoadedTimeInMs$ | async | date: 'medium')"
+      [title]="
+        getReloadTitle(lastLoadedTimeInMs$ | async | date: 'MMM d, y, HH:mm:ss')
+      "
       [disabled]="reloadDisabled$ | async"
     >
       <mat-icon class="refresh-icon" svgIcon="refresh_24px"></mat-icon>

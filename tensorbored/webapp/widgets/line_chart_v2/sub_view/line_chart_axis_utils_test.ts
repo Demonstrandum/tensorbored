@@ -61,11 +61,11 @@ describe('line_chart_v2/sub_view/axis_utils test', () => {
       expect(major).toEqual([
         {
           start: new Date('2000/01/01 6:00').getTime(),
-          tickFormattedString: 'Jan 1, 2000, 6:00:00 AM',
+          tickFormattedString: 'Jan 1, 2000, 06:00:00',
         },
         {
           start: new Date('2000/01/01 9:00').getTime(),
-          tickFormattedString: 'Jan 1, 2000, 9:00:00 AM',
+          tickFormattedString: 'Jan 1, 2000, 09:00:00',
         },
       ]);
       expect(minor).toEqual([

@@ -208,7 +208,7 @@ describe('line_chart_v2/sub_view/axis test', () => {
       ]);
       assertLabels(
         fixture.debugElement.queryAll(ByCss.X_AXIS_MAJOR_TICK_LABEL),
-        ['Jan 5, 2020, 1:23:30 PM']
+        ['Jan 5, 2020, 13:23:30']
       );
     });
 
@@ -262,7 +262,7 @@ describe('line_chart_v2/sub_view/axis test', () => {
       ]);
       assertLabels(
         fixture.debugElement.queryAll(ByCss.X_AXIS_MAJOR_TICK_LABEL),
-        ['Jan 5, 2020, 3:00:00 PM', 'Jan 5, 2020, 6:00:00 PM']
+        ['Jan 5, 2020, 15:00:00', 'Jan 5, 2020, 18:00:00']
       );
     });
 

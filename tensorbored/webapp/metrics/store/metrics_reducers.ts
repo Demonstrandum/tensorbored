@@ -1658,39 +1658,64 @@ const reducer = createReducer(
     };
   }),
 
-  // Superimposed card reducers
+  // Superimposed (multi-tag) card reducers
+  // These use the dedicated superimposedCardList/superimposedCardMetadataMap
   on(actions.superimposedCardCreated, (state, {title, tags, runId}) => {
-    const id = generateSuperimposedCardId();
-    const newMetadata: SuperimposedCardMetadata = {
-      id,
-      title,
-      tags,
+    // Generate a unique ID for the superimposed card
+    const superimposedCardId = `superimposed-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
+    // Check if card with same tags already exists
+    const existingTagSets = new Set(
+      state.superimposedCardList
+        .filter((id) => state.superimposedCardMetadataMap[id])
+        .map((id) =>
+          [...state.superimposedCardMetadataMap[id].tags].sort().join('|')
+        )
+    );
+    const tagSetKey = [...tags].sort().join('|');
+    if (existingTagSets.has(tagSetKey)) {
+      return state; // Duplicate, don't add
+    }
+
+    const metadata: SuperimposedCardMetadata = {
+      id: superimposedCardId,
+      title: title || tags.join(' + '),
+      tags: [...tags],
       runId: runId ?? null,
     };
 
     return {
       ...state,
+      superimposedCardList: [...state.superimposedCardList, superimposedCardId],
       superimposedCardMetadataMap: {
         ...state.superimposedCardMetadataMap,
-        [id]: newMetadata,
+        [superimposedCardId]: metadata,
       },
-      superimposedCardList: [...state.superimposedCardList, id],
     };
   }),
 
   on(actions.superimposedCardTagAdded, (state, {superimposedCardId, tag}) => {
     const metadata = state.superimposedCardMetadataMap[superimposedCardId];
-    if (!metadata || metadata.tags.includes(tag)) {
+    if (!metadata) {
       return state;
     }
 
+    if (metadata.tags.includes(tag)) {
+      return state;
+    }
+
+    const newTags = [...metadata.tags, tag];
+    const newTitle = newTags.join(' + ');
     return {
       ...state,
       superimposedCardMetadataMap: {
         ...state.superimposedCardMetadataMap,
         [superimposedCardId]: {
           ...metadata,
-          tags: [...metadata.tags, tag],
+          tags: newTags,
+          title: newTitle,
         },
       },
     };
@@ -1703,14 +1728,11 @@ const reducer = createReducer(
     }
 
     const newTags = metadata.tags.filter((t) => t !== tag);
-
-    // If no tags remain, delete the card
     if (newTags.length === 0) {
       const nextSuperimposedCardMetadataMap = {
         ...state.superimposedCardMetadataMap,
       };
       delete nextSuperimposedCardMetadataMap[superimposedCardId];
-
       return {
         ...state,
         superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
@@ -1720,6 +1742,7 @@ const reducer = createReducer(
       };
     }
 
+    const newTitle = newTags.join(' + ');
     return {
       ...state,
       superimposedCardMetadataMap: {
@@ -1727,17 +1750,21 @@ const reducer = createReducer(
         [superimposedCardId]: {
           ...metadata,
           tags: newTags,
+          title: newTitle,
         },
       },
     };
   }),
 
   on(actions.superimposedCardDeleted, (state, {superimposedCardId}) => {
+    if (!state.superimposedCardMetadataMap[superimposedCardId]) {
+      return state;
+    }
+
     const nextSuperimposedCardMetadataMap = {
       ...state.superimposedCardMetadataMap,
     };
     delete nextSuperimposedCardMetadataMap[superimposedCardId];
-
     return {
       ...state,
       superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
@@ -1750,21 +1777,42 @@ const reducer = createReducer(
   on(
     actions.superimposedCardTitleChanged,
     (state, {superimposedCardId, title}) => {
-      const metadata = state.superimposedCardMetadataMap[superimposedCardId];
-      if (!metadata) {
-        return state;
+      // Check both old system and new system
+      if (state.superimposedCardMetadataMap[superimposedCardId]) {
+        return {
+          ...state,
+          superimposedCardMetadataMap: {
+            ...state.superimposedCardMetadataMap,
+            [superimposedCardId]: {
+              ...state.superimposedCardMetadataMap[superimposedCardId],
+              title,
+            },
+          },
+        };
       }
 
-      return {
-        ...state,
-        superimposedCardMetadataMap: {
-          ...state.superimposedCardMetadataMap,
-          [superimposedCardId]: {
-            ...metadata,
-            title,
-          },
-        },
-      };
+      if (state.cardMetadataMap[superimposedCardId]?.tags) {
+        const oldMetadata = state.cardMetadataMap[superimposedCardId];
+        const updatedMetadata: CardMetadata = {
+          ...oldMetadata,
+          title,
+        };
+        const newCardId = getCardId(updatedMetadata);
+
+        const nextCardMetadataMap = {...state.cardMetadataMap};
+        delete nextCardMetadataMap[superimposedCardId];
+        nextCardMetadataMap[newCardId] = updatedMetadata;
+
+        return {
+          ...state,
+          cardMetadataMap: nextCardMetadataMap,
+          cardList: state.cardList
+            .filter((id) => id !== superimposedCardId)
+            .concat(newCardId),
+        };
+      }
+
+      return state;
     }
   ),
 
@@ -1781,29 +1829,29 @@ const reducer = createReducer(
     }
 
     if (tags.length < 2) {
-      // Need at least 2 tags to superimpose
-      return state;
+      return state; // Need at least 2 tags
     }
 
-    const id = generateSuperimposedCardId();
-    const newMetadata: SuperimposedCardMetadata = {
-      id,
+    const cardMetadata: CardMetadata = {
+      plugin: PluginType.SCALARS,
+      tag: tags[0],
+      tags: tags,
       title:
         title ||
         `Superimposed: ${tags.slice(0, 2).join(', ')}${
           tags.length > 2 ? '...' : ''
         }`,
-      tags,
       runId: null,
     };
+    const cardId = getCardId(cardMetadata);
 
     return {
       ...state,
-      superimposedCardMetadataMap: {
-        ...state.superimposedCardMetadataMap,
-        [id]: newMetadata,
+      cardMetadataMap: {
+        ...state.cardMetadataMap,
+        [cardId]: cardMetadata,
       },
-      superimposedCardList: [...state.superimposedCardList, id],
+      cardList: [...state.cardList, cardId],
     };
   }),
 
@@ -1823,19 +1871,38 @@ const reducer = createReducer(
         delete nextCardStateMap[cardId];
       }
 
-      // Apply superimposed cards from profile
-      const nextSuperimposedCardMetadataMap: SuperimposedCardMetadataMap = {};
-      const nextSuperimposedCardList: SuperimposedCardId[] = [];
+      // Build set of existing tag combinations for superimposed cards
+      const existingTagSets = new Set<string>();
+      for (const id of state.superimposedCardList) {
+        const metadata = state.superimposedCardMetadataMap[id];
+        if (metadata) {
+          existingTagSets.add([...metadata.tags].sort().join('|'));
+        }
+      }
+
+      // Apply superimposed cards from profile to superimposed card state
+      const nextSuperimposedCardList = [...state.superimposedCardList];
+      const nextSuperimposedCardMetadataMap = {
+        ...state.superimposedCardMetadataMap,
+      };
 
       for (const card of superimposedCards) {
+        const tagSetKey = [...card.tags].sort().join('|');
+        // Skip if a card with the same tags already exists
+        if (existingTagSets.has(tagSetKey)) {
+          continue;
+        }
+
         const metadata: SuperimposedCardMetadata = {
           id: card.id,
           title: card.title,
-          tags: card.tags,
-          runId: card.runId,
+          tags: [...card.tags],
+          runId: card.runId ?? null,
         };
-        nextSuperimposedCardMetadataMap[card.id] = metadata;
+
         nextSuperimposedCardList.push(card.id);
+        nextSuperimposedCardMetadataMap[card.id] = metadata;
+        existingTagSets.add(tagSetKey);
       }
 
       return {
@@ -1848,18 +1915,62 @@ const reducer = createReducer(
         cardMetadataMap: nextCardMetadataMap,
         cardStateMap: nextCardStateMap,
         cardStepIndex: nextCardStepIndex,
+        // Apply superimposed cards
+        superimposedCardList: nextSuperimposedCardList,
+        superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
         // Apply other settings
         tagFilter,
         settingOverrides: {
           ...state.settingOverrides,
           scalarSmoothing: smoothing,
         },
-        // Apply superimposed cards
-        superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
-        superimposedCardList: nextSuperimposedCardList,
       };
     }
-  )
+  ),
+
+  // Load superimposed cards from localStorage
+  on(actions.superimposedCardsLoaded, (state, {superimposedCards}) => {
+    // Build set of existing tag combinations
+    const existingTagSets = new Set<string>();
+
+    for (const id of state.superimposedCardList) {
+      const metadata = state.superimposedCardMetadataMap[id];
+      if (metadata) {
+        existingTagSets.add([...metadata.tags].sort().join('|'));
+      }
+    }
+
+    // Add loaded cards to superimposed card state
+    const nextSuperimposedCardList = [...state.superimposedCardList];
+    const nextSuperimposedCardMetadataMap = {
+      ...state.superimposedCardMetadataMap,
+    };
+
+    for (const card of superimposedCards) {
+      const tagSetKey = [...card.tags].sort().join('|');
+      // Skip if a card with the same tags already exists
+      if (existingTagSets.has(tagSetKey)) {
+        continue;
+      }
+
+      const metadata: SuperimposedCardMetadata = {
+        id: card.id,
+        title: card.title,
+        tags: [...card.tags],
+        runId: card.runId ?? null,
+      };
+
+      nextSuperimposedCardList.push(card.id);
+      nextSuperimposedCardMetadataMap[card.id] = metadata;
+      existingTagSets.add(tagSetKey);
+    }
+
+    return {
+      ...state,
+      superimposedCardList: nextSuperimposedCardList,
+      superimposedCardMetadataMap: nextSuperimposedCardMetadataMap,
+    };
+  })
 );
 
 export function reducers(state: MetricsState | undefined, action: Action) {

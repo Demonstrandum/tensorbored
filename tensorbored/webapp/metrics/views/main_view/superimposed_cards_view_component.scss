@@ -72,12 +72,27 @@ limitations under the License.
 
 .superimposed-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 16px;
-  padding: 16px;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax($metrics-min-card-width, 1fr)
+  );
+  gap: $metrics-preferred-gap;
+  padding: $metrics-preferred-gap;
 
   .card-wrapper {
-    min-height: 350px;
+    @include tb-theme-foreground-prop(border, border, 1px solid);
+    border-radius: 4px;
+    box-sizing: border-box;
+    min-height: $metrics-min-card-height;
+
+    &.full-width {
+      grid-column-start: 1;
+      grid-column-end: -1;
+    }
+
+    &.full-height {
+      min-height: $metrics-min-card-height * 1.5;
+    }
   }
 }
 

@@ -184,7 +184,17 @@ export class ProfileEffects {
         this.store.select(getExperimentIdsFromRoute)
       ),
       map(([, activeProfileName, defaultProfiles, experimentIds]) => {
-        if (activeProfileName || !experimentIds || experimentIds.length !== 1) {
+        // Check both NgRx state and localStorage for active profile name.
+        // On page load, NgRx state may not be updated yet even though
+        // localStorage has the active profile name.
+        const localActiveProfile =
+          this.profileDataSource.getActiveProfileName();
+        if (
+          activeProfileName ||
+          localActiveProfile ||
+          !experimentIds ||
+          experimentIds.length !== 1
+        ) {
           return null;
         }
         const profile = defaultProfiles.get(experimentIds[0]) ?? null;
@@ -218,8 +228,14 @@ export class ProfileEffects {
             this.store.select(getExperimentIdsFromRoute)
           ),
           filter(([, activeProfileName, experimentIds]) => {
+            // Check both NgRx state and localStorage for active profile name.
+            // On page load, NgRx state may not be updated yet even though
+            // localStorage has the active profile name.
+            const localActiveProfile =
+              this.profileDataSource.getActiveProfileName();
             return (
               !activeProfileName &&
+              !localActiveProfile &&
               Boolean(experimentIds) &&
               experimentIds!.length === 1 &&
               experimentIds![0] === experimentId
@@ -242,19 +258,78 @@ export class ProfileEffects {
   applyProfileToMetrics$ = createEffect(() =>
     this.actions$.pipe(
       ofType(profileActions.profileActivated),
-      map(({profile}) =>
-        metricsActions.profileMetricsSettingsApplied({
-          pinnedCards: profile.pinnedCards,
+      map(({profile, source}) => {
+        // Check if user has a tag filter stored in localStorage.
+        // If so, prefer that over the profile's tag filter.
+        let tagFilter = profile.tagFilter;
+        const storedTagFilter =
+          window.localStorage.getItem('_tb_tag_filter.v1');
+        if (storedTagFilter) {
+          try {
+            const parsed = JSON.parse(storedTagFilter) as {value?: string};
+            if (typeof parsed.value === 'string') {
+              // User has explicitly set/cleared the tag filter - use that instead
+              tagFilter = parsed.value;
+            }
+          } catch {
+            // Invalid JSON, use profile's tagFilter
+          }
+        }
+
+        // Merge profile's pinned cards with user's localStorage pins.
+        // localStorage pins represent user customizations and should be preserved.
+        // We deduplicate by creating a unique key from plugin+tag+runId.
+        const cardKey = (card: CardUniqueInfo): string => {
+          return `${card.plugin}|${card.tag}|${card.runId ?? ''}|${
+            card.sample ?? ''
+          }`;
+        };
+
+        const seenCards = new Set<string>();
+        const mergedPins: CardUniqueInfo[] = [];
+
+        // First add localStorage pins (user's explicit customizations take precedence)
+        const storedPins = window.localStorage.getItem('tb-saved-pins');
+        if (storedPins) {
+          try {
+            const parsed = JSON.parse(storedPins) as CardUniqueInfo[];
+            if (Array.isArray(parsed)) {
+              for (const pin of parsed) {
+                const key = cardKey(pin);
+                if (!seenCards.has(key)) {
+                  seenCards.add(key);
+                  mergedPins.push(pin);
+                }
+              }
+            }
+          } catch {
+            // Invalid JSON, skip localStorage pins
+          }
+        }
+
+        // Then add profile's pins (if not already present from localStorage)
+        for (const pin of profile.pinnedCards) {
+          const key = cardKey(pin);
+          if (!seenCards.has(key)) {
+            seenCards.add(key);
+            mergedPins.push(pin);
+          }
+        }
+
+        const pinnedCards = mergedPins;
+
+        return metricsActions.profileMetricsSettingsApplied({
+          pinnedCards,
           superimposedCards: profile.superimposedCards.map((card) => ({
             id: card.id,
             title: card.title,
             tags: card.tags,
             runId: card.runId,
           })),
-          tagFilter: profile.tagFilter,
+          tagFilter,
           smoothing: profile.smoothing,
-        })
-      )
+        });
+      })
     )
   );
 
@@ -327,9 +402,11 @@ export class ProfileEffects {
           }
         }
 
+        // Runs not explicitly listed in the profile selection should be visible
+        // by default. Only runs explicitly set to false should be hidden.
         for (const run of runs) {
           if (!selectionMap.has(run.id)) {
-            selectionMap.set(run.id, false);
+            selectionMap.set(run.id, true);
           }
         }
 
@@ -375,21 +452,25 @@ export class ProfileEffects {
           runs,
         ]) => {
           // Convert pinned cards to CardUniqueInfo format
-          const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map(
-            (card: CardIdWithMetadata) => {
-              const info: CardUniqueInfo = {
-                plugin: card.plugin,
-                tag: card.tag,
-              };
-              if (isSingleRunPlugin(card.plugin) && card.runId) {
-                info.runId = card.runId;
-              }
-              if (isSampledPlugin(card.plugin) && card.sample !== undefined) {
-                info.sample = card.sample;
-              }
-              return info;
+          const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map((card) => {
+            const info: CardUniqueInfo = {
+              plugin: card.plugin,
+              tag: card.tag,
+            };
+            if (isSingleRunPlugin(card.plugin) && card.runId) {
+              info.runId = card.runId;
             }
-          );
+            if (isSampledPlugin(card.plugin) && card.sample !== undefined) {
+              info.sample = card.sample;
+            }
+            if (card.tags !== undefined) {
+              info.tags = [...card.tags];
+            }
+            if (card.title !== undefined) {
+              info.title = card.title;
+            }
+            return info;
+          });
 
           // Include unresolved imported pinned cards
           const allPinnedCards = [...pinnedCardsInfo, ...unresolvedPinnedCards];

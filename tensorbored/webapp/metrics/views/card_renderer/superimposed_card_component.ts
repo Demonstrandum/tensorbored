@@ -30,6 +30,7 @@ import {
   siNumberFormatter,
 } from '../../../widgets/line_chart_v2/lib/formatter';
 import {LineChartComponent} from '../../../widgets/line_chart_v2/line_chart_component';
+import {Extent} from '../../../widgets/line_chart_v2/lib/public_types';
 import {
   RendererType,
   ScaleType,
@@ -76,9 +77,26 @@ export class SuperimposedCardComponent {
   @Input() xScaleType!: ScaleType;
   @Input() useDarkMode!: boolean;
   @Input() forceSvg!: boolean;
+  @Input() userViewBox: Extent | null = null;
 
   @Output() onDeleteCard = new EventEmitter<void>();
   @Output() onRemoveTag = new EventEmitter<string>();
+  @Output() onViewBoxChange = new EventEmitter<Extent | null>();
+  @Output() onFullWidthChanged = new EventEmitter<boolean>();
+  @Output() onFullHeightChanged = new EventEmitter<boolean>();
+
+  showFullWidth = false;
+  showFullHeight = false;
+
+  toggleFullWidth() {
+    this.showFullWidth = !this.showFullWidth;
+    this.onFullWidthChanged.emit(this.showFullWidth);
+  }
+
+  toggleFullHeight() {
+    this.showFullHeight = !this.showFullHeight;
+    this.onFullHeightChanged.emit(this.showFullHeight);
+  }
 
   @ViewChild(LineChartComponent)
   lineChart?: LineChartComponent;
@@ -172,6 +190,10 @@ export class SuperimposedCardComponent {
     if (this.lineChart) {
       this.lineChart.viewBoxReset();
     }
+  }
+
+  onViewBoxChanged(viewBox: Extent | null) {
+    this.onViewBoxChange.emit(viewBox);
   }
 
   trackByTooltipDatum(index: number, datum: ScalarTooltipDatum) {

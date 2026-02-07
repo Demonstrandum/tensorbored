@@ -707,15 +707,18 @@ export const getSuperimposedCardMetadataMap = createSelector(
 
 /**
  * Returns the metadata for a specific superimposed card.
+ * Uses memoize to create a selector factory that takes the card ID as a parameter.
  */
-export const getSuperimposedCardMetadata = createSelector(
-  getSuperimposedCardMetadataMap,
-  (
-    metadataMap: SuperimposedCardMetadataMap,
-    superimposedCardId: SuperimposedCardId
-  ): SuperimposedCardMetadata | null => {
-    return metadataMap[superimposedCardId] ?? null;
-  }
+export const getSuperimposedCardMetadata = memoize(
+  (superimposedCardId: SuperimposedCardId) =>
+    createSelector(
+      getSuperimposedCardMetadataMap,
+      (
+        metadataMap: SuperimposedCardMetadataMap
+      ): SuperimposedCardMetadata | null => {
+        return metadataMap[superimposedCardId] ?? null;
+      }
+    )
 );
 
 /**
@@ -820,4 +823,76 @@ export const getSuperimposedCardLoadState = memoize(
         return DataLoadState.NOT_LOADED;
       }
     )
+);
+
+/**
+ * Returns time series data for a list of tags.
+ * Used by integrated superimposed cards that have tags directly rather than
+ * looking them up from superimposedCardMetadataMap.
+ */
+export const getTimeSeriesForTags = memoize((tags: string[]) =>
+  createSelector(
+    selectMetricsState,
+    (state: MetricsState): Record<string, DeepReadonly<RunToSeries> | null> => {
+      const result: Record<string, DeepReadonly<RunToSeries> | null> = {};
+      for (const tag of tags) {
+        const loadable = storeUtils.getTimeSeriesLoadable(
+          state.timeSeriesData,
+          PluginType.SCALARS,
+          tag
+        );
+        result[tag] = loadable?.runToSeries ?? null;
+      }
+      return result;
+    }
+  )
+);
+
+/**
+ * Returns the load state for a list of tags.
+ * Used by integrated superimposed cards.
+ */
+export const getLoadStateForTags = memoize((tags: string[]) =>
+  createSelector(selectMetricsState, (state: MetricsState): DataLoadState => {
+    if (tags.length === 0) {
+      return DataLoadState.NOT_LOADED;
+    }
+
+    let hasLoading = false;
+    let hasLoaded = false;
+
+    for (const tag of tags) {
+      const loadable = storeUtils.getTimeSeriesLoadable(
+        state.timeSeriesData,
+        PluginType.SCALARS,
+        tag
+      );
+      if (!loadable) {
+        return DataLoadState.NOT_LOADED;
+      }
+
+      const runIds = storeUtils.getRunIds(
+        state.tagMetadata,
+        PluginType.SCALARS,
+        tag
+      );
+      for (const runId of runIds) {
+        const loadState = loadable.runToLoadState[runId];
+        if (loadState === DataLoadState.LOADING) {
+          hasLoading = true;
+        }
+        if (loadState === DataLoadState.LOADED) {
+          hasLoaded = true;
+        }
+      }
+    }
+
+    if (hasLoading) {
+      return DataLoadState.LOADING;
+    }
+    if (hasLoaded) {
+      return DataLoadState.LOADED;
+    }
+    return DataLoadState.NOT_LOADED;
+  })
 );

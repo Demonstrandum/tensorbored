@@ -163,3 +163,9 @@ jobs:
         with:
           packages-dir: wheels/
           print-hash: true
+
+  deploy-demo:
+    needs: publish-prerelease
+    uses: ./.github/workflows/deploy-demo.yml
+    secrets:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}

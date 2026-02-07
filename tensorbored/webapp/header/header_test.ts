@@ -195,7 +195,7 @@ describe('header test', () => {
         By.css('app-header-reload button')
       );
       expect(button.properties['title']).toBe(
-        'Last Updated: Jan 1, 2000, 12:00:00 AM'
+        'Last Updated: Jan 1, 2000, 00:00:00'
       );
     });
 

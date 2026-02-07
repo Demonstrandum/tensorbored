@@ -56,9 +56,16 @@ class TfCardHeading extends PolymerElement {
             </span>
           </template>
         </div>
+        <template is="dom-if" if="[[description]]">
+          <div class="heading-row">
+            <div class="heading-label description">
+              [[_plainTextDescription]]
+            </div>
+          </div>
+        </template>
         <template is="dom-if" if="[[_tagLabel]]">
           <div class="heading-row">
-            <div class="heading-label">
+            <div class="heading-label tag-label">
               tag: <span itemprop="tag">[[_tagLabel]]</span>
             </div>
           </div>
@@ -93,6 +100,18 @@ class TfCardHeading extends PolymerElement {
       }
       .name {
         font-size: 14px;
+      }
+      .description {
+        color: #666;
+        font-size: 11px;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .tag-label {
+        color: #888;
+        font-size: 11px;
       }
       .run {
         font-size: 11px;
@@ -165,6 +184,16 @@ class TfCardHeading extends PolymerElement {
     var displayName = this.displayName;
     var tag = this.tag;
     return tag && tag !== displayName ? tag : '';
+  }
+
+  @computed('description')
+  get _plainTextDescription(): string {
+    var description = this.description;
+    if (!description) return '';
+    // Strip HTML tags to get plain text
+    const div = document.createElement('div');
+    div.innerHTML = description;
+    return div.textContent || div.innerText || '';
   }
 
   _toggleDescriptionDialog(e) {

@@ -31,7 +31,26 @@ export function groupCardIdWithMetdata(
       tagPrefix.set(groupName, {groupName, items: []});
     }
 
-    tagPrefix.get(groupName)!.items.push(card);
+    // Create a mutable copy of the card to satisfy TypeScript's exactOptionalPropertyTypes
+    const mutableCard: CardIdWithMetadata = {
+      plugin: card.plugin,
+      tag: card.tag,
+      runId: card.runId,
+      cardId: card.cardId,
+    };
+    if (card.tags !== undefined) {
+      mutableCard.tags = [...card.tags];
+    }
+    if (card.title !== undefined) {
+      mutableCard.title = card.title;
+    }
+    if (card.sample !== undefined) {
+      mutableCard.sample = card.sample;
+    }
+    if (card.numSample !== undefined) {
+      mutableCard.numSample = card.numSample;
+    }
+    tagPrefix.get(groupName)!.items.push(mutableCard);
   }
 
   return [...tagPrefix.values()];

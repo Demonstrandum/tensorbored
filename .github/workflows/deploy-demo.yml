@@ -1,39 +1,49 @@
 name: Deploy Demo to HuggingFace Spaces
 
 on:
-  workflow_run:
-    workflows: ['Wheel Prerelease']
-    types:
-      - completed
-    branches:
-      - master
+  # Called by wheel-prerelease workflow after successful build
+  workflow_call:
+    secrets:
+      HF_TOKEN:
+        required: true
+
+  # Manual trigger with option to specify workflow run
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Workflow run ID to download artifact from (optional)'
+        required: false
+        type: string
 
 permissions:
+  contents: read
   actions: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download wheel artifact (workflow_run)
-        if: github.event_name == 'workflow_run'
+      - name: Download wheel artifact (workflow_call)
+        if: github.event_name == 'workflow_call'
         uses: actions/download-artifact@v4
         with:
           name: tensorbored-rc-wheel
           path: wheel
-          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download wheel artifact (workflow_dispatch with run_id)
+        if: github.event_name == 'workflow_dispatch' && inputs.run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: tensorbored-rc-wheel
+          path: wheel
+          run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download wheel artifact (workflow_dispatch)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Download wheel artifact (workflow_dispatch without run_id)
+        if: github.event_name == 'workflow_dispatch' && inputs.run_id == ''
         uses: dawidd6/action-download-artifact@v3
         with:
           workflow: wheel-prerelease.yml
@@ -83,13 +93,25 @@ jobs:
           SHORT_SHA="${GITHUB_SHA:0:7}"
 
           python3 << EOF
-          from huggingface_hub import HfApi
+          from huggingface_hub import HfApi, list_repo_files
 
           api = HfApi()
           repo_id = "Demonstrandum/tensorbored-sample"
 
           print(f"Uploading to {repo_id}")
           print(f"Wheel: ${WHEEL_NAME}")
+
+          # Delete old wheel files to avoid pip install conflicts
+          # (Dockerfile uses *.whl which would match multiple versions)
+          try:
+              existing_files = list_repo_files(repo_id=repo_id, repo_type="space")
+              old_wheels = [f for f in existing_files if f.endswith('.whl')]
+              if old_wheels:
+                  print(f"Deleting {len(old_wheels)} old wheel file(s): {old_wheels}")
+                  for wheel_file in old_wheels:
+                      api.delete_file(path_in_repo=wheel_file, repo_id=repo_id, repo_type="space")
+          except Exception as e:
+              print(f"Warning: Could not check/delete old wheels: {e}")
 
           api.upload_folder(
               folder_path="hf-space",

@@ -25,6 +25,7 @@ import {combineLatest, Observable} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
 import {State} from '../../../app_state';
 import {DataLoadState} from '../../../types/data';
+import {DeepReadonly} from '../../../util/types';
 import {RunColorScale} from '../../../types/ui';
 import {
   TimeSelectionToggleAffordance,
@@ -130,8 +131,8 @@ export class HistogramCardContainer implements CardRenderer, OnInit {
   steps$?: Observable<number[]>;
 
   private isHistogramCardMetadata(
-    cardMetadata: CardMetadata
-  ): cardMetadata is HistogramCardMetadata {
+    cardMetadata: DeepReadonly<CardMetadata>
+  ): cardMetadata is DeepReadonly<HistogramCardMetadata> {
     const {plugin} = cardMetadata;
     return plugin === PluginType.HISTOGRAMS;
   }

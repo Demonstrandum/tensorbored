@@ -33,6 +33,7 @@ import {
   tap,
 } from 'rxjs/operators';
 import {State} from '../../../app_state';
+import {DeepReadonly} from '../../../util/types';
 import {DataLoadState} from '../../../types/data';
 import {RunColorScale} from '../../../types/ui';
 import * as actions from '../../actions';
@@ -164,8 +165,8 @@ export class ImageCardContainer implements CardRenderer, OnInit, OnDestroy {
   private readonly ngUnsubscribe = new Subject<void>();
 
   private isImageCardMetadata(
-    cardMetadata: CardMetadata
-  ): cardMetadata is ImageCardMetadata {
+    cardMetadata: DeepReadonly<CardMetadata>
+  ): cardMetadata is DeepReadonly<ImageCardMetadata> {
     const {plugin} = cardMetadata;
     return plugin === PluginType.IMAGES;
   }
