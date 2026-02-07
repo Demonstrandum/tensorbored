@@ -22,7 +22,14 @@ import {
   Output,
 } from '@angular/core';
 import {Store} from '@ngrx/store';
-import {combineLatest, from, Observable, of, Subject} from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  from,
+  Observable,
+  of,
+  Subject,
+} from 'rxjs';
 import {
   combineLatestWith,
   debounceTime,
@@ -48,6 +55,7 @@ import {
 } from '../../../selectors';
 import {DataLoadState} from '../../../types/data';
 import {classicSmoothing} from '../../../widgets/line_chart_v2/data_transformer';
+import {Extent} from '../../../widgets/line_chart_v2/lib/public_types';
 import {ScaleType} from '../../../widgets/line_chart_v2/types';
 import * as actions from '../../actions';
 import {PluginType, ScalarStepDatum} from '../../data_source';
@@ -98,9 +106,10 @@ import {getFilteredRenderableRunsIds} from '../main_view/common_selectors';
       [xScaleType]="xScaleType$ | async"
       [useDarkMode]="useDarkMode$ | async"
       [forceSvg]="forceSvg$ | async"
-      [userViewBox]="null"
+      [userViewBox]="userViewBox$ | async"
       (onDeleteCard)="onDeleteCard()"
       (onRemoveTag)="onRemoveTag($event)"
+      (onViewBoxChange)="onViewBoxChange($event)"
       (onFullWidthChanged)="fullWidthChanged.emit($event)"
       (onFullHeightChanged)="fullHeightChanged.emit($event)"
       observeIntersection
@@ -168,6 +177,11 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
   readonly xScaleType$;
   readonly scalarSmoothing$;
   readonly smoothingEnabled$;
+
+  private readonly userViewBoxSubject = new BehaviorSubject<Extent | null>(
+    null
+  );
+  readonly userViewBox$ = this.userViewBoxSubject.asObservable();
 
   private readonly ngUnsubscribe = new Subject<void>();
 
@@ -517,5 +531,9 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
         tag,
       })
     );
+  }
+
+  onViewBoxChange(viewBox: Extent | null) {
+    this.userViewBoxSubject.next(viewBox);
   }
 }
