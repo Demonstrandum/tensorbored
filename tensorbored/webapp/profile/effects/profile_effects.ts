@@ -260,22 +260,47 @@ export class ProfileEffects {
           }
         }
 
-        // Check if user has pinned cards stored in localStorage.
-        // If the profile has no pinned cards, prefer localStorage pins.
-        let pinnedCards = profile.pinnedCards;
-        if (pinnedCards.length === 0) {
-          const storedPins = window.localStorage.getItem('tb-saved-pins');
-          if (storedPins) {
-            try {
-              const parsed = JSON.parse(storedPins) as CardUniqueInfo[];
-              if (Array.isArray(parsed)) {
-                pinnedCards = parsed;
+        // Merge profile's pinned cards with user's localStorage pins.
+        // localStorage pins represent user customizations and should be preserved.
+        // We deduplicate by creating a unique key from plugin+tag+runId.
+        const cardKey = (card: CardUniqueInfo): string => {
+          return `${card.plugin}|${card.tag}|${card.runId ?? ''}|${
+            card.sample ?? ''
+          }`;
+        };
+
+        const seenCards = new Set<string>();
+        const mergedPins: CardUniqueInfo[] = [];
+
+        // First add localStorage pins (user's explicit customizations take precedence)
+        const storedPins = window.localStorage.getItem('tb-saved-pins');
+        if (storedPins) {
+          try {
+            const parsed = JSON.parse(storedPins) as CardUniqueInfo[];
+            if (Array.isArray(parsed)) {
+              for (const pin of parsed) {
+                const key = cardKey(pin);
+                if (!seenCards.has(key)) {
+                  seenCards.add(key);
+                  mergedPins.push(pin);
+                }
               }
-            } catch {
-              // Invalid JSON, use profile's (empty) pinnedCards
             }
+          } catch {
+            // Invalid JSON, skip localStorage pins
           }
         }
+
+        // Then add profile's pins (if not already present from localStorage)
+        for (const pin of profile.pinnedCards) {
+          const key = cardKey(pin);
+          if (!seenCards.has(key)) {
+            seenCards.add(key);
+            mergedPins.push(pin);
+          }
+        }
+
+        const pinnedCards = mergedPins;
 
         return metricsActions.profileMetricsSettingsApplied({
           pinnedCards,
