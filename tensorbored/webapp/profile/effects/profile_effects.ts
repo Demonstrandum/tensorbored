@@ -276,47 +276,62 @@ export class ProfileEffects {
           }
         }
 
-        // Merge profile's pinned cards with user's localStorage pins.
-        // localStorage pins represent user customizations and should be preserved.
-        // We deduplicate by creating a unique key from plugin+tag+runId.
-        const cardKey = (card: CardUniqueInfo): string => {
-          return `${card.plugin}|${card.tag}|${card.runId ?? ''}|${
-            card.sample ?? ''
-          }`;
-        };
+        // Handle pinned cards based on profile source:
+        // - LOCAL profiles (user-saved): Use the profile's pins directly, since
+        //   the user explicitly saved this configuration.
+        // - BACKEND profiles (default from logdir): Merge with localStorage pins,
+        //   since user customizations should be preserved when loading defaults.
+        let pinnedCards: CardUniqueInfo[];
 
-        const seenCards = new Set<string>();
-        const mergedPins: CardUniqueInfo[] = [];
+        if (source === ProfileSource.LOCAL) {
+          // For user-saved profiles, use the profile's pins directly.
+          // Also update localStorage to match the profile (sync state).
+          pinnedCards = profile.pinnedCards;
+          window.localStorage.setItem(
+            'tb-saved-pins',
+            JSON.stringify(pinnedCards)
+          );
+        } else {
+          // For backend/default profiles, merge with localStorage pins.
+          const cardKey = (card: CardUniqueInfo): string => {
+            return `${card.plugin}|${card.tag}|${card.runId ?? ''}|${
+              card.sample ?? ''
+            }`;
+          };
 
-        // First add localStorage pins (user's explicit customizations take precedence)
-        const storedPins = window.localStorage.getItem('tb-saved-pins');
-        if (storedPins) {
-          try {
-            const parsed = JSON.parse(storedPins) as CardUniqueInfo[];
-            if (Array.isArray(parsed)) {
-              for (const pin of parsed) {
-                const key = cardKey(pin);
-                if (!seenCards.has(key)) {
-                  seenCards.add(key);
-                  mergedPins.push(pin);
+          const seenCards = new Set<string>();
+          const mergedPins: CardUniqueInfo[] = [];
+
+          // First add localStorage pins (user's explicit customizations)
+          const storedPins = window.localStorage.getItem('tb-saved-pins');
+          if (storedPins) {
+            try {
+              const parsed = JSON.parse(storedPins) as CardUniqueInfo[];
+              if (Array.isArray(parsed)) {
+                for (const pin of parsed) {
+                  const key = cardKey(pin);
+                  if (!seenCards.has(key)) {
+                    seenCards.add(key);
+                    mergedPins.push(pin);
+                  }
                 }
               }
+            } catch {
+              // Invalid JSON, skip localStorage pins
             }
-          } catch {
-            // Invalid JSON, skip localStorage pins
           }
-        }
 
-        // Then add profile's pins (if not already present from localStorage)
-        for (const pin of profile.pinnedCards) {
-          const key = cardKey(pin);
-          if (!seenCards.has(key)) {
-            seenCards.add(key);
-            mergedPins.push(pin);
+          // Then add profile's pins (if not already present from localStorage)
+          for (const pin of profile.pinnedCards) {
+            const key = cardKey(pin);
+            if (!seenCards.has(key)) {
+              seenCards.add(key);
+              mergedPins.push(pin);
+            }
           }
-        }
 
-        const pinnedCards = mergedPins;
+          pinnedCards = mergedPins;
+        }
 
         return metricsActions.profileMetricsSettingsApplied({
           pinnedCards,
