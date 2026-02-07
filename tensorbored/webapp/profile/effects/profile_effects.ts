@@ -267,7 +267,7 @@ export class ProfileEffects {
           const storedPins = window.localStorage.getItem('tb-saved-pins');
           if (storedPins) {
             try {
-              const parsed = JSON.parse(storedPins);
+              const parsed = JSON.parse(storedPins) as CardUniqueInfo[];
               if (Array.isArray(parsed)) {
                 pinnedCards = parsed;
               }
