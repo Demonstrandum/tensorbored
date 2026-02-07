@@ -184,7 +184,17 @@ export class ProfileEffects {
         this.store.select(getExperimentIdsFromRoute)
       ),
       map(([, activeProfileName, defaultProfiles, experimentIds]) => {
-        if (activeProfileName || !experimentIds || experimentIds.length !== 1) {
+        // Check both NgRx state and localStorage for active profile name.
+        // On page load, NgRx state may not be updated yet even though
+        // localStorage has the active profile name.
+        const localActiveProfile =
+          this.profileDataSource.getActiveProfileName();
+        if (
+          activeProfileName ||
+          localActiveProfile ||
+          !experimentIds ||
+          experimentIds.length !== 1
+        ) {
           return null;
         }
         const profile = defaultProfiles.get(experimentIds[0]) ?? null;
@@ -218,8 +228,14 @@ export class ProfileEffects {
             this.store.select(getExperimentIdsFromRoute)
           ),
           filter(([, activeProfileName, experimentIds]) => {
+            // Check both NgRx state and localStorage for active profile name.
+            // On page load, NgRx state may not be updated yet even though
+            // localStorage has the active profile name.
+            const localActiveProfile =
+              this.profileDataSource.getActiveProfileName();
             return (
               !activeProfileName &&
+              !localActiveProfile &&
               Boolean(experimentIds) &&
               experimentIds!.length === 1 &&
               experimentIds![0] === experimentId
