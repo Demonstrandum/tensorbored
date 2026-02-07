@@ -537,6 +537,14 @@ export class ProfileEffects {
           this.profileDataSource.saveProfile(profile);
           this.profileDataSource.setActiveProfileName(name);
 
+          // Also sync tb-saved-pins to match the profile's pinned cards.
+          // This ensures consistency between the profile system and the
+          // independent pin storage system.
+          window.localStorage.setItem(
+            'tb-saved-pins',
+            JSON.stringify(allPinnedCards)
+          );
+
           return profileActions.profileSaved({profile});
         }
       )
