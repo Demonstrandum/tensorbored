@@ -373,20 +373,15 @@ export class ProfileEffects {
         }
 
         // Handle pinned cards:
-        // Only sync to localStorage for LOCAL profiles (user-saved).
-        // BACKEND profiles should not overwrite user's localStorage state.
+        // Always sync to localStorage so pins persist across refreshes.
+        // For BACKEND profiles, this is safe because they only apply when
+        // there's no existing user state (checked in applyDefaultProfile effects).
         const pinnedCards = profile.pinnedCards;
 
-        if (source === ProfileSource.LOCAL) {
-          // Update localStorage to match the user's saved profile pins.
-          window.localStorage.setItem(
-            'tb-saved-pins',
-            JSON.stringify(pinnedCards)
-          );
-        }
-        // For BACKEND profiles, we don't write to localStorage.
-        // The pins will be applied to the NgRx state but won't persist
-        // to localStorage, so user's subsequent changes will be preserved.
+        window.localStorage.setItem(
+          'tb-saved-pins',
+          JSON.stringify(pinnedCards)
+        );
 
         return metricsActions.profileMetricsSettingsApplied({
           pinnedCards,
