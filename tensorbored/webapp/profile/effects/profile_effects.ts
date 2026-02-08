@@ -190,7 +190,8 @@ export class ProfileEffects {
         const localActiveProfile =
           this.profileDataSource.getActiveProfileName();
 
-        // Also check if user has any saved pins - don't overwrite their state.
+        // Check if user has any saved state - don't overwrite their state.
+        // This includes pins, profiles, and superimposed cards.
         const savedPinsRaw = window.localStorage.getItem('tb-saved-pins');
         const hasSavedPins =
           savedPinsRaw &&
@@ -203,7 +204,6 @@ export class ProfileEffects {
             }
           })();
 
-        // Also check if user has any saved profiles at all.
         const profileIndexRaw =
           window.localStorage.getItem('_tb_profiles_index');
         const hasLocalProfiles =
@@ -217,11 +217,29 @@ export class ProfileEffects {
             }
           })();
 
+        // Also check for superimposed cards in localStorage
+        const superimposedCardsRaw = window.localStorage.getItem(
+          '_tb_superimposed_cards'
+        );
+        const hasSuperimposedCards =
+          superimposedCardsRaw &&
+          (() => {
+            try {
+              const data = JSON.parse(superimposedCardsRaw) as {
+                cards?: unknown;
+              };
+              return Array.isArray(data?.cards) && data.cards.length > 0;
+            } catch {
+              return false;
+            }
+          })();
+
         if (
           activeProfileName ||
           localActiveProfile ||
           hasSavedPins ||
           hasLocalProfiles ||
+          hasSuperimposedCards ||
           !experimentIds ||
           experimentIds.length !== 1
         ) {
@@ -264,7 +282,8 @@ export class ProfileEffects {
             const localActiveProfile =
               this.profileDataSource.getActiveProfileName();
 
-            // Also check if user has any saved pins - don't overwrite their state.
+            // Check if user has any saved state - don't overwrite their state.
+            // This includes pins, profiles, and superimposed cards.
             const savedPinsRaw = window.localStorage.getItem('tb-saved-pins');
             const hasSavedPins =
               savedPinsRaw &&
@@ -277,7 +296,6 @@ export class ProfileEffects {
                 }
               })();
 
-            // Also check if user has any saved profiles at all.
             const profileIndexRaw =
               window.localStorage.getItem('_tb_profiles_index');
             const hasLocalProfiles =
@@ -291,11 +309,29 @@ export class ProfileEffects {
                 }
               })();
 
+            // Also check for superimposed cards in localStorage
+            const superimposedCardsRaw = window.localStorage.getItem(
+              '_tb_superimposed_cards'
+            );
+            const hasSuperimposedCards =
+              superimposedCardsRaw &&
+              (() => {
+                try {
+                  const data = JSON.parse(superimposedCardsRaw) as {
+                    cards?: unknown;
+                  };
+                  return Array.isArray(data?.cards) && data.cards.length > 0;
+                } catch {
+                  return false;
+                }
+              })();
+
             return (
               !activeProfileName &&
               !localActiveProfile &&
               !hasSavedPins &&
               !hasLocalProfiles &&
+              !hasSuperimposedCards &&
               Boolean(experimentIds) &&
               experimentIds!.length === 1 &&
               experimentIds![0] === experimentId
