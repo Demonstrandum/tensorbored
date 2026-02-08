@@ -11,6 +11,7 @@ tf_ts_library(
     srcs = [],
     visibility = [
         "//tensorbored/webapp/feature_flag:__subpackages__",
+        "//tensorbored/webapp/header:__subpackages__",
         "//tensorbored/webapp/webapp_data_source:__subpackages__",
     ],
     deps = [
