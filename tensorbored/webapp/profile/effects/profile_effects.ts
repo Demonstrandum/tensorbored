@@ -189,9 +189,39 @@ export class ProfileEffects {
         // localStorage has the active profile name.
         const localActiveProfile =
           this.profileDataSource.getActiveProfileName();
+
+        // Also check if user has any saved pins - don't overwrite their state.
+        const savedPinsRaw = window.localStorage.getItem('tb-saved-pins');
+        const hasSavedPins =
+          savedPinsRaw &&
+          (() => {
+            try {
+              const pins = JSON.parse(savedPinsRaw) as unknown;
+              return Array.isArray(pins) && pins.length > 0;
+            } catch {
+              return false;
+            }
+          })();
+
+        // Also check if user has any saved profiles at all.
+        const profileIndexRaw =
+          window.localStorage.getItem('_tb_profiles_index');
+        const hasLocalProfiles =
+          profileIndexRaw &&
+          (() => {
+            try {
+              const index = JSON.parse(profileIndexRaw) as unknown;
+              return Array.isArray(index) && index.length > 0;
+            } catch {
+              return false;
+            }
+          })();
+
         if (
           activeProfileName ||
           localActiveProfile ||
+          hasSavedPins ||
+          hasLocalProfiles ||
           !experimentIds ||
           experimentIds.length !== 1
         ) {
@@ -233,9 +263,39 @@ export class ProfileEffects {
             // localStorage has the active profile name.
             const localActiveProfile =
               this.profileDataSource.getActiveProfileName();
+
+            // Also check if user has any saved pins - don't overwrite their state.
+            const savedPinsRaw = window.localStorage.getItem('tb-saved-pins');
+            const hasSavedPins =
+              savedPinsRaw &&
+              (() => {
+                try {
+                  const pins = JSON.parse(savedPinsRaw) as unknown;
+                  return Array.isArray(pins) && pins.length > 0;
+                } catch {
+                  return false;
+                }
+              })();
+
+            // Also check if user has any saved profiles at all.
+            const profileIndexRaw =
+              window.localStorage.getItem('_tb_profiles_index');
+            const hasLocalProfiles =
+              profileIndexRaw &&
+              (() => {
+                try {
+                  const index = JSON.parse(profileIndexRaw) as unknown;
+                  return Array.isArray(index) && index.length > 0;
+                } catch {
+                  return false;
+                }
+              })();
+
             return (
               !activeProfileName &&
               !localActiveProfile &&
+              !hasSavedPins &&
+              !hasLocalProfiles &&
               Boolean(experimentIds) &&
               experimentIds!.length === 1 &&
               experimentIds![0] === experimentId
@@ -277,18 +337,20 @@ export class ProfileEffects {
         }
 
         // Handle pinned cards:
-        // Always sync profile pins to localStorage to ensure consistency.
-        // This makes tb-saved-pins the source of truth for pins on page load.
+        // Only sync to localStorage for LOCAL profiles (user-saved).
+        // BACKEND profiles should not overwrite user's localStorage state.
         const pinnedCards = profile.pinnedCards;
 
-        // Update localStorage to match profile pins.
-        // For LOCAL profiles, this keeps user's saved pins.
-        // For BACKEND profiles, this caches the default pins so they persist
-        // across refreshes even if the profile loading has timing issues.
-        window.localStorage.setItem(
-          'tb-saved-pins',
-          JSON.stringify(pinnedCards)
-        );
+        if (source === ProfileSource.LOCAL) {
+          // Update localStorage to match the user's saved profile pins.
+          window.localStorage.setItem(
+            'tb-saved-pins',
+            JSON.stringify(pinnedCards)
+          );
+        }
+        // For BACKEND profiles, we don't write to localStorage.
+        // The pins will be applied to the NgRx state but won't persist
+        // to localStorage, so user's subsequent changes will be preserved.
 
         return metricsActions.profileMetricsSettingsApplied({
           pinnedCards,

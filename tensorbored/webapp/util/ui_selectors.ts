@@ -150,6 +150,8 @@ export const getRunColorMap = createSelector<
     useDarkMode
   ): Record<string, string> => {
     const colorObject: Record<string, string> = {};
+
+    // First, apply default colors for all runs in the default map.
     defaultRunColorId.forEach((colorId, runId) => {
       let colorHexValue = useDarkMode
         ? colorPalette.inactive.darkHex
@@ -162,6 +164,16 @@ export const getRunColorMap = createSelector<
       }
       colorObject[runId] = colorHexValue;
     });
+
+    // Also include any color overrides for runs not in the default map.
+    // This can happen when a profile is loaded before runs are fetched,
+    // or when run IDs change between sessions.
+    colorOverride.forEach((color, runId) => {
+      if (!colorObject.hasOwnProperty(runId)) {
+        colorObject[runId] = color;
+      }
+    });
+
     return colorObject;
   }
 );
