@@ -15,10 +15,11 @@ limitations under the License.
 import {Injectable} from '@angular/core';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {Store} from '@ngrx/store';
-import {EMPTY, from, of} from 'rxjs';
+import {combineLatest, EMPTY, from, of} from 'rxjs';
 import {
   catchError,
   filter,
+  first,
   map,
   mergeMap,
   switchMap,
@@ -88,11 +89,6 @@ function hasStoredRunSelection(): boolean {
  */
 @Injectable()
 export class ProfileEffects {
-  // Flag to prevent multiple default profile applications in the same session.
-  // Both applyDefaultProfileOnRunsLoaded$ and applyDefaultProfileOnFetch$ can
-  // potentially fire, and we only want one to succeed.
-  private hasAppliedDefaultProfile = false;
-
   constructor(
     private readonly actions$: Actions,
     private readonly store: Store<State>,
@@ -180,23 +176,38 @@ export class ProfileEffects {
     )
   );
 
-  applyDefaultProfileOnRunsLoaded$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(runsActions.fetchRunsSucceeded),
+  /**
+   * Apply default profile when BOTH conditions are met:
+   * 1. Runs have been loaded (fetchRunsSucceeded)
+   * 2. Default profile has been fetched (defaultProfileFetched with a profile)
+   *
+   * Uses combineLatest to wait for both, and first() to only apply once.
+   */
+  applyDefaultProfile$ = createEffect(() =>
+    combineLatest([
+      // Wait for runs to load
+      this.actions$.pipe(
+        ofType(runsActions.fetchRunsSucceeded),
+        take(1)
+      ),
+      // Wait for default profile to be fetched
+      this.actions$.pipe(
+        ofType(profileActions.defaultProfileFetched),
+        filter(({profile}) => Boolean(profile)),
+        take(1)
+      ),
+    ]).pipe(
+      first(), // Only emit once when both conditions are met
       withLatestFrom(
         this.store.select(profileSelectors.getActiveProfileName),
-        this.store.select(profileSelectors.getDefaultProfiles),
         this.store.select(getExperimentIdsFromRoute)
       ),
-      map(([, activeProfileName, defaultProfiles, experimentIds]) => {
+      map(([[, {profile}], activeProfileName, experimentIds]) => {
         // Check both NgRx state and localStorage for active profile name.
-        // On page load, NgRx state may not be updated yet even though
-        // localStorage has the active profile name.
         const localActiveProfile =
           this.profileDataSource.getActiveProfileName();
 
         // Check if user has any saved state - don't overwrite their state.
-        // This includes pins, profiles, and superimposed cards.
         const savedPinsRaw = window.localStorage.getItem('tb-saved-pins');
         const hasSavedPins =
           savedPinsRaw &&
@@ -222,7 +233,6 @@ export class ProfileEffects {
             }
           })();
 
-        // Also check for superimposed cards in localStorage
         const superimposedCardsRaw = window.localStorage.getItem(
           '_tb_superimposed_cards'
         );
@@ -240,7 +250,6 @@ export class ProfileEffects {
           })();
 
         if (
-          this.hasAppliedDefaultProfile ||
           activeProfileName ||
           localActiveProfile ||
           hasSavedPins ||
@@ -251,13 +260,9 @@ export class ProfileEffects {
         ) {
           return null;
         }
-        const profile = defaultProfiles.get(experimentIds[0]) ?? null;
-        if (!profile) {
-          return null;
-        }
-        this.hasAppliedDefaultProfile = true;
+
         return profileActions.profileActivated({
-          profile,
+          profile: profile as ProfileData,
           source: ProfileSource.BACKEND,
         });
       }),
@@ -266,97 +271,6 @@ export class ProfileEffects {
           action
         ): action is ReturnType<typeof profileActions.profileActivated> =>
           action !== null
-      )
-    )
-  );
-
-  applyDefaultProfileOnFetch$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(profileActions.defaultProfileFetched),
-      filter(({profile}) => Boolean(profile)),
-      switchMap(({profile, experimentId}) =>
-        this.store.select(getRunsLoadState, {experimentId}).pipe(
-          filter((loadState) => loadState.state === DataLoadState.LOADED),
-          take(1),
-          withLatestFrom(
-            this.store.select(profileSelectors.getActiveProfileName),
-            this.store.select(getExperimentIdsFromRoute)
-          ),
-          filter(([, activeProfileName, experimentIds]) => {
-            // Check both NgRx state and localStorage for active profile name.
-            // On page load, NgRx state may not be updated yet even though
-            // localStorage has the active profile name.
-            const localActiveProfile =
-              this.profileDataSource.getActiveProfileName();
-
-            // Check if user has any saved state - don't overwrite their state.
-            // This includes pins, profiles, and superimposed cards.
-            const savedPinsRaw = window.localStorage.getItem('tb-saved-pins');
-            const hasSavedPins =
-              savedPinsRaw &&
-              (() => {
-                try {
-                  const pins = JSON.parse(savedPinsRaw) as unknown;
-                  return Array.isArray(pins) && pins.length > 0;
-                } catch {
-                  return false;
-                }
-              })();
-
-            const profileIndexRaw =
-              window.localStorage.getItem('_tb_profiles_index');
-            const hasLocalProfiles =
-              profileIndexRaw &&
-              (() => {
-                try {
-                  const index = JSON.parse(profileIndexRaw) as unknown;
-                  return Array.isArray(index) && index.length > 0;
-                } catch {
-                  return false;
-                }
-              })();
-
-            // Also check for superimposed cards in localStorage
-            const superimposedCardsRaw = window.localStorage.getItem(
-              '_tb_superimposed_cards'
-            );
-            const hasSuperimposedCards =
-              superimposedCardsRaw &&
-              (() => {
-                try {
-                  const data = JSON.parse(superimposedCardsRaw) as {
-                    cards?: unknown;
-                  };
-                  return Array.isArray(data?.cards) && data.cards.length > 0;
-                } catch {
-                  return false;
-                }
-              })();
-
-            if (this.hasAppliedDefaultProfile) {
-              return false;
-            }
-            return (
-              !activeProfileName &&
-              !localActiveProfile &&
-              !hasSavedPins &&
-              !hasLocalProfiles &&
-              !hasSuperimposedCards &&
-              Boolean(experimentIds) &&
-              experimentIds!.length === 1 &&
-              experimentIds![0] === experimentId
-            );
-          }),
-          tap(() => {
-            this.hasAppliedDefaultProfile = true;
-          }),
-          map(() =>
-            profileActions.profileActivated({
-              profile: profile as ProfileData,
-              source: ProfileSource.BACKEND,
-            })
-          )
-        )
       )
     )
   );
