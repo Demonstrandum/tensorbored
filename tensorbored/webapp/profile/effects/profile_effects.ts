@@ -276,62 +276,19 @@ export class ProfileEffects {
           }
         }
 
-        // Handle pinned cards based on profile source:
-        // - LOCAL profiles (user-saved): Use the profile's pins directly, since
-        //   the user explicitly saved this configuration.
-        // - BACKEND profiles (default from logdir): Merge with localStorage pins,
-        //   since user customizations should be preserved when loading defaults.
-        let pinnedCards: CardUniqueInfo[];
+        // Handle pinned cards:
+        // Always sync profile pins to localStorage to ensure consistency.
+        // This makes tb-saved-pins the source of truth for pins on page load.
+        const pinnedCards = profile.pinnedCards;
 
-        if (source === ProfileSource.LOCAL) {
-          // For user-saved profiles, use the profile's pins directly.
-          // Also update localStorage to match the profile (sync state).
-          pinnedCards = profile.pinnedCards;
-          window.localStorage.setItem(
-            'tb-saved-pins',
-            JSON.stringify(pinnedCards)
-          );
-        } else {
-          // For backend/default profiles, merge with localStorage pins.
-          const cardKey = (card: CardUniqueInfo): string => {
-            return `${card.plugin}|${card.tag}|${card.runId ?? ''}|${
-              card.sample ?? ''
-            }`;
-          };
-
-          const seenCards = new Set<string>();
-          const mergedPins: CardUniqueInfo[] = [];
-
-          // First add localStorage pins (user's explicit customizations)
-          const storedPins = window.localStorage.getItem('tb-saved-pins');
-          if (storedPins) {
-            try {
-              const parsed = JSON.parse(storedPins) as CardUniqueInfo[];
-              if (Array.isArray(parsed)) {
-                for (const pin of parsed) {
-                  const key = cardKey(pin);
-                  if (!seenCards.has(key)) {
-                    seenCards.add(key);
-                    mergedPins.push(pin);
-                  }
-                }
-              }
-            } catch {
-              // Invalid JSON, skip localStorage pins
-            }
-          }
-
-          // Then add profile's pins (if not already present from localStorage)
-          for (const pin of profile.pinnedCards) {
-            const key = cardKey(pin);
-            if (!seenCards.has(key)) {
-              seenCards.add(key);
-              mergedPins.push(pin);
-            }
-          }
-
-          pinnedCards = mergedPins;
-        }
+        // Update localStorage to match profile pins.
+        // For LOCAL profiles, this keeps user's saved pins.
+        // For BACKEND profiles, this caches the default pins so they persist
+        // across refreshes even if the profile loading has timing issues.
+        window.localStorage.setItem(
+          'tb-saved-pins',
+          JSON.stringify(pinnedCards)
+        );
 
         return metricsActions.profileMetricsSettingsApplied({
           pinnedCards,
