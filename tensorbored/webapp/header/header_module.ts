@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 // Uses `async` pipe.
 import {CommonModule} from '@angular/common';
+import {HttpClientModule} from '@angular/common/http';
 import {NgModule} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
@@ -24,6 +25,7 @@ import {MatToolbarModule} from '@angular/material/toolbar';
 import {CoreModule} from '../core/core_module';
 import {ProfileMenuModule} from '../profile/views/profile_menu_module';
 import {SettingsModule} from '../settings/settings_module';
+import {BuildBadgeComponent} from './build_badge_component';
 import {DarkModeToggleComponent} from './dark_mode_toggle_component';
 import {DarkModeToggleContainer} from './dark_mode_toggle_container';
 import {HeaderComponent} from './header_component';
@@ -33,6 +35,7 @@ import {ReloadContainer} from './reload_container';
 
 @NgModule({
   declarations: [
+    BuildBadgeComponent,
     DarkModeToggleComponent,
     DarkModeToggleContainer,
     HeaderComponent,
@@ -41,6 +44,7 @@ import {ReloadContainer} from './reload_container';
     ReloadContainer,
   ],
   exports: [
+    BuildBadgeComponent,
     DarkModeToggleContainer,
     HeaderComponent,
     PluginSelectorContainer,
@@ -48,6 +52,7 @@ import {ReloadContainer} from './reload_container';
   ],
   providers: [],
   imports: [
+    HttpClientModule,
     MatButtonModule,
     MatIconModule,
     MatTabsModule,

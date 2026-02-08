@@ -20,6 +20,7 @@ import {Component} from '@angular/core';
   template: `
     <mat-toolbar>
       <span class="brand">TensorBored</span>
+      <build-badge></build-badge>
       <plugin-selector class="plugins"></plugin-selector>
       <tb-profile-menu class="profile-menu"></tb-profile-menu>
       <app-header-dark-mode-toggle></app-header-dark-mode-toggle>
