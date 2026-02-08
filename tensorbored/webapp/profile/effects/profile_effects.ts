@@ -186,10 +186,7 @@ export class ProfileEffects {
   applyDefaultProfile$ = createEffect(() =>
     combineLatest([
       // Wait for runs to load
-      this.actions$.pipe(
-        ofType(runsActions.fetchRunsSucceeded),
-        take(1)
-      ),
+      this.actions$.pipe(ofType(runsActions.fetchRunsSucceeded), take(1)),
       // Wait for default profile to be fetched
       this.actions$.pipe(
         ofType(profileActions.defaultProfileFetched),
