@@ -88,6 +88,11 @@ function hasStoredRunSelection(): boolean {
  */
 @Injectable()
 export class ProfileEffects {
+  // Flag to prevent multiple default profile applications in the same session.
+  // Both applyDefaultProfileOnRunsLoaded$ and applyDefaultProfileOnFetch$ can
+  // potentially fire, and we only want one to succeed.
+  private hasAppliedDefaultProfile = false;
+
   constructor(
     private readonly actions$: Actions,
     private readonly store: Store<State>,
@@ -235,6 +240,7 @@ export class ProfileEffects {
           })();
 
         if (
+          this.hasAppliedDefaultProfile ||
           activeProfileName ||
           localActiveProfile ||
           hasSavedPins ||
@@ -249,6 +255,7 @@ export class ProfileEffects {
         if (!profile) {
           return null;
         }
+        this.hasAppliedDefaultProfile = true;
         return profileActions.profileActivated({
           profile,
           source: ProfileSource.BACKEND,
@@ -326,6 +333,9 @@ export class ProfileEffects {
                 }
               })();
 
+            if (this.hasAppliedDefaultProfile) {
+              return false;
+            }
             return (
               !activeProfileName &&
               !localActiveProfile &&
@@ -336,6 +346,9 @@ export class ProfileEffects {
               experimentIds!.length === 1 &&
               experimentIds![0] === experimentId
             );
+          }),
+          tap(() => {
+            this.hasAppliedDefaultProfile = true;
           }),
           map(() =>
             profileActions.profileActivated({
