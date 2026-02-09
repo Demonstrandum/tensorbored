@@ -1860,9 +1860,9 @@ const reducer = createReducer(
     actions.profileMetricsSettingsApplied,
     (state, {pinnedCards, superimposedCards, tagFilter, smoothing}) => {
       // Clear existing pins and apply profile's pins
-      const nextCardMetadataMap = {...state.cardMetadataMap};
-      const nextCardStepIndex = {...state.cardStepIndex};
-      const nextCardStateMap = {...state.cardStateMap};
+      let nextCardMetadataMap = {...state.cardMetadataMap};
+      let nextCardStepIndex = {...state.cardStepIndex};
+      let nextCardStateMap = {...state.cardStateMap};
 
       // Remove existing pinned cards
       for (const cardId of state.pinnedCardToOriginal.keys()) {
@@ -1871,12 +1871,14 @@ const reducer = createReducer(
         delete nextCardStateMap[cardId];
       }
 
-      // Build set of existing tag combinations for superimposed cards
+      // Build set of existing tag combinations AND IDs for superimposed cards
       const existingTagSets = new Set<string>();
+      const existingIds = new Set<string>();
       for (const id of state.superimposedCardList) {
         const metadata = state.superimposedCardMetadataMap[id];
         if (metadata) {
           existingTagSets.add([...metadata.tags].sort().join('|'));
+          existingIds.add(id);
         }
       }
 
@@ -1893,6 +1895,11 @@ const reducer = createReducer(
           continue;
         }
 
+        // Skip if a card with this ID is already in the list (duplicate IDs)
+        if (existingIds.has(card.id)) {
+          continue;
+        }
+
         const metadata: SuperimposedCardMetadata = {
           id: card.id,
           title: card.title,
@@ -1903,15 +1910,43 @@ const reducer = createReducer(
         nextSuperimposedCardList.push(card.id);
         nextSuperimposedCardMetadataMap[card.id] = metadata;
         existingTagSets.add(tagSetKey);
+        existingIds.add(card.id);
+      }
+
+      // Try to resolve pinned cards immediately if card metadata exists
+      let nextCardToPinnedCopy = new Map() as CardToPinnedCard;
+      let nextCardToPinnedCopyCache = new Map() as CardToPinnedCard;
+      let nextPinnedCardToOriginal = new Map() as PinnedCardToCard;
+      let nextUnresolvedImportedPinnedCards = pinnedCards;
+
+      if (state.cardList.length > 0) {
+        const resolvedResult = buildOrReturnStateWithUnresolvedImportedPins(
+          pinnedCards,
+          state.cardList,
+          nextCardMetadataMap,
+          nextCardToPinnedCopy,
+          nextCardToPinnedCopyCache,
+          nextPinnedCardToOriginal,
+          nextCardStepIndex,
+          nextCardStateMap
+        );
+        nextCardToPinnedCopy = resolvedResult.cardToPinnedCopy;
+        nextCardToPinnedCopyCache = resolvedResult.cardToPinnedCopyCache;
+        nextPinnedCardToOriginal = resolvedResult.pinnedCardToOriginal;
+        nextCardMetadataMap = resolvedResult.cardMetadataMap;
+        nextCardStepIndex = resolvedResult.cardStepIndex;
+        nextCardStateMap = resolvedResult.cardStateMap;
+        nextUnresolvedImportedPinnedCards =
+          resolvedResult.unresolvedImportedPinnedCards;
       }
 
       return {
         ...state,
-        // Reset pinned cards to apply from profile
-        cardToPinnedCopy: new Map() as CardToPinnedCard,
-        cardToPinnedCopyCache: new Map() as CardToPinnedCard,
-        pinnedCardToOriginal: new Map() as PinnedCardToCard,
-        unresolvedImportedPinnedCards: pinnedCards,
+        // Apply resolved or unresolved pinned cards
+        cardToPinnedCopy: nextCardToPinnedCopy,
+        cardToPinnedCopyCache: nextCardToPinnedCopyCache,
+        pinnedCardToOriginal: nextPinnedCardToOriginal,
+        unresolvedImportedPinnedCards: nextUnresolvedImportedPinnedCards,
         cardMetadataMap: nextCardMetadataMap,
         cardStateMap: nextCardStateMap,
         cardStepIndex: nextCardStepIndex,
@@ -1930,13 +1965,15 @@ const reducer = createReducer(
 
   // Load superimposed cards from localStorage
   on(actions.superimposedCardsLoaded, (state, {superimposedCards}) => {
-    // Build set of existing tag combinations
+    // Build set of existing tag combinations AND IDs
     const existingTagSets = new Set<string>();
+    const existingIds = new Set<string>();
 
     for (const id of state.superimposedCardList) {
       const metadata = state.superimposedCardMetadataMap[id];
       if (metadata) {
         existingTagSets.add([...metadata.tags].sort().join('|'));
+        existingIds.add(id);
       }
     }
 
@@ -1952,6 +1989,10 @@ const reducer = createReducer(
       if (existingTagSets.has(tagSetKey)) {
         continue;
       }
+      // Skip if a card with this ID is already in the list
+      if (existingIds.has(card.id)) {
+        continue;
+      }
 
       const metadata: SuperimposedCardMetadata = {
         id: card.id,
@@ -1963,6 +2004,7 @@ const reducer = createReducer(
       nextSuperimposedCardList.push(card.id);
       nextSuperimposedCardMetadataMap[card.id] = metadata;
       existingTagSets.add(tagSetKey);
+      existingIds.add(card.id);
     }
 
     return {

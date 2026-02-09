@@ -650,7 +650,9 @@ export class MetricsEffects implements OnInitEffects {
         actions.superimposedCardTagRemoved,
         actions.superimposedCardDeleted,
         actions.superimposedCardTitleChanged,
-        actions.superimposedCardCreatedFromCards
+        actions.superimposedCardCreatedFromCards,
+        actions.profileMetricsSettingsApplied,
+        actions.superimposedCardsLoaded
       ),
       debounceTime(200),
       withLatestFrom(this.store.select(getSuperimposedCardsWithMetadata)),
