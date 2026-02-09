@@ -7,6 +7,15 @@ pip install tensorbored
 tensorbored --logdir ./logs   # that's it. reads your existing tfevents.
 ```
 
+- [Stable run colours](#your-colours-keep-shuffling-fixed) — deterministic, or set them from Python
+- [Superimposed plots](#you-cant-compare-two-metrics-on-the-same-chart-you-can-now) — multiple metrics on one chart
+- [Dashboard profiles](#your-dashboard-resets-on-every-refresh-not-any-more) — persistent, exportable, configurable from Python
+- [Log & symlog axes](#no-log-scale-on-the-x-axis-and-no-way-to-handle-negatives-fixed) — both axes, handles negatives
+- [Pinned card reordering](#pinned-cards-are-stuck-in-the-order-you-pinned-them-not-here) — drag-and-drop
+- [Metric descriptions](#you-have-50-metrics-and-cant-remember-what-aux_head_3nll-means-add-descriptions) — hover tooltips from Python
+- [Default run visibility](#you-open-the-dashboard-and-everything-is-blank-thats-gone) — no more blank dashboards
+- [Persistent tag filter](#the-tag-filter-keeps-resetting-it-remembers-now) — survives refresh
+
 ---
 
 ## Your colours keep shuffling? Fixed.
