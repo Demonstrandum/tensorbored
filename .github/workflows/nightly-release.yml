@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   id-token: write # Needed for PyPI OIDC trusted publishing
+  pull-requests: write # Needed by ci.yml for PR preview comments
 
 jobs:
   ci:
@@ -23,7 +24,7 @@ jobs:
       - name: Download pip package
         uses: actions/download-artifact@v4
         with:
-          pattern: tensorbored-nightly_py*
+          pattern: tensorbored-wheel_py*
           # Download all matching artifacts in the same directory (specified by path)
           merge-multiple: true
           path: wheels
