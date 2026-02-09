@@ -26,6 +26,12 @@ import {RouteKind} from '../../app_routing/types';
 import {DataLoadState} from '../../types/data';
 import {composeReducers} from '../../util/ngrx';
 import {DEFAULT_PALETTE} from '../../util/colors';
+import {
+  fnv1a32,
+  hashToHue,
+  hueDist,
+  MIN_HUE_DISTANCE,
+} from '../../util/oklch_colors';
 import * as runsActions from '../actions';
 import {GroupBy, GroupByKey, URLDeserializedState} from '../types';
 import {
@@ -40,37 +46,6 @@ import {
 } from './runs_types';
 import {createGroupBy, groupRuns} from './utils';
 import {ColumnHeaderType, SortingOrder} from '../../widgets/data_table/types';
-
-type Rgb = {r: number; g: number; b: number};
-
-const DEFAULT_RUN_COLORS = DEFAULT_PALETTE.colors.map(
-  (color) => color.lightHex
-);
-const DEFAULT_RUN_COLORS_RGB: Rgb[] = DEFAULT_RUN_COLORS.map((hex) => {
-  const normalized = hex.startsWith('#') ? hex.slice(1) : hex;
-  // Expected format: RRGGBB.
-  const r = parseInt(normalized.slice(0, 2), 16);
-  const g = parseInt(normalized.slice(2, 4), 16);
-  const b = parseInt(normalized.slice(4, 6), 16);
-  return {r, g, b};
-});
-
-function rgbDistSq(a: Rgb, b: Rgb): number {
-  const dr = a.r - b.r;
-  const dg = a.g - b.g;
-  const db = a.b - b.b;
-  return dr * dr + dg * dg + db * db;
-}
-
-function fnv1a32(input: string): number {
-  // 32-bit FNV-1a.
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return hash >>> 0;
-}
 
 function getGroupByScopeKey(groupBy: GroupBy): string {
   switch (groupBy.key) {
@@ -89,34 +64,60 @@ function makeScopedGroupKey(scopeKey: string, groupId: string): string {
   return `${scopeKey}|${groupId}`;
 }
 
+/**
+ * Picks a 32-bit FNV hash (used as a color-ID) for a group key,
+ * ensuring its OKLCH hue is sufficiently distant from all already-used hues.
+ *
+ * Unlike the previous 7-color palette approach, this maps each group to a
+ * position on the full 360-degree OKLCH hue wheel, giving far more distinct
+ * colors before collisions occur.
+ */
 function pickColorIdForGroupKey(groupKey: string, used: Set<number>): number {
-  const paletteLen = DEFAULT_RUN_COLORS_RGB.length;
-  const preferred = fnv1a32(groupKey) % paletteLen;
-  if (!used.has(preferred)) return preferred;
-  if (used.size >= paletteLen) return preferred;
+  const preferred = fnv1a32(groupKey);
+  const usedHues: number[] = [];
+  for (const u of used) {
+    usedHues.push(hashToHue(u));
+  }
 
-  // Choose the unused color that maximizes minimum distance to all used colors.
-  let bestIdx = -1;
-  let bestMinDist = -1;
-  let bestTie = 0;
-  for (let idx = 0; idx < paletteLen; idx++) {
-    if (used.has(idx)) continue;
-    let minDist = Infinity;
-    for (const usedIdx of used) {
-      const dist = rgbDistSq(
-        DEFAULT_RUN_COLORS_RGB[idx],
-        DEFAULT_RUN_COLORS_RGB[usedIdx]
-      );
-      if (dist < minDist) minDist = dist;
-    }
-    const tie = fnv1a32(`${groupKey}:${idx}`);
-    if (minDist > bestMinDist || (minDist === bestMinDist && tie > bestTie)) {
-      bestIdx = idx;
+  const preferredHue = hashToHue(preferred);
+  if (usedHues.length === 0 || isHueDistantLocal(preferredHue, usedHues)) {
+    return preferred;
+  }
+
+  // Try alternative hashes until we find one with sufficient hue distance.
+  let bestHash = preferred;
+  let bestMinDist = minHueDistTo(preferredHue, usedHues);
+
+  for (let attempt = 1; attempt <= 72; attempt++) {
+    const candidate = fnv1a32(`${groupKey}\0${attempt}`);
+    const hue = hashToHue(candidate);
+    const minDist = minHueDistTo(hue, usedHues);
+
+    if (minDist >= MIN_HUE_DISTANCE) return candidate;
+
+    if (minDist > bestMinDist) {
       bestMinDist = minDist;
-      bestTie = tie;
+      bestHash = candidate;
     }
   }
-  return bestIdx >= 0 ? bestIdx : preferred;
+
+  return bestHash;
+}
+
+function isHueDistantLocal(hue: number, usedHues: number[]): boolean {
+  for (const u of usedHues) {
+    if (hueDist(hue, u) < MIN_HUE_DISTANCE) return false;
+  }
+  return true;
+}
+
+function minHueDistTo(hue: number, usedHues: number[]): number {
+  let min = Infinity;
+  for (const u of usedHues) {
+    const d = hueDist(hue, u);
+    if (d < min) min = d;
+  }
+  return min;
 }
 
 const {
