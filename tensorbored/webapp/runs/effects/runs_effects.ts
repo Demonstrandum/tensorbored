@@ -52,10 +52,7 @@ import {
   getRunColorOverride,
   getRunSelectionMap,
 } from '../store/runs_selectors';
-import {
-  hashColorIdToHex,
-  resolveColorClashes,
-} from '../../util/oklch_colors';
+import {hashColorIdToHex, resolveColorClashes} from '../../util/oklch_colors';
 import {getDarkModeEnabled} from '../../feature_flag/store/feature_flag_selectors';
 
 const RUN_COLOR_STORAGE_KEY = '_tb_run_colors.v1';

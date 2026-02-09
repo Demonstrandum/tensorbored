@@ -23,6 +23,8 @@ tf_ng_module(
         "//tensorbored/webapp/runs/data_source",
         "//tensorbored/webapp/runs/store:selectors",
         "//tensorbored/webapp/types",
+        "//tensorbored/webapp/util:oklch_colors",
+        "//tensorbored/webapp/feature_flag/store",
         "//tensorbored/webapp/widgets/data_table:types",
         "@npm//@angular/core",
         "@npm//@ngrx/effects",
