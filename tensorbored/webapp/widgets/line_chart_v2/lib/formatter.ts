@@ -191,37 +191,40 @@ export const wallTimeFormatter: Formatter = {
     return d3TimeTickFormat(new Date(x));
   },
   formatShort(x: number): string {
-    // "Nov 19, 2012, 7:00:00 PM"
+    // "Nov 19, 2012, 19:00:00" (24-hour format)
     return new Date(x).toLocaleString(localeOverride, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
     });
   },
   formatReadable(x: number): string {
-    // "Nov 19, 2012, 7:00:00 PM PST"
+    // "Nov 19, 2012, 19:00:00 PST" (24-hour format)
     return new Date(x).toLocaleString(localeOverride, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
       timeZoneName: 'short',
     });
   },
   formatLong(x: number): string {
-    // "November 19, 2012, 7:00:00.551 PM PST"
+    // "November 19, 2012, 19:00:00.551 PST" (24-hour format)
     return new Date(x).toLocaleString(localeOverride, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
       timeZoneName: 'short',
       // FF 84+ and Chrome 84+ feature.
       fractionalSecondDigits: 3,

@@ -475,7 +475,7 @@ jobs:
           SHORT_SHA="${GITHUB_SHA:0:7}"
 
           python3 << PYPYTHON
-          from huggingface_hub import HfApi, create_repo
+          from huggingface_hub import HfApi, create_repo, list_repo_files
           from huggingface_hub.utils import RepositoryNotFoundError
 
           api = HfApi()
@@ -484,6 +484,15 @@ jobs:
           try:
               api.repo_info(repo_id=repo_id, repo_type="space")
               print(f"Space {repo_id} exists")
+
+              # Delete old wheel files to avoid pip install conflicts
+              # (Dockerfile uses *.whl which would match multiple versions)
+              existing_files = list_repo_files(repo_id=repo_id, repo_type="space")
+              old_wheels = [f for f in existing_files if f.endswith('.whl')]
+              if old_wheels:
+                  print(f"Deleting {len(old_wheels)} old wheel file(s): {old_wheels}")
+                  for wheel_file in old_wheels:
+                      api.delete_file(path_in_repo=wheel_file, repo_id=repo_id, repo_type="space")
           except RepositoryNotFoundError:
               print(f"Creating space {repo_id}")
               create_repo(repo_id=repo_id, repo_type="space", space_sdk="docker", private=False)

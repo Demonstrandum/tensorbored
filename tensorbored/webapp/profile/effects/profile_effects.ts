@@ -15,10 +15,11 @@ limitations under the License.
 import {Injectable} from '@angular/core';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {Store} from '@ngrx/store';
-import {EMPTY, from, of} from 'rxjs';
+import {combineLatest, EMPTY, from, of} from 'rxjs';
 import {
   catchError,
   filter,
+  first,
   map,
   mergeMap,
   switchMap,
@@ -175,24 +176,90 @@ export class ProfileEffects {
     )
   );
 
-  applyDefaultProfileOnRunsLoaded$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(runsActions.fetchRunsSucceeded),
+  /**
+   * Apply default profile when BOTH conditions are met:
+   * 1. Runs have been loaded (fetchRunsSucceeded)
+   * 2. Default profile has been fetched (defaultProfileFetched with a profile)
+   *
+   * Uses combineLatest to wait for both, and first() to only apply once.
+   */
+  applyDefaultProfile$ = createEffect(() =>
+    combineLatest([
+      // Wait for runs to load
+      this.actions$.pipe(ofType(runsActions.fetchRunsSucceeded), take(1)),
+      // Wait for default profile to be fetched
+      this.actions$.pipe(
+        ofType(profileActions.defaultProfileFetched),
+        filter(({profile}) => Boolean(profile)),
+        take(1)
+      ),
+    ]).pipe(
+      first(), // Only emit once when both conditions are met
       withLatestFrom(
         this.store.select(profileSelectors.getActiveProfileName),
-        this.store.select(profileSelectors.getDefaultProfiles),
         this.store.select(getExperimentIdsFromRoute)
       ),
-      map(([, activeProfileName, defaultProfiles, experimentIds]) => {
-        if (activeProfileName || !experimentIds || experimentIds.length !== 1) {
+      map(([[, {profile}], activeProfileName, experimentIds]) => {
+        // Check both NgRx state and localStorage for active profile name.
+        const localActiveProfile =
+          this.profileDataSource.getActiveProfileName();
+
+        // Check if user has any saved state - don't overwrite their state.
+        const savedPinsRaw = window.localStorage.getItem('tb-saved-pins');
+        const hasSavedPins =
+          savedPinsRaw &&
+          (() => {
+            try {
+              const pins = JSON.parse(savedPinsRaw) as unknown;
+              return Array.isArray(pins) && pins.length > 0;
+            } catch {
+              return false;
+            }
+          })();
+
+        const profileIndexRaw =
+          window.localStorage.getItem('_tb_profiles_index');
+        const hasLocalProfiles =
+          profileIndexRaw &&
+          (() => {
+            try {
+              const index = JSON.parse(profileIndexRaw) as unknown;
+              return Array.isArray(index) && index.length > 0;
+            } catch {
+              return false;
+            }
+          })();
+
+        const superimposedCardsRaw = window.localStorage.getItem(
+          '_tb_superimposed_cards'
+        );
+        const hasSuperimposedCards =
+          superimposedCardsRaw &&
+          (() => {
+            try {
+              const data = JSON.parse(superimposedCardsRaw) as {
+                cards?: unknown;
+              };
+              return Array.isArray(data?.cards) && data.cards.length > 0;
+            } catch {
+              return false;
+            }
+          })();
+
+        if (
+          activeProfileName ||
+          localActiveProfile ||
+          hasSavedPins ||
+          hasLocalProfiles ||
+          hasSuperimposedCards ||
+          !experimentIds ||
+          experimentIds.length !== 1
+        ) {
           return null;
         }
-        const profile = defaultProfiles.get(experimentIds[0]) ?? null;
-        if (!profile) {
-          return null;
-        }
+
         return profileActions.profileActivated({
-          profile,
+          profile: profile as ProfileData,
           source: ProfileSource.BACKEND,
         });
       }),
@@ -205,56 +272,53 @@ export class ProfileEffects {
     )
   );
 
-  applyDefaultProfileOnFetch$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(profileActions.defaultProfileFetched),
-      filter(({profile}) => Boolean(profile)),
-      switchMap(({profile, experimentId}) =>
-        this.store.select(getRunsLoadState, {experimentId}).pipe(
-          filter((loadState) => loadState.state === DataLoadState.LOADED),
-          take(1),
-          withLatestFrom(
-            this.store.select(profileSelectors.getActiveProfileName),
-            this.store.select(getExperimentIdsFromRoute)
-          ),
-          filter(([, activeProfileName, experimentIds]) => {
-            return (
-              !activeProfileName &&
-              Boolean(experimentIds) &&
-              experimentIds!.length === 1 &&
-              experimentIds![0] === experimentId
-            );
-          }),
-          map(() =>
-            profileActions.profileActivated({
-              profile: profile as ProfileData,
-              source: ProfileSource.BACKEND,
-            })
-          )
-        )
-      )
-    )
-  );
-
   /**
    * Apply profile settings to metrics state.
    */
   applyProfileToMetrics$ = createEffect(() =>
     this.actions$.pipe(
       ofType(profileActions.profileActivated),
-      map(({profile}) =>
-        metricsActions.profileMetricsSettingsApplied({
-          pinnedCards: profile.pinnedCards,
+      map(({profile, source}) => {
+        // Check if user has a tag filter stored in localStorage.
+        // If so, prefer that over the profile's tag filter.
+        let tagFilter = profile.tagFilter;
+        const storedTagFilter =
+          window.localStorage.getItem('_tb_tag_filter.v1');
+        if (storedTagFilter) {
+          try {
+            const parsed = JSON.parse(storedTagFilter) as {value?: string};
+            if (typeof parsed.value === 'string') {
+              // User has explicitly set/cleared the tag filter - use that instead
+              tagFilter = parsed.value;
+            }
+          } catch {
+            // Invalid JSON, use profile's tagFilter
+          }
+        }
+
+        // Handle pinned cards:
+        // Always sync to localStorage so pins persist across refreshes.
+        // For BACKEND profiles, this is safe because they only apply when
+        // there's no existing user state (checked in applyDefaultProfile effects).
+        const pinnedCards = profile.pinnedCards;
+
+        window.localStorage.setItem(
+          'tb-saved-pins',
+          JSON.stringify(pinnedCards)
+        );
+
+        return metricsActions.profileMetricsSettingsApplied({
+          pinnedCards,
           superimposedCards: profile.superimposedCards.map((card) => ({
             id: card.id,
             title: card.title,
             tags: card.tags,
             runId: card.runId,
           })),
-          tagFilter: profile.tagFilter,
+          tagFilter,
           smoothing: profile.smoothing,
-        })
-      )
+        });
+      })
     )
   );
 
@@ -327,9 +391,11 @@ export class ProfileEffects {
           }
         }
 
+        // Runs not explicitly listed in the profile selection should be visible
+        // by default. Only runs explicitly set to false should be hidden.
         for (const run of runs) {
           if (!selectionMap.has(run.id)) {
-            selectionMap.set(run.id, false);
+            selectionMap.set(run.id, true);
           }
         }
 
@@ -375,21 +441,25 @@ export class ProfileEffects {
           runs,
         ]) => {
           // Convert pinned cards to CardUniqueInfo format
-          const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map(
-            (card: CardIdWithMetadata) => {
-              const info: CardUniqueInfo = {
-                plugin: card.plugin,
-                tag: card.tag,
-              };
-              if (isSingleRunPlugin(card.plugin) && card.runId) {
-                info.runId = card.runId;
-              }
-              if (isSampledPlugin(card.plugin) && card.sample !== undefined) {
-                info.sample = card.sample;
-              }
-              return info;
+          const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map((card) => {
+            const info: CardUniqueInfo = {
+              plugin: card.plugin,
+              tag: card.tag,
+            };
+            if (isSingleRunPlugin(card.plugin) && card.runId) {
+              info.runId = card.runId;
             }
-          );
+            if (isSampledPlugin(card.plugin) && card.sample !== undefined) {
+              info.sample = card.sample;
+            }
+            if (card.tags !== undefined) {
+              info.tags = [...card.tags];
+            }
+            if (card.title !== undefined) {
+              info.title = card.title;
+            }
+            return info;
+          });
 
           // Include unresolved imported pinned cards
           const allPinnedCards = [...pinnedCardsInfo, ...unresolvedPinnedCards];
@@ -440,6 +510,14 @@ export class ProfileEffects {
           // Save to localStorage
           this.profileDataSource.saveProfile(profile);
           this.profileDataSource.setActiveProfileName(name);
+
+          // Also sync tb-saved-pins to match the profile's pinned cards.
+          // This ensures consistency between the profile system and the
+          // independent pin storage system.
+          window.localStorage.setItem(
+            'tb-saved-pins',
+            JSON.stringify(allPinnedCards)
+          );
 
           return profileActions.profileSaved({profile});
         }

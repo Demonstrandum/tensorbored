@@ -25,7 +25,7 @@ import {SuperimposedCardModule} from './superimposed_card_module';
 
 @NgModule({
   declarations: [CardLazyLoader, CardViewComponent, CardViewContainer],
-  exports: [CardLazyLoader, CardViewContainer],
+  exports: [CardLazyLoader, CardViewContainer, SuperimposedCardModule],
   imports: [
     CommonModule,
     ImageCardModule,

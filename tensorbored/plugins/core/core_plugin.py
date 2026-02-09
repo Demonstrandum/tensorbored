@@ -86,6 +86,7 @@ class CorePlugin(base_plugin.TBPlugin):
         apps = {
             "/___rPc_sWiTcH___": self._send_404_without_logging,
             "/audio": self._redirect_to_index,
+            "/data/build_info": self._serve_build_info,
             "/data/environment": self._serve_environment,
             "/data/logdir": self._serve_logdir,
             "/data/runs": self._serve_runs,
@@ -248,6 +249,33 @@ class CorePlugin(base_plugin.TBPlugin):
         return http_util.Respond(
             request, {"window_title": self._window_title}, "application/json"
         )
+
+    @wrappers.Request.application
+    def _serve_build_info(self, request):
+        """Serve build info for preview deployments.
+
+        Reads from /tmp/.build-version which is present in HuggingFace Spaces
+        PR preview deployments. Returns 404 if not available.
+        """
+        build_version_path = "/tmp/.build-version"
+        if not os.path.exists(build_version_path):
+            return http_util.Respond(
+                request, "Build info not available", "text/plain", code=404
+            )
+
+        try:
+            build_info = {}
+            with open(build_version_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if "=" in line:
+                        key, value = line.split("=", 1)
+                        build_info[key] = value
+            return http_util.Respond(request, build_info, "application/json")
+        except Exception:
+            return http_util.Respond(
+                request, "Build info not available", "text/plain", code=404
+            )
 
     @wrappers.Request.application
     def _serve_runs(self, request):

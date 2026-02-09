@@ -254,6 +254,18 @@ export class RunsEffects {
           const stored = safeParseStoredRunSelection(
             window.localStorage.getItem(RUN_SELECTION_STORAGE_KEY)
           );
+          // If stored selection exists but ALL runs are set to false (none visible),
+          // don't apply it. Let the default behavior (all runs visible) take over.
+          // This prevents the bad UX of loading a page with all runs hidden.
+          const hasAnyVisibleRuns = stored.runSelection.some(
+            ([, selected]) => selected
+          );
+          if (stored.runSelection.length > 0 && !hasAnyVisibleRuns) {
+            // Return empty selection so default behavior applies
+            return actions.runSelectionStateLoaded({
+              runSelection: [],
+            });
+          }
           return actions.runSelectionStateLoaded({
             runSelection: stored.runSelection,
           });

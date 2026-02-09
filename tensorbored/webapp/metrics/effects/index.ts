@@ -18,6 +18,7 @@ import {Action, createAction, createSelector, Store} from '@ngrx/store';
 import {forkJoin, merge, Observable, of} from 'rxjs';
 import {
   catchError,
+  debounceTime,
   throttleTime,
   filter,
   map,
@@ -27,6 +28,46 @@ import {
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
+
+const TAG_FILTER_STORAGE_KEY = '_tb_tag_filter.v1';
+const SUPERIMPOSED_CARDS_STORAGE_KEY = '_tb_superimposed_cards.v1';
+
+type StoredSuperimposedCard = {
+  id: string;
+  title: string;
+  tags: string[];
+  runId: string | null;
+};
+
+type StoredSuperimposedCardsV1 = {
+  version: 1;
+  cards: StoredSuperimposedCard[];
+};
+
+function safeParseStoredSuperimposedCards(
+  serialized: string | null
+): StoredSuperimposedCardsV1 {
+  if (!serialized) {
+    return {version: 1, cards: []};
+  }
+  try {
+    const parsed = JSON.parse(serialized) as Partial<StoredSuperimposedCardsV1>;
+    if (parsed.version !== 1 || !Array.isArray(parsed.cards)) {
+      return {version: 1, cards: []};
+    }
+    // Validate each card has required fields
+    const validCards = parsed.cards.filter(
+      (card) =>
+        typeof card.id === 'string' &&
+        typeof card.title === 'string' &&
+        Array.isArray(card.tags) &&
+        card.tags.length > 0
+    );
+    return {version: 1, cards: validCards};
+  } catch {
+    return {version: 1, cards: []};
+  }
+}
 import * as routingActions from '../../app_routing/actions';
 import {State} from '../../app_state';
 import * as coreActions from '../../core/actions';
@@ -48,6 +89,7 @@ import {
   getCardLoadState,
   getCardMetadata,
   getMetricsTagMetadataLoadState,
+  getSuperimposedCardsWithMetadata,
 } from '../store';
 import {CardId, CardMetadata, CardUniqueInfo, PluginType} from '../types';
 
@@ -63,7 +105,27 @@ const getCardFetchInfo = createSelector(
     if (!maybeMetadata) {
       return null;
     }
-    return {...maybeMetadata, loadState, id: cardId};
+    // Explicitly construct CardFetchInfo to handle optional properties correctly
+    const result: CardFetchInfo = {
+      plugin: maybeMetadata.plugin,
+      tag: maybeMetadata.tag,
+      runId: maybeMetadata.runId,
+      loadState,
+      id: cardId,
+    };
+    if (maybeMetadata.sample !== undefined) {
+      result.sample = maybeMetadata.sample;
+    }
+    if (maybeMetadata.numSample !== undefined) {
+      result.numSample = maybeMetadata.numSample;
+    }
+    if (maybeMetadata.tags !== undefined) {
+      result.tags = [...maybeMetadata.tags];
+    }
+    if (maybeMetadata.title !== undefined) {
+      result.title = maybeMetadata.title;
+    }
+    return result;
   }
 );
 
@@ -540,6 +602,91 @@ export class MetricsEffects implements OnInitEffects {
       })
     );
 
+    // Persist tag filter to localStorage when user changes it
+    this.persistTagFilter$ = this.actions$.pipe(
+      ofType(actions.metricsTagFilterChanged),
+      debounceTime(200),
+      tap(({tagFilter}) => {
+        // Store the user-set tag filter value. Empty string means user cleared it.
+        window.localStorage.setItem(
+          TAG_FILTER_STORAGE_KEY,
+          JSON.stringify({value: tagFilter, timestamp: Date.now()})
+        );
+      })
+    );
+
+    // Load tag filter from localStorage on navigation (overrides profile value if set)
+    this.loadTagFilterFromStorage$ = this.actions$.pipe(
+      ofType(routingActions.navigated),
+      take(1),
+      map(() => {
+        const stored = window.localStorage.getItem(TAG_FILTER_STORAGE_KEY);
+        if (!stored) {
+          return null;
+        }
+        try {
+          const parsed = JSON.parse(stored) as {
+            value?: string;
+            timestamp?: number;
+          };
+          // Only apply if the value exists (including empty string which means cleared)
+          if (typeof parsed.value === 'string') {
+            return parsed.value;
+          }
+        } catch {
+          // Invalid JSON, ignore
+        }
+        return null;
+      }),
+      filter((value): value is string => value !== null),
+      map((tagFilter) => actions.metricsTagFilterChanged({tagFilter}))
+    );
+
+    // Persist superimposed cards to localStorage when they change
+    this.persistSuperimposedCards$ = this.actions$.pipe(
+      ofType(
+        actions.superimposedCardCreated,
+        actions.superimposedCardTagAdded,
+        actions.superimposedCardTagRemoved,
+        actions.superimposedCardDeleted,
+        actions.superimposedCardTitleChanged,
+        actions.superimposedCardCreatedFromCards
+      ),
+      debounceTime(200),
+      withLatestFrom(this.store.select(getSuperimposedCardsWithMetadata)),
+      tap(([, superimposedCards]) => {
+        const payload: StoredSuperimposedCardsV1 = {
+          version: 1,
+          cards: superimposedCards.map((card) => ({
+            id: card.id,
+            title: card.title,
+            tags: card.tags,
+            runId: card.runId,
+          })),
+        };
+        window.localStorage.setItem(
+          SUPERIMPOSED_CARDS_STORAGE_KEY,
+          JSON.stringify(payload)
+        );
+      })
+    );
+
+    // Load superimposed cards from localStorage on navigation
+    this.loadSuperimposedCardsFromStorage$ = this.actions$.pipe(
+      ofType(routingActions.navigated),
+      take(1),
+      map(() => {
+        const stored = safeParseStoredSuperimposedCards(
+          window.localStorage.getItem(SUPERIMPOSED_CARDS_STORAGE_KEY)
+        );
+        return stored.cards;
+      }),
+      filter((cards) => cards.length > 0),
+      map((cards) =>
+        actions.superimposedCardsLoaded({superimposedCards: cards})
+      )
+    );
+
     this.dataEffects$ = createEffect(
       () => {
         return merge(
@@ -576,12 +723,37 @@ export class MetricsEffects implements OnInitEffects {
           /**
            * Subscribes to: metricsEnableSavingPinsToggled.
            */
-          this.addOrRemovePinsOnToggle$
+          this.addOrRemovePinsOnToggle$,
+          /**
+           * Subscribes to: metricsTagFilterChanged - persists to localStorage.
+           */
+          this.persistTagFilter$,
+          /**
+           * Subscribes to: superimposed card changes - persists to localStorage.
+           */
+          this.persistSuperimposedCards$
         );
       },
       {dispatch: false}
     );
+
+    // Effect that dispatches action to load tag filter from localStorage
+    this.applyTagFilterFromStorage$ = createEffect(
+      () => this.loadTagFilterFromStorage$
+    );
+
+    // Effect that dispatches action to load superimposed cards from localStorage
+    this.applySuperimposedCardsFromStorage$ = createEffect(
+      () => this.loadSuperimposedCardsFromStorage$
+    );
   }
+
+  private readonly persistTagFilter$;
+  private readonly loadTagFilterFromStorage$;
+  readonly applyTagFilterFromStorage$;
+  private readonly persistSuperimposedCards$;
+  private readonly loadSuperimposedCardsFromStorage$;
+  readonly applySuperimposedCardsFromStorage$;
 }
 
 export const TEST_ONLY = {

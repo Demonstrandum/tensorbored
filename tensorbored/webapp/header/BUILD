@@ -19,6 +19,7 @@ tf_sass_binary(
 tf_ng_module(
     name = "header",
     srcs = [
+        "build_badge_component.ts",
         "dark_mode_toggle_component.ts",
         "dark_mode_toggle_container.ts",
         "header_component.ts",
@@ -35,6 +36,7 @@ tf_ng_module(
     ],
     deps = [
         "//tensorbored/webapp:selectors",
+        "//tensorbored/webapp/angular:expect_angular_common_http",
         "//tensorbored/webapp/angular:expect_angular_material_button",
         "//tensorbored/webapp/angular:expect_angular_material_icon",
         "//tensorbored/webapp/angular:expect_angular_material_menu",

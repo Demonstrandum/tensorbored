@@ -37,6 +37,15 @@ export enum XAxisType {
 export interface CardMetadata {
   plugin: PluginType;
   tag: string;
+  /**
+   * For superimposed cards, multiple tags can be displayed on the same plot.
+   * When tags has multiple entries, this is a superimposed card.
+   */
+  tags?: string[];
+  /**
+   * Title for the card. Used mainly for superimposed cards.
+   */
+  title?: string;
   sample?: number;
   numSample?: number;
 
@@ -44,6 +53,13 @@ export interface CardMetadata {
    * A `null` runId indicates all runs.
    */
   runId: string | null;
+}
+
+/**
+ * Returns true if the card metadata represents a superimposed (multi-tag) card.
+ */
+export function isSuperimposedCard(metadata: CardMetadata): boolean {
+  return Boolean(metadata.tags && metadata.tags.length > 1);
 }
 
 /**
@@ -79,6 +95,14 @@ export interface CardGroup {
 export interface CardUniqueInfo {
   plugin: string;
   tag: string;
+  /**
+   * For superimposed cards, multiple tags on the same plot.
+   */
+  tags?: string[];
+  /**
+   * Title for superimposed cards.
+   */
+  title?: string;
   runId?: string;
   sample?: number;
 }
