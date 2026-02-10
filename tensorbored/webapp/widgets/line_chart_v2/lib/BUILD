@@ -10,6 +10,7 @@ tf_ts_library(
         "internal_types.ts",
         "scale_types.ts",
     ],
+    visibility = ["//tensorbored/webapp:__subpackages__"],
     deps = [
         ":formatter",
     ],
