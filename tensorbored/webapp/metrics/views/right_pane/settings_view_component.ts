@@ -135,10 +135,9 @@ export class SettingsViewComponent {
   readonly symlogLinearThresholdControlChanged$ = new EventEmitter<number>();
   @Input() symlogLinearThreshold: number = 1;
   @Output()
-  symlogLinearThresholdChanged =
-    this.symlogLinearThresholdControlChanged$.pipe(
-      auditTime(SLIDER_AUDIT_TIME_MS)
-    );
+  symlogLinearThresholdChanged = this.symlogLinearThresholdControlChanged$.pipe(
+    auditTime(SLIDER_AUDIT_TIME_MS)
+  );
 
   @Input() scalarPartitionX!: boolean;
   @Output() scalarPartitionXToggled = new EventEmitter();
