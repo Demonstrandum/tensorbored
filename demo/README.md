@@ -36,7 +36,16 @@ run_colors = color_sampler.colors_for_runs(['train', 'eval', 'test'])
 colors = color_sampler.sample_colors(5)
 ```
 
-### 3. Python Profile Writer
+### 3. PyTorch Integration
+Use TensorBored's `SummaryWriter` directly — no need to install `tensorboard`:
+
+```python
+from tensorbored.torch import SummaryWriter
+writer = SummaryWriter('./logs/my_run')
+writer.add_scalar('loss', 0.5, step=1)
+```
+
+### 4. Python Profile Writer
 Configure dashboards directly from your training scripts:
 
 ```python
@@ -58,7 +67,7 @@ profile_writer.set_default_profile(
 )
 ```
 
-### 4. Metric Descriptions
+### 5. Metric Descriptions
 Add long-form descriptions that show on hover in metric card headers:
 
 ```python
@@ -71,7 +80,7 @@ profile_writer.set_default_profile(
 )
 ```
 
-### 5. Superimposed Cards
+### 6. Superimposed Cards
 Compare multiple metrics on a single chart:
 
 ```python

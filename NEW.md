@@ -163,4 +163,12 @@ Type a filter, refresh — it's still there. Clear the filter, refresh — it st
 
 Everything is backwards compatible. Same `tfevents` format, same logdir structure, same CLI flags. Just `pip install tensorbored` and go.
 
+### One-line PyTorch integration
+
+```python
+from tensorbored.torch import SummaryWriter
+```
+
+Same `SummaryWriter` API you already know, but you no longer need the original `tensorboard` package installed. TensorBored registers itself as the `tensorboard` module automatically.
+
 For the full API reference and detailed examples, see [AGENTS_DOC.md](./AGENTS_DOC.md).

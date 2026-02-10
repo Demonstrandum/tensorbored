@@ -24,7 +24,7 @@ positive and true/false negative counts across batches.
 Here is a trivial example of its use.
 
 ```python
-from tensorboard import summary as summary_lib
+from tensorbored import summary as summary_lib
 import tensorflow as tf
 
 labels = tf.constant([False, True, True, False, True], dtype=tf.bool)
@@ -47,7 +47,7 @@ with tf.Session() as sess:
 `tflearn` users can make a `MetricSpec` with the `pr_curve_streaming_op` method:
 
 ```python
-from tensorboard import summary as summary_lib
+from tensorbored import summary as summary_lib
 ...
 def _create_metric(metric_fn):
   """Wrapper method that makes a metric out of the PR curve streaming op."""
@@ -106,7 +106,7 @@ use of precision-recall data to compute other values such as an
 [F<sub>1</sub> score](https://en.wikipedia.org/wiki/F1_score).
 
 ```python
-from tensorboard import summary as summary_lib
+from tensorbored import summary as summary_lib
 import tensorflow as tf
 
 labels = tf.constant([False, True, True, False, True], dtype=tf.bool)
@@ -162,7 +162,7 @@ data. `pr_curve_raw_data_pb` accepts the analogous lists or numpy arrays.
 This method directly returns a `tf.Summary` proto.
 
 ```python
-from tensorboard import summary as summary_lib
+from tensorbored import summary as summary_lib
 
 summary_proto = summary_lib.pr_curve_raw_data_pb(
     name='foo',
@@ -187,7 +187,7 @@ several steps.
 However, it is useful when a user really seeks PR data for a single step.
 
 ```python
-from tensorboard import summary as summary_lib
+from tensorbored import summary as summary_lib
 import tensorflow as tf
 
 labels = tf.constant([False, True, True, False, True], dtype=tf.bool)
@@ -214,7 +214,7 @@ and recall.
 This method directly returns a `tf.Summary` proto.
 
 ```python
-from tensorboard import summary as summary_lib
+from tensorbored import summary as summary_lib
 import numpy as np
 
 labels = np.array([False, True, True, False, True])

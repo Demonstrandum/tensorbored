@@ -71,6 +71,14 @@ Then open `http://localhost:6006` in your browser.
 
 If you are already using `torch.utils.tensorboard.SummaryWriter` or `tf.summary`, your existing code works without changes. TensorBored reads the same `tfevents` files.
 
+For new PyTorch projects, we recommend importing the `SummaryWriter` directly from TensorBored:
+
+```python
+from tensorbored.torch import SummaryWriter
+```
+
+This is equivalent to `from torch.utils.tensorboard import SummaryWriter` but ensures the `tensorboard` module alias is active — no need to install the original `tensorboard` package separately.
+
 To take advantage of the new features, you can optionally configure a dashboard profile from your training script:
 
 ```python
@@ -465,7 +473,7 @@ TensorBored is a drop-in replacement:
 | Event files | Reads the same `tfevents` files |
 | Logdir structure | Fully compatible |
 | CLI | Same flags (`--logdir`, `--port`, `--host`, etc.) |
-| `SummaryWriter` | Works with `torch.utils.tensorboard.SummaryWriter` unchanged |
+| `SummaryWriter` | Use `from tensorbored.torch import SummaryWriter` (recommended) or existing `torch.utils.tensorboard` imports |
 | `tf.summary` | Works with TensorFlow summary writers unchanged |
 | URL-based pins | Legacy URL pins from TensorBoard still work |
 
@@ -482,6 +490,18 @@ tensorbored --logdir ./logs
 
 # (Both commands work — 'tensorboard' is kept as an alias)
 ```
+
+In your training scripts, replace:
+
+```python
+# Before:
+from torch.utils.tensorboard import SummaryWriter
+
+# After (recommended):
+from tensorbored.torch import SummaryWriter
+```
+
+The `SummaryWriter` API is identical — only the import changes. You no longer need the `tensorboard` package installed.
 
 ---
 
@@ -645,7 +665,7 @@ A complete PyTorch training script with TensorBored integration:
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.tensorboard import SummaryWriter
+from tensorbored.torch import SummaryWriter
 
 # TensorBored extensions (optional — only needed for dashboard config)
 from tensorbored.plugins.core import profile_writer, color_sampler
@@ -807,13 +827,16 @@ The demo includes 5 simulated training runs (baseline, adam_lr1e-3, adam_lr1e-4,
 ## FAQ
 
 **Q: Do I need to change my logging code?**
-No. TensorBored reads standard `tfevents` files. Your existing `SummaryWriter` or `tf.summary` code works unchanged. The new features (profiles, colors, etc.) are optional additions.
+No. TensorBored reads standard `tfevents` files. Your existing `SummaryWriter` or `tf.summary` code works unchanged. The new features (profiles, colors, etc.) are optional additions. For new PyTorch projects, we recommend `from tensorbored.torch import SummaryWriter` — it is a drop-in replacement that removes the need to install the original `tensorboard` package.
 
 **Q: Where are profiles stored?**
 Client-side profiles are in browser localStorage. The default profile (set from Python) is at `<logdir>/.tensorboard/default_profile.json`.
 
 **Q: Can I use TensorBored with TensorFlow?**
 Yes. TensorBored is a fork of TensorBoard and supports all TensorFlow summary types. It also works with PyTorch's `SummaryWriter`.
+
+**Q: Do I need to install `tensorboard` alongside `tensorbored`?**
+No. When the real `tensorboard` package is not installed, `tensorbored` automatically registers itself under the `tensorboard` module name. Libraries like PyTorch that `import tensorboard` internally will resolve to `tensorbored` transparently. Use `from tensorbored.torch import SummaryWriter` and you only need `tensorbored` + `torch` installed.
 
 **Q: What happens if I have too many runs for distinct colors?**
 Use `color_sampler.colors_for_runs(run_ids, varied=True)` or `color_sampler.sample_colors_varied(n)` which vary lightness and chroma in addition to hue, providing better distinction for large numbers of runs.

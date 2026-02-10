@@ -430,7 +430,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
+from tensorbored.torch import SummaryWriter
 
 # TensorBored extensions for dashboard configuration
 from tensorbored.plugins.core import profile_writer, color_sampler
