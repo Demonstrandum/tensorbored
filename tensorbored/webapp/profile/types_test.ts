@@ -209,17 +209,26 @@ describe('profile types', () => {
     });
 
     it('returns true with valid yAxisScale', () => {
-      const profile = {...createEmptyProfile('Test'), yAxisScale: 'log10' as const};
+      const profile = {
+        ...createEmptyProfile('Test'),
+        yAxisScale: 'log10' as const,
+      };
       expect(isValidProfile(profile)).toBe(true);
     });
 
     it('returns true with valid xAxisScale', () => {
-      const profile = {...createEmptyProfile('Test'), xAxisScale: 'symlog10' as const};
+      const profile = {
+        ...createEmptyProfile('Test'),
+        xAxisScale: 'symlog10' as const,
+      };
       expect(isValidProfile(profile)).toBe(true);
     });
 
     it('returns false for invalid yAxisScale', () => {
-      const profile = {...createEmptyProfile('Test'), yAxisScale: 'quadratic'} as any;
+      const profile = {
+        ...createEmptyProfile('Test'),
+        yAxisScale: 'quadratic',
+      } as any;
       expect(isValidProfile(profile)).toBe(false);
     });
 

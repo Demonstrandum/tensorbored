@@ -199,7 +199,6 @@ class ProfileWriterTest(unittest.TestCase):
         )
         self.assertNotEqual(card1["id"], card2["id"])
 
-
     def test_create_profile_with_axis_scales(self):
         """Test create_profile with axis scale settings."""
         profile = profile_writer.create_profile(

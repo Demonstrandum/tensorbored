@@ -84,8 +84,7 @@ export class SuperimposedCardComponent {
   @Input()
   set xAxisScale(value: ScaleType) {
     if (!this.xScaleUserSet) {
-      this.xScaleTypeOverride =
-        value === ScaleType.LINEAR ? null : value;
+      this.xScaleTypeOverride = value === ScaleType.LINEAR ? null : value;
     }
   }
   @Input() useDarkMode!: boolean;

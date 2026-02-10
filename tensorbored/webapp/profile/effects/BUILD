@@ -26,6 +26,7 @@ tf_ng_module(
         "//tensorbored/webapp/runs/actions",
         "//tensorbored/webapp/runs/store:selectors",
         "//tensorbored/webapp/types",
+        "//tensorbored/webapp/widgets/line_chart_v2/lib:internal_types",
         "@npm//@angular/core",
         "@npm//@ngrx/effects",
         "@npm//@ngrx/store",

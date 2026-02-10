@@ -749,20 +749,14 @@ export class MetricsEffects implements OnInitEffects {
           const parsed = JSON.parse(raw) as Partial<StoredAxisScalesV1>;
           if (parsed.version !== 1) return [];
           const scaleActions: Action[] = [];
-          if (
-            parsed.yAxisScale &&
-            isAxisScaleName(parsed.yAxisScale)
-          ) {
+          if (parsed.yAxisScale && isAxisScaleName(parsed.yAxisScale)) {
             scaleActions.push(
               actions.metricsChangeYAxisScale({
                 scaleType: nameToScaleType(parsed.yAxisScale),
               })
             );
           }
-          if (
-            parsed.xAxisScale &&
-            isAxisScaleName(parsed.xAxisScale)
-          ) {
+          if (parsed.xAxisScale && isAxisScaleName(parsed.xAxisScale)) {
             scaleActions.push(
               actions.metricsChangeXAxisScale({
                 scaleType: nameToScaleType(parsed.xAxisScale),

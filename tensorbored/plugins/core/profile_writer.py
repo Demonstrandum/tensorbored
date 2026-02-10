@@ -120,18 +120,12 @@ def create_profile(
     Raises:
         ValueError: If an invalid axis scale name is provided.
     """
-    if (
-        y_axis_scale is not None
-        and y_axis_scale not in VALID_AXIS_SCALES
-    ):
+    if y_axis_scale is not None and y_axis_scale not in VALID_AXIS_SCALES:
         raise ValueError(
             f"Invalid y_axis_scale: {y_axis_scale!r}. "
             f"Must be one of {VALID_AXIS_SCALES}"
         )
-    if (
-        x_axis_scale is not None
-        and x_axis_scale not in VALID_AXIS_SCALES
-    ):
+    if x_axis_scale is not None and x_axis_scale not in VALID_AXIS_SCALES:
         raise ValueError(
             f"Invalid x_axis_scale: {x_axis_scale!r}. "
             f"Must be one of {VALID_AXIS_SCALES}"

@@ -12,6 +12,7 @@ tf_ts_library(
     deps = [
         "//tensorbored/webapp/metrics:types",
         "//tensorbored/webapp/runs:types",
+        "//tensorbored/webapp/widgets/line_chart_v2/lib:internal_types",
     ],
 )
 
@@ -48,6 +49,7 @@ tf_ts_library(
     ],
     deps = [
         ":types",
+        "//tensorbored/webapp/widgets/line_chart_v2/lib:internal_types",
         "@npm//@types/jasmine",
     ],
 )
