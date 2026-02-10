@@ -597,6 +597,17 @@ const uiReducer: ActionReducer<RunsUiState, Action> = createReducer(
       selectionState: nextSelectionState,
     };
   }),
+  on(runsActions.runRangeSelectionToggled, (state, {runIds, selected}) => {
+    const nextSelectionState = new Map(state.selectionState);
+    for (const runId of runIds) {
+      nextSelectionState.set(runId, selected);
+    }
+
+    return {
+      ...state,
+      selectionState: nextSelectionState,
+    };
+  }),
   on(runsActions.singleRunSelected, (state, {runId}) => {
     const nextSelectionState = new Map<string, boolean>();
 
