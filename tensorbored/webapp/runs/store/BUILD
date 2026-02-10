@@ -23,6 +23,7 @@ tf_ts_library(
         "//tensorbored/webapp/types:ui",
         "//tensorbored/webapp/util:colors",
         "//tensorbored/webapp/util:ngrx",
+        "//tensorbored/webapp/util:oklch_colors",
         "//tensorbored/webapp/widgets/data_table:types",
         "@npm//@ngrx/store",
     ],

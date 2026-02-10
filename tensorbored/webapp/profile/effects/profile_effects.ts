@@ -231,7 +231,7 @@ export class ProfileEffects {
           })();
 
         const superimposedCardsRaw = window.localStorage.getItem(
-          '_tb_superimposed_cards'
+          '_tb_superimposed_cards.v1'
         );
         const hasSuperimposedCards =
           superimposedCardsRaw &&

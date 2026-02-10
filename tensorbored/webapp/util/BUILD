@@ -48,6 +48,13 @@ tf_ts_library(
 )
 
 tf_ts_library(
+    name = "oklch_colors",
+    srcs = [
+        "oklch_colors.ts",
+    ],
+)
+
+tf_ts_library(
     name = "dom",
     srcs = [
         "dom.ts",
@@ -80,6 +87,7 @@ tf_ts_library(
     deps = [
         ":colors",
         ":matcher",
+        ":oklch_colors",
         "//tensorbored/webapp:app_state",
         "//tensorbored/webapp/app_routing:types",
         "//tensorbored/webapp/app_routing/store",

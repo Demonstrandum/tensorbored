@@ -47,10 +47,13 @@ import {TBRunColorDataSource} from '../data_source/run_color_data_source';
 import {Run, RunsDataSource} from '../data_source/runs_data_source_types';
 import {ExperimentIdToRuns} from '../types';
 import {
+  getDefaultRunColorIdMap,
   getGroupKeyToColorIdMap,
   getRunColorOverride,
   getRunSelectionMap,
 } from '../store/runs_selectors';
+import {hashColorIdToHex, resolveColorClashes} from '../../util/oklch_colors';
+import {getDarkModeEnabled} from '../../feature_flag/store/feature_flag_selectors';
 
 const RUN_COLOR_STORAGE_KEY = '_tb_run_colors.v1';
 const RUN_SELECTION_STORAGE_KEY = '_tb_run_selection.v1';
@@ -281,7 +284,8 @@ export class RunsEffects {
             actions.runGroupByChanged,
             actions.fetchRunsSucceeded,
             actions.runColorSettingsLoaded,
-            actions.runColorOverridesFetchedFromApi
+            actions.runColorOverridesFetchedFromApi,
+            actions.profileRunsSettingsApplied
           ),
           debounceTime(200),
           withLatestFrom(
@@ -318,6 +322,45 @@ export class RunsEffects {
       },
       {dispatch: false}
     );
+
+    /**
+     * After runs are loaded, compute all active run colors and detect
+     * perceptual clashes (OKLAB deltaE below threshold).  For each clash,
+     * pick a maximally-distant replacement color and save it as an
+     * override so it persists across refreshes.
+     */
+    this.resolveColorClashes$ = createEffect(() => {
+      return this.actions$.pipe(
+        ofType(actions.fetchRunsSucceeded),
+        debounceTime(300),
+        withLatestFrom(
+          this.store.select(getDefaultRunColorIdMap),
+          this.store.select(getRunColorOverride),
+          this.store.select(getDarkModeEnabled)
+        ),
+        filter(([, defaultMap]) => defaultMap.size > 1),
+        map(([, defaultRunColorIdMap, existingOverrides, darkMode]) => {
+          // Build the current runId -> hex color map.
+          const runIdToColor = new Map<string, string>();
+          defaultRunColorIdMap.forEach((colorId, runId) => {
+            if (existingOverrides.has(runId)) {
+              runIdToColor.set(runId, existingOverrides.get(runId)!);
+            } else if (colorId >= 0) {
+              runIdToColor.set(runId, hashColorIdToHex(colorId, darkMode));
+            }
+          });
+
+          return resolveColorClashes(runIdToColor, darkMode);
+        }),
+        filter((overrides) => overrides.size > 0),
+        map((overrides) =>
+          actions.runColorSettingsLoaded({
+            runColorOverrides: Array.from(overrides.entries()),
+            groupKeyToColorId: [],
+          })
+        )
+      );
+    });
   }
 
   private getRunsListLoadState(experimentId: string): Observable<LoadState> {
@@ -370,6 +413,9 @@ export class RunsEffects {
 
   /** @export */
   persistRunSelection$;
+
+  /** @export */
+  resolveColorClashes$;
 
   /**
    * IMPORTANT: actions are dispatched even when there are no experiments to

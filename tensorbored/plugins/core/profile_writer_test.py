@@ -187,6 +187,18 @@ class ProfileWriterTest(unittest.TestCase):
         self.assertIsNone(card["runId"])
         self.assertIn("id", card)
 
+    def test_create_superimposed_card_unique_ids(self):
+        """Test that multiple superimposed cards get unique IDs."""
+        card1 = profile_writer.create_superimposed_card(
+            title="Card A",
+            tags=["loss/train", "loss/eval"],
+        )
+        card2 = profile_writer.create_superimposed_card(
+            title="Card B",
+            tags=["accuracy/train", "accuracy/eval"],
+        )
+        self.assertNotEqual(card1["id"], card2["id"])
+
 
 class IntegrationTest(unittest.TestCase):
     """Integration tests demonstrating typical usage."""

@@ -284,6 +284,9 @@ def pin_image(tag: str, run_id: str, sample: int = 0) -> Dict[str, Any]:
     return {"plugin": "images", "tag": tag, "runId": run_id, "sample": sample}
 
 
+_superimposed_card_counter = 0
+
+
 def create_superimposed_card(
     title: str,
     tags: List[str],
@@ -301,8 +304,10 @@ def create_superimposed_card(
     Returns:
         A dict suitable for the superimposed_cards list.
     """
+    global _superimposed_card_counter
+    _superimposed_card_counter += 1
     return {
-        "id": f"superimposed-{int(time.time() * 1000)}",
+        "id": f"superimposed-{int(time.time() * 1000)}-{_superimposed_card_counter}",
         "title": title,
         "tags": tags,
         "runId": run_id,
