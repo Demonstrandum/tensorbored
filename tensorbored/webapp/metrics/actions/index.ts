@@ -127,6 +127,11 @@ export const metricsScalarPartitionNonMonotonicXToggled = createAction(
   '[Metrics] Metrics Setting Partition Non Monotonic X Toggled'
 );
 
+export const metricsChangeSymlogLinearThreshold = createAction(
+  '[Metrics] Metrics Setting Change Symlog Linear Threshold',
+  props<{symlogLinearThreshold: number}>()
+);
+
 export const metricsChangeImageBrightness = createAction(
   '[Metrics] Metrics Setting Change Image Brightness',
   props<{brightnessInMilli: number}>()

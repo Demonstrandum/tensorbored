@@ -77,6 +77,7 @@ export class SuperimposedCardComponent {
   @Input() xScaleType!: ScaleType;
   @Input() yAxisScale!: ScaleType;
   @Input() xAxisScale!: ScaleType;
+  @Input() symlogLinearThreshold: number = 1;
   @Input() useDarkMode!: boolean;
   @Input() forceSvg!: boolean;
   @Input() userViewBox: Extent | null = null;

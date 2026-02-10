@@ -97,6 +97,7 @@ import {
   getMetricsIgnoreOutliers,
   getMetricsScalarPartitionNonMonotonicX,
   getMetricsScalarSmoothing,
+  getMetricsSymlogLinearThreshold,
   getMetricsTagMetadata,
   getMetricsTooltipSort,
   getMetricsXAxisType,
@@ -196,6 +197,7 @@ function areSeriesEqual(
       [xScaleType]="xScaleType$ | async"
       [yAxisScale]="yAxisScale$ | async"
       [xAxisScale]="xAxisScale$ | async"
+      [symlogLinearThreshold]="symlogLinearThreshold$ | async"
       [useDarkMode]="useDarkMode$ | async"
       [linkedTimeSelection]="linkedTimeSelection$ | async"
       [stepOrLinkedTimeSelection]="stepOrLinkedTimeSelection$ | async"
@@ -277,6 +279,9 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
       })
     );
     this.scalarSmoothing$ = this.store.select(getMetricsScalarSmoothing);
+    this.symlogLinearThreshold$ = this.store.select(
+      getMetricsSymlogLinearThreshold
+    );
     this.smoothingEnabled$ = this.store
       .select(getMetricsScalarSmoothing)
       .pipe(map((smoothing) => smoothing > 0));
@@ -335,6 +340,7 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
   xAxisScale$!: Observable<ScaleType>;
 
   readonly scalarSmoothing$;
+  readonly symlogLinearThreshold$;
   readonly smoothingEnabled$;
   readonly superimposedCards$: Observable<SuperimposedCardMetadata[]>;
 

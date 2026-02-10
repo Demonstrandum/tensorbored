@@ -371,6 +371,11 @@ export const getMetricsScalarPartitionNonMonotonicX = createSelector(
   (settings): boolean => settings.scalarPartitionNonMonotonicX
 );
 
+export const getMetricsSymlogLinearThreshold = createSelector(
+  selectSettings,
+  (settings): number => settings.symlogLinearThreshold
+);
+
 export const getMetricsImageBrightnessInMilli = createSelector(
   selectSettings,
   (settings): number => settings.imageBrightnessInMilli
