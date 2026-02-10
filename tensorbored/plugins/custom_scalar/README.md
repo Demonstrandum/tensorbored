@@ -39,7 +39,7 @@ As expected, users first
 For example:
 
 ```python
-from tensorboard import summary as summary_lib
+from tensorbored import summary as summary_lib
 ...
 loss = tf.losses.softmax_cross_entropy(
     onehot_labels=tf.one_hot(labels, depth=num_classes),

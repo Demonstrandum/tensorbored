@@ -21,8 +21,11 @@ Before running TensorBored, make sure you have generated summary data in a log
 directory by creating a summary writer:
 
 ``` python
-# sess.graph contains the graph definition; that enables the Graph Visualizer.
+# PyTorch (recommended):
+from tensorbored.torch import SummaryWriter
+writer = SummaryWriter('/path/to/logs')
 
+# TensorFlow:
 file_writer = tf.summary.FileWriter('/path/to/logs', sess.graph)
 ```
 

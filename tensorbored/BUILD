@@ -106,6 +106,7 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         ":lazy",
+        ":module_alias",
         ":version",
     ],
 )
@@ -622,6 +623,12 @@ alias(
 py_library(
     name = "lazy",
     srcs = ["lazy.py"],
+    srcs_version = "PY3",
+)
+
+py_library(
+    name = "module_alias",
+    srcs = ["_module_alias.py"],
     srcs_version = "PY3",
 )
 

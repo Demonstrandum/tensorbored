@@ -27,7 +27,7 @@ and some colors associated with each point. Check out a simple example with
 static mesh:
 
 ```python
-from tensorboard.plugins.mesh import summary_v2 as mesh_summary
+from tensorbored.plugins.mesh import summary_v2 as mesh_summary
 ...
 
 point_cloud = tf.constant([[[0.19, 0.78, 0.02], ...]], shape=[1, 1064, 3])
