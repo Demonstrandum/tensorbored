@@ -162,6 +162,12 @@ export interface ProfileData {
   smoothing: number;
 
   /**
+   * Symlog linear threshold value (> 0, default 1).
+   * Controls how wide the linear region is near zero for symlog scale.
+   */
+  symlogLinearThreshold?: number;
+
+  /**
    * Run grouping configuration.
    */
   groupBy: ProfileGroupBy | null;
@@ -244,6 +250,7 @@ export function createEmptyProfile(name: string): ProfileData {
     metricDescriptions: {},
     runFilter: '',
     smoothing: 0.6,
+    symlogLinearThreshold: 1,
     groupBy: null,
   };
 }

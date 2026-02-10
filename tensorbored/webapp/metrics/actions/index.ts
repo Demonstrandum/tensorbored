@@ -411,6 +411,7 @@ export const profileMetricsSettingsApplied = createAction(
       string,
       {yAxisScale: ScaleType; xAxisScale: ScaleType}
     >;
+    symlogLinearThreshold?: number;
   }>()
 );
 

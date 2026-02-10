@@ -1933,6 +1933,7 @@ const reducer = createReducer(
         yAxisScale,
         xAxisScale,
         tagAxisScales,
+        symlogLinearThreshold,
       }
     ) => {
       // Clear existing pins and apply profile's pins
@@ -2036,6 +2037,9 @@ const reducer = createReducer(
           scalarSmoothing: smoothing,
           yAxisScale,
           xAxisScale,
+          ...(symlogLinearThreshold !== undefined && symlogLinearThreshold > 0
+            ? {symlogLinearThreshold}
+            : {}),
         },
         tagAxisScales,
       };
