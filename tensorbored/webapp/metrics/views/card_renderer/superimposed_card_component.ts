@@ -170,6 +170,9 @@ export class SuperimposedCardComponent {
   }
 
   getEffectiveXScaleType(): ScaleType {
+    if (this.xScaleType === ScaleType.TIME) {
+      return ScaleType.TIME;
+    }
     return this.xScaleTypeOverride ?? this.xScaleType;
   }
 

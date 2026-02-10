@@ -327,12 +327,12 @@ export class ProfileEffects {
           })),
           tagFilter,
           smoothing: profile.smoothing,
-          ...(profile.yAxisScale
-            ? {yAxisScale: nameToScaleType(profile.yAxisScale)}
-            : undefined),
-          ...(profile.xAxisScale
-            ? {xAxisScale: nameToScaleType(profile.xAxisScale)}
-            : undefined),
+          yAxisScale: profile.yAxisScale
+            ? nameToScaleType(profile.yAxisScale)
+            : ScaleType.LINEAR,
+          xAxisScale: profile.xAxisScale
+            ? nameToScaleType(profile.xAxisScale)
+            : ScaleType.LINEAR,
         });
       })
     )
@@ -525,12 +525,8 @@ export class ProfileEffects {
             runFilter,
             smoothing,
             groupBy: profileGroupBy,
-            ...(yAxisScale !== ScaleType.LINEAR
-              ? {yAxisScale: scaleTypeToName(yAxisScale)}
-              : undefined),
-            ...(xAxisScale !== ScaleType.LINEAR
-              ? {xAxisScale: scaleTypeToName(xAxisScale)}
-              : undefined),
+            yAxisScale: scaleTypeToName(yAxisScale),
+            xAxisScale: scaleTypeToName(xAxisScale),
           };
 
           // Save to localStorage

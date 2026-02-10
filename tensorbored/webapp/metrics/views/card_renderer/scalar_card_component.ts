@@ -235,8 +235,12 @@ export class ScalarCardComponent<Downloader> {
 
   /**
    * Returns the effective x-axis scale type, considering any local override.
+   * WALL_TIME cards always use ScaleType.TIME regardless of overrides.
    */
   getEffectiveXScaleType(): ScaleType {
+    if (this.xScaleType === ScaleType.TIME) {
+      return ScaleType.TIME;
+    }
     return this.xScaleTypeOverride ?? this.xScaleType;
   }
 

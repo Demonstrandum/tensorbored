@@ -1986,8 +1986,8 @@ const reducer = createReducer(
         settingOverrides: {
           ...state.settingOverrides,
           scalarSmoothing: smoothing,
-          ...(yAxisScale !== undefined ? {yAxisScale} : undefined),
-          ...(xAxisScale !== undefined ? {xAxisScale} : undefined),
+          yAxisScale,
+          xAxisScale,
         },
       };
     }

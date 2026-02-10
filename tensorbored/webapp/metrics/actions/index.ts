@@ -390,8 +390,8 @@ export const profileMetricsSettingsApplied = createAction(
     }>;
     tagFilter: string;
     smoothing: number;
-    yAxisScale?: ScaleType;
-    xAxisScale?: ScaleType;
+    yAxisScale: ScaleType;
+    xAxisScale: ScaleType;
   }>()
 );
 
