@@ -71,7 +71,7 @@ export class RunsDataTable {
   @Output() addFilter = new EventEmitter<FilterAddedEvent>();
   @Output() loadAllColumns = new EventEmitter<null>();
 
-  private lastClickedIndex = -1;
+  private lastClickedRunId: string | null = null;
 
   // Columns must be memoized to stop needless re-rendering of the content and headers in these
   // columns. This has been known to cause problems with the controls in these columns,
@@ -109,20 +109,28 @@ export class RunsDataTable {
     // clicks.
     // Note: This means any successive click after the second are noops.
     if (event.detail === 1) {
-      if (event.shiftKey && this.lastClickedIndex >= 0) {
-        const start = Math.min(this.lastClickedIndex, index);
-        const end = Math.max(this.lastClickedIndex, index);
-        const runIds: string[] = [];
-        for (let i = start; i <= end; i++) {
-          runIds.push(this.data[i]['id']);
+      if (event.shiftKey && this.lastClickedRunId !== null) {
+        const anchorIndex = this.data.findIndex(
+          (row) => row['id'] === this.lastClickedRunId
+        );
+        if (anchorIndex >= 0) {
+          const start = Math.min(anchorIndex, index);
+          const end = Math.max(anchorIndex, index);
+          const runIds: string[] = [];
+          for (let i = start; i <= end; i++) {
+            runIds.push(this.data[i]['id']);
+          }
+          // Toggle to the opposite of the clicked run's current state.
+          const selected = !this.data[index]['selected'];
+          this.onRangeSelectionToggle.emit({runIds, selected});
+        } else {
+          // Anchor run was filtered out or removed; fall back to single toggle.
+          this.onSelectionToggle.emit(runId);
         }
-        // Toggle to the opposite of the clicked run's current state.
-        const selected = !this.data[index]['selected'];
-        this.onRangeSelectionToggle.emit({runIds, selected});
       } else {
         this.onSelectionToggle.emit(runId);
       }
-      this.lastClickedIndex = index;
+      this.lastClickedRunId = runId;
     }
     if (event.detail === 2) {
       this.onSelectionDblClick.emit(runId);

@@ -484,7 +484,7 @@ describe('runs_data_table', () => {
         new MouseEvent('click', {detail: 1, shiftKey: true})
       );
 
-      // Should fall through to normal toggle since lastClickedIndex is -1.
+      // Should fall through to normal toggle since lastClickedRunId is null.
       expect(onSelectionToggleSpy).toHaveBeenCalledWith('run3');
       expect(onRangeSelectionToggleSpy).not.toHaveBeenCalled();
     });
@@ -504,7 +504,7 @@ describe('runs_data_table', () => {
       );
       onRangeSelectionToggleSpy.calls.reset();
 
-      // Shift+click index 4: anchor is now 2 (from previous shift+click).
+      // Shift+click index 4: anchor is now run3 (from previous shift+click).
       checkboxes[4].nativeElement.dispatchEvent(
         new MouseEvent('click', {detail: 1, shiftKey: true})
       );
@@ -513,6 +513,35 @@ describe('runs_data_table', () => {
         runIds: ['run3', 'run4', 'run5'],
         selected: true, // run5 is unselected, toggled to selected
       });
+    });
+
+    it('falls back to single toggle when anchor run is no longer in data', () => {
+      const fixture = createMultiRunComponent();
+      let checkboxes = getCheckboxes(fixture);
+
+      // Click run2 to set it as anchor.
+      checkboxes[1].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1})
+      );
+      onSelectionToggleSpy.calls.reset();
+
+      // Simulate data changing (e.g. filter applied) so run2 is gone.
+      fixture.componentInstance.data = [
+        {id: 'run1', run: 'Run 1', selected: true},
+        {id: 'run3', run: 'Run 3', selected: true},
+        {id: 'run4', run: 'Run 4', selected: false},
+        {id: 'run5', run: 'Run 5', selected: false},
+      ];
+      fixture.detectChanges();
+      checkboxes = getCheckboxes(fixture);
+
+      // Shift+click run4: anchor run2 is not in data, falls back to toggle.
+      checkboxes[2].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1, shiftKey: true})
+      );
+
+      expect(onSelectionToggleSpy).toHaveBeenCalledWith('run4');
+      expect(onRangeSelectionToggleSpy).not.toHaveBeenCalled();
     });
   });
 });
