@@ -445,7 +445,7 @@ describe('ui_selectors test', () => {
       });
     });
 
-    it('cycles color palette even if ids are high', () => {
+    it('uses legacy palette for colorIds 0-6, OKLCH hash for higher ids', () => {
       const state = buildState(
         new Map([
           ['234/run1', 5],
@@ -466,11 +466,14 @@ describe('ui_selectors test', () => {
         false
       );
 
-      expect(getRunColorMap(state)).toEqual({
-        '234/run1': '#555',
-        '234/run2': '#444',
-        '234/run3': '#555',
-      });
+      const colorMap = getRunColorMap(state);
+      // colorId 5 is in legacy range (0-6) -> palette lookup
+      expect(colorMap['234/run1']).toEqual('#555');
+      // colorIds 10 and 11 are > 6 -> hash-based OKLCH hex (7-char hex string)
+      expect(colorMap['234/run2']).toMatch(/^#[0-9a-f]{6}$/);
+      expect(colorMap['234/run3']).toMatch(/^#[0-9a-f]{6}$/);
+      // Different hash-based colorIds should produce different colors
+      expect(colorMap['234/run2']).not.toEqual(colorMap['234/run3']);
     });
 
     it('returns darkHex when dark mode is enabled', () => {
