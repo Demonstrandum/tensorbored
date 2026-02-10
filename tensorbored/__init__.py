@@ -110,3 +110,13 @@ def load_ipython_extension(ipython):
 
 
 __version__ = _version.VERSION
+
+# ---------------------------------------------------------------------------
+# Expose *tensorbored* as ``tensorboard`` for libraries (e.g. PyTorch) that
+# hard-code ``from tensorboard… import …``.  Only activates when the real
+# ``tensorboard`` package is not installed.
+# ---------------------------------------------------------------------------
+from tensorbored import _module_alias as _alias
+
+_alias.install()
+del _alias
