@@ -53,6 +53,7 @@ The key features added on top of TensorBoard are:
 | PR preview deployments | — | #24 |
 | HuggingFace Spaces demo | — | #16, #27, #28, #29, #30 |
 | Default axis scales in profiles | #32 | — |
+| Configurable symlog linear threshold | #34 | — |
 
 ---
 
@@ -173,7 +174,7 @@ The frontend uses Angular with NgRx for state management. The pattern is:
 | **Profile menu** | `webapp/profile/views/profile_menu_component.ts` (mat-icon-button, bookmark icon, unsaved dot indicator) |
 | **Tag filter** | `webapp/metrics/views/main_view/filter_input_*` |
 | **Tag filter persistence** | `webapp/metrics/effects/index.ts` (`persistTagFilter$`, `loadTagFilterFromStorage$`) |
-| **Scale types** | `webapp/widgets/line_chart_v2/lib/scale.ts` (LINEAR, LOG10, SYMLOG10), `webapp/widgets/line_chart_v2/lib/scale_types.ts` |
+| **Scale types** | `webapp/widgets/line_chart_v2/lib/scale.ts` (LINEAR, LOG10, SYMLOG10 with configurable linearThreshold), `webapp/widgets/line_chart_v2/lib/scale_types.ts` |
 | **Axis scales** | `webapp/metrics/store/metrics_types.ts` (yAxisScale, xAxisScale in MetricsSettings), `webapp/profile/types.ts` (AxisScaleName, conversion utils) |
 | **Legacy symlog** | `components/vz_line_chart2/symlog-scale.ts` (Plottable-based `SymLogScale`) |
 | **Metric descriptions** | `webapp/metrics/views/utils.ts` (`htmlToText`, `buildTagTooltip`), card components fetch `tagDescription` |
@@ -408,9 +409,16 @@ Users wanted to compare metrics on a single chart. The implementation adds a new
 - Pan/zoom is wired up via viewBox
 - Cards are persisted in profiles and localStorage
 
-### Log/Symlog Scales (#3, #8)
+### Log/Symlog Scales (#3, #8, #34)
 
-Added `SYMLOG10` to the `ScaleType` enum. The symmetric log scale uses the log-modulus transformation: `sign(x) * log10(|x| + 1)`. This handles zero and negative values gracefully. Both X and Y axes cycle `LINEAR → LOG10 → SYMLOG10`. X-axis scale is only available for STEP and RELATIVE axis types (not WALL_TIME). A legacy Plottable-based `SymLogScale` was also added for `vz_line_chart2`.
+Added `SYMLOG10` to the `ScaleType` enum. The symmetric log scale uses the log-modulus transformation: `sign(x) * log10(|x|/c + 1)`, where `c` is the **linear threshold** parameter. This handles zero and negative values gracefully. Both X and Y axes cycle `LINEAR → LOG10 → SYMLOG10`. X-axis scale is only available for STEP and RELATIVE axis types (not WALL_TIME). A legacy Plottable-based `SymLogScale` was also added for `vz_line_chart2`.
+
+The linear threshold `c` (default 1) controls where the scale transitions from linear to logarithmic behavior:
+- `c = 1`: linear for |x| < 1 (default, original behavior)
+- `c = 10`: linear for |x| < 10 (good for data with large values near zero)
+- `c = 0.01`: linear for |x| < 0.01 (good for very small-scale data)
+
+The threshold is configurable via the Settings pane under "Scalars → Symlog Linear Threshold" and is persisted in profiles and backend settings. The Python `profile_writer` also accepts `symlog_linear_threshold` when creating profiles.
 
 ### Pinned Card Reordering (#21, #22)
 
