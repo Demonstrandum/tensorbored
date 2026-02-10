@@ -49,6 +49,7 @@ The key features added on top of TensorBoard are:
 | CI wheel builds | #6 | #7, #11, #15 |
 | Metric descriptions | #20 | #23 |
 | Pinned card reordering | #21 | #22 |
+| Shift-select runs | #25 | — |
 | PR preview deployments | — | #24 |
 | HuggingFace Spaces demo | — | #16, #27, #28, #29, #30 |
 
@@ -164,7 +165,8 @@ The frontend uses Angular with NgRx for state management. The pattern is:
 | **Superimposed state** | `webapp/metrics/store/metrics_reducers.ts` (actions: `superimposedCardCreated`, `superimposedCardTagAdded`, `superimposedCardTagRemoved`, `superimposedCardDeleted`) |
 | **Pinned cards** | `webapp/metrics/store/metrics_reducers.ts` (pin/unpin reducers, reorder action `metricsPinnedCardsReordered`) |
 | **Pinned card reorder UI** | `webapp/metrics/views/main_view/` (CDK Drag&Drop, arrow buttons on card headers) |
-| **Run selection** | `webapp/runs/store/runs_reducers.ts` |
+| **Run selection** | `webapp/runs/store/runs_reducers.ts` (single toggle, range toggle, page toggle) |
+| **Shift-select runs** | `webapp/runs/views/runs_table/runs_data_table.ts` (`selectionClick` with shift key, `lastClickedIndex`), `webapp/runs/actions/runs_actions.ts` (`runRangeSelectionToggled`) |
 | **Run colors** | `webapp/runs/store/runs_reducers.ts` (hash-based fallback, profile overrides) |
 | **Profile system** | `webapp/profile/` directory (types, data_source, store, effects, views) |
 | **Profile menu** | `webapp/profile/views/profile_menu_component.ts` (mat-icon-button, bookmark icon, unsaved dot indicator) |
@@ -415,6 +417,14 @@ Uses Angular CDK Drag&Drop on pinned cards. Left/right arrow buttons provide key
 
 Long-form descriptions for metrics, set via `metric_descriptions` in the profile writer. The backend reads descriptions from the default profile and merges them into the `/data/tags` endpoint response as HTML (Markdown → safe HTML conversion). The frontend shows descriptions as tooltips on card headers (scalars, histograms, images). A `buildTagTooltip` utility formats `tag — description` text. An `htmlToText` utility strips HTML for tooltip display.
 
+### Shift-Select Runs (#25)
+
+Users wanted to select a whole range of runs at once using the classic shift+click start+end shortcut. The implementation adds shift-click range selection to the runs data table:
+- A `lastClickedIndex` is tracked in `RunsDataTable` as component state. Normal clicks set the anchor index and emit the existing single-toggle event.
+- Shift+click computes the range `[min(anchor, clicked), max(anchor, clicked)]`, collects all run IDs in that range from the displayed `data` array, and emits a new `onRangeSelectionToggle` event with the run IDs and target selected state (toggled from the clicked run's current state).
+- A new NgRx action `runRangeSelectionToggled({runIds, selected})` sets all specified runs to the given state.
+- The action is included in the `persistRunSelection$` effect so range selections are saved to localStorage.
+
 ### Tag Filter Persistence (#26)
 
 The tag filter regex is persisted to localStorage (`_tb_tag_filter.v1`) with a timestamp. When a profile is activated, the system checks if the user has explicitly set a filter (by comparing timestamps); user-set values take priority over profile defaults. Clearing the filter explicitly is also persisted (empty string is a valid user choice).
@@ -429,7 +439,7 @@ When loading a profile, runs not explicitly listed in `runSelection` default to 
 
 | Issue | Status | Description |
 |-------|--------|-------------|
-| #25 | Open | Shift-select runs to toggle a range (shift+click to select a contiguous range of runs) |
+| #25 | Implemented | Shift-select runs to toggle a range (shift+click to select a contiguous range of runs) |
 
 ---
 

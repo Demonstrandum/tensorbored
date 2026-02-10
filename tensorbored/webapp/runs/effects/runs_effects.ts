@@ -308,6 +308,7 @@ export class RunsEffects {
         return this.actions$.pipe(
           ofType(
             actions.runSelectionToggled,
+            actions.runRangeSelectionToggled,
             actions.runPageSelectionToggled,
             actions.singleRunSelected,
             actions.fetchRunsSucceeded,

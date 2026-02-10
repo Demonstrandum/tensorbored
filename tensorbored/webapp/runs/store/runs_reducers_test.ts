@@ -553,6 +553,101 @@ describe('runs_reducers', () => {
     });
   });
 
+  describe('runRangeSelectionToggled', () => {
+    it('sets all specified runs to the given selected state', () => {
+      const state = buildRunsState(
+        {},
+        {
+          selectionState: new Map([
+            ['run1', true],
+            ['run2', false],
+            ['run3', false],
+            ['run4', true],
+            ['run5', false],
+          ]),
+        }
+      );
+
+      const nextState = runsReducers.reducers(
+        state,
+        actions.runRangeSelectionToggled({
+          runIds: ['run2', 'run3', 'run4'],
+          selected: true,
+        })
+      );
+
+      expect(nextState.ui.selectionState).toEqual(
+        new Map([
+          ['run1', true],
+          ['run2', true],
+          ['run3', true],
+          ['run4', true],
+          ['run5', false],
+        ])
+      );
+    });
+
+    it('can deselect a range of runs', () => {
+      const state = buildRunsState(
+        {},
+        {
+          selectionState: new Map([
+            ['run1', true],
+            ['run2', true],
+            ['run3', true],
+            ['run4', true],
+            ['run5', false],
+          ]),
+        }
+      );
+
+      const nextState = runsReducers.reducers(
+        state,
+        actions.runRangeSelectionToggled({
+          runIds: ['run2', 'run3'],
+          selected: false,
+        })
+      );
+
+      expect(nextState.ui.selectionState).toEqual(
+        new Map([
+          ['run1', true],
+          ['run2', false],
+          ['run3', false],
+          ['run4', true],
+          ['run5', false],
+        ])
+      );
+    });
+
+    it('does not affect runs outside the specified range', () => {
+      const state = buildRunsState(
+        {},
+        {
+          selectionState: new Map([
+            ['run1', false],
+            ['run2', false],
+          ]),
+        }
+      );
+
+      const nextState = runsReducers.reducers(
+        state,
+        actions.runRangeSelectionToggled({
+          runIds: ['run1'],
+          selected: true,
+        })
+      );
+
+      expect(nextState.ui.selectionState).toEqual(
+        new Map([
+          ['run1', true],
+          ['run2', false],
+        ])
+      );
+    });
+  });
+
   describe('singleRunSelected', () => {
     it('selects run when it is only run', () => {
       const state = buildRunsState(

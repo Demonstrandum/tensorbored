@@ -65,6 +65,7 @@ import {
 import {
   runColorChanged,
   runPageSelectionToggled,
+  runRangeSelectionToggled,
   runSelectionToggled,
   runSelectorRegexFilterChanged,
   runsTableSortingInfoChanged,
@@ -105,6 +106,7 @@ const getRunsLoading = createSelector<
       (sortDataBy)="sortDataBy($event)"
       (orderColumns)="orderColumns($event)"
       (onSelectionToggle)="onRunSelectionToggle($event)"
+      (onRangeSelectionToggle)="onRunRangeSelectionToggle($event)"
       (onAllSelectionToggle)="onAllSelectionToggle($event)"
       (onRunColorChange)="onRunColorChange($event)"
       (onRegexFilterChange)="onRegexFilterChange($event)"
@@ -309,6 +311,16 @@ export class RunsTableContainer implements OnInit, OnDestroy {
         runId: id,
       })
     );
+  }
+
+  onRunRangeSelectionToggle({
+    runIds,
+    selected,
+  }: {
+    runIds: string[];
+    selected: boolean;
+  }) {
+    this.store.dispatch(runRangeSelectionToggled({runIds, selected}));
   }
 
   onRunSelectionDblClick(runId: string) {

@@ -44,6 +44,7 @@ import {sendKeys} from '../../../testing/dom';
       (sortDataBy)="sortDataBy($event)"
       (orderColumns)="orderColumns($event)"
       (onSelectionToggle)="onSelectionToggle($event)"
+      (onRangeSelectionToggle)="onRangeSelectionToggle($event)"
       (onAllSelectionToggle)="onAllSelectionToggle($event)"
       (onRegexFilterChange)="onRegexFilterChange($event)"
       (onSelectionDblClick)="onSelectionDblClick($event)"
@@ -59,6 +60,10 @@ class TestableComponent {
   @Input() sortingInfo!: SortingInfo;
 
   @Input() onSelectionToggle!: (runId: string) => void;
+  @Input() onRangeSelectionToggle!: (event: {
+    runIds: string[];
+    selected: boolean;
+  }) => void;
   @Input() onAllSelectionToggle!: (runIds: string[]) => void;
   @Input() onRegexFilterChange!: (regex: string) => void;
   @Input() onSelectionDblClick!: (runId: string) => void;
@@ -66,6 +71,7 @@ class TestableComponent {
 
 describe('runs_data_table', () => {
   let onSelectionToggleSpy: jasmine.Spy;
+  let onRangeSelectionToggleSpy: jasmine.Spy;
   let onAllSelectionToggleSpy: jasmine.Spy;
   let onSelectionDblClickSpy: jasmine.Spy;
   let onRegexFilterChangeSpy: jasmine.Spy;
@@ -107,6 +113,10 @@ describe('runs_data_table', () => {
 
     onSelectionToggleSpy = jasmine.createSpy();
     fixture.componentInstance.onSelectionToggle = onSelectionToggleSpy;
+
+    onRangeSelectionToggleSpy = jasmine.createSpy();
+    fixture.componentInstance.onRangeSelectionToggle =
+      onRangeSelectionToggleSpy;
 
     onAllSelectionToggleSpy = jasmine.createSpy();
     fixture.componentInstance.onAllSelectionToggle = onAllSelectionToggleSpy;
@@ -384,5 +394,154 @@ describe('runs_data_table', () => {
         hparam1: 1.234,
       })
     );
+  });
+
+  describe('shift-click range selection', () => {
+    function createMultiRunComponent() {
+      return createComponent({
+        data: [
+          {id: 'run1', run: 'Run 1', selected: true},
+          {id: 'run2', run: 'Run 2', selected: true},
+          {id: 'run3', run: 'Run 3', selected: true},
+          {id: 'run4', run: 'Run 4', selected: false},
+          {id: 'run5', run: 'Run 5', selected: false},
+        ],
+      });
+    }
+
+    function getCheckboxes(fixture: any) {
+      const dataTable = fixture.debugElement.query(
+        By.directive(DataTableComponent)
+      );
+      const cells = dataTable.queryAll(By.directive(ContentCellComponent));
+      return cells
+        .filter(
+          (cell: any) => cell.componentInstance.header.name === 'selected'
+        )
+        .map((cell: any) => cell.query(By.css('mat-checkbox')));
+    }
+
+    it('emits onSelectionToggle on normal click and sets anchor', () => {
+      const fixture = createMultiRunComponent();
+      const checkboxes = getCheckboxes(fixture);
+
+      checkboxes[0].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1})
+      );
+
+      expect(onSelectionToggleSpy).toHaveBeenCalledWith('run1');
+      expect(onRangeSelectionToggleSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits onRangeSelectionToggle on shift+click with prior anchor', () => {
+      const fixture = createMultiRunComponent();
+      const checkboxes = getCheckboxes(fixture);
+
+      // First click sets the anchor at index 1.
+      checkboxes[1].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1})
+      );
+      onSelectionToggleSpy.calls.reset();
+
+      // Shift+click on index 4 should emit range for indices 1..4.
+      checkboxes[4].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1, shiftKey: true})
+      );
+
+      expect(onSelectionToggleSpy).not.toHaveBeenCalled();
+      expect(onRangeSelectionToggleSpy).toHaveBeenCalledWith({
+        runIds: ['run2', 'run3', 'run4', 'run5'],
+        selected: true, // run5 is currently unselected, so toggled to selected
+      });
+    });
+
+    it('emits onRangeSelectionToggle with reverse range when shift+click is above anchor', () => {
+      const fixture = createMultiRunComponent();
+      const checkboxes = getCheckboxes(fixture);
+
+      // Set anchor at index 3.
+      checkboxes[3].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1})
+      );
+
+      // Shift+click on index 1 (above anchor).
+      checkboxes[1].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1, shiftKey: true})
+      );
+
+      expect(onRangeSelectionToggleSpy).toHaveBeenCalledWith({
+        runIds: ['run2', 'run3', 'run4'],
+        selected: false, // run2 is currently selected, toggled to unselected
+      });
+    });
+
+    it('does not emit range event on shift+click without a prior anchor', () => {
+      const fixture = createMultiRunComponent();
+      const checkboxes = getCheckboxes(fixture);
+
+      // Shift+click without any prior click: no anchor yet.
+      checkboxes[2].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1, shiftKey: true})
+      );
+
+      // Should fall through to normal toggle since lastClickedRunId is null.
+      expect(onSelectionToggleSpy).toHaveBeenCalledWith('run3');
+      expect(onRangeSelectionToggleSpy).not.toHaveBeenCalled();
+    });
+
+    it('updates anchor after shift+click for subsequent shift+clicks', () => {
+      const fixture = createMultiRunComponent();
+      const checkboxes = getCheckboxes(fixture);
+
+      // Click index 0 to set anchor.
+      checkboxes[0].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1})
+      );
+
+      // Shift+click index 2.
+      checkboxes[2].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1, shiftKey: true})
+      );
+      onRangeSelectionToggleSpy.calls.reset();
+
+      // Shift+click index 4: anchor is now run3 (from previous shift+click).
+      checkboxes[4].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1, shiftKey: true})
+      );
+
+      expect(onRangeSelectionToggleSpy).toHaveBeenCalledWith({
+        runIds: ['run3', 'run4', 'run5'],
+        selected: true, // run5 is unselected, toggled to selected
+      });
+    });
+
+    it('falls back to single toggle when anchor run is no longer in data', () => {
+      const fixture = createMultiRunComponent();
+      let checkboxes = getCheckboxes(fixture);
+
+      // Click run2 to set it as anchor.
+      checkboxes[1].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1})
+      );
+      onSelectionToggleSpy.calls.reset();
+
+      // Simulate data changing (e.g. filter applied) so run2 is gone.
+      fixture.componentInstance.data = [
+        {id: 'run1', run: 'Run 1', selected: true},
+        {id: 'run3', run: 'Run 3', selected: true},
+        {id: 'run4', run: 'Run 4', selected: false},
+        {id: 'run5', run: 'Run 5', selected: false},
+      ];
+      fixture.detectChanges();
+      checkboxes = getCheckboxes(fixture);
+
+      // Shift+click run4: anchor run2 is not in data, falls back to toggle.
+      checkboxes[2].nativeElement.dispatchEvent(
+        new MouseEvent('click', {detail: 1, shiftKey: true})
+      );
+
+      expect(onSelectionToggleSpy).toHaveBeenCalledWith('run4');
+      expect(onRangeSelectionToggleSpy).not.toHaveBeenCalled();
+    });
   });
 });
