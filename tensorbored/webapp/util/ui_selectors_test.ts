@@ -446,11 +446,15 @@ describe('ui_selectors test', () => {
     });
 
     it('uses legacy palette for colorIds 0-6, OKLCH hash for higher ids', () => {
+      // In the real system, colorIds > 6 are 32-bit FNV hashes.
+      // Use realistic hash-magnitude values so they map to distinct hues.
+      const hashA = 0x4a3b2c1d; // ~1,245,903,901
+      const hashB = 0x9e8d7c6b; // ~2,660,826,219
       const state = buildState(
-        new Map([
+        new Map<string, number>([
           ['234/run1', 5],
-          ['234/run2', 10],
-          ['234/run3', 11],
+          ['234/run2', hashA],
+          ['234/run3', hashB],
         ]),
         new Map(),
         buildColorPalette({
@@ -469,10 +473,10 @@ describe('ui_selectors test', () => {
       const colorMap = getRunColorMap(state);
       // colorId 5 is in legacy range (0-6) -> palette lookup
       expect(colorMap['234/run1']).toEqual('#555');
-      // colorIds 10 and 11 are > 6 -> hash-based OKLCH hex (7-char hex string)
+      // Hash-based colorIds -> OKLCH hex (7-char hex string)
       expect(colorMap['234/run2']).toMatch(/^#[0-9a-f]{6}$/);
       expect(colorMap['234/run3']).toMatch(/^#[0-9a-f]{6}$/);
-      // Different hash-based colorIds should produce different colors
+      // Different hash-based colorIds produce different colors
       expect(colorMap['234/run2']).not.toEqual(colorMap['234/run3']);
     });
 
