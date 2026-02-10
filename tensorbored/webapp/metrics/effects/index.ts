@@ -31,6 +31,13 @@ import {
 
 const TAG_FILTER_STORAGE_KEY = '_tb_tag_filter.v1';
 const SUPERIMPOSED_CARDS_STORAGE_KEY = '_tb_superimposed_cards.v1';
+const AXIS_SCALES_STORAGE_KEY = '_tb_axis_scales.v1';
+
+type StoredAxisScalesV1 = {
+  version: 1;
+  defaultYAxisScale?: string;
+  defaultXAxisScale?: string;
+};
 
 type StoredSuperimposedCard = {
   id: string;
@@ -89,8 +96,16 @@ import {
   getCardLoadState,
   getCardMetadata,
   getMetricsTagMetadataLoadState,
+  getMetricsDefaultYAxisScale,
+  getMetricsDefaultXAxisScale,
   getSuperimposedCardsWithMetadata,
 } from '../store';
+import {
+  isAxisScaleName,
+  nameToScaleType,
+  scaleTypeToName,
+} from '../../profile/types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 import {CardId, CardMetadata, CardUniqueInfo, PluginType} from '../types';
 
 export type CardFetchInfo = CardMetadata & {
@@ -689,6 +704,80 @@ export class MetricsEffects implements OnInitEffects {
       )
     );
 
+    // Persist axis scales to localStorage when user changes them
+    this.persistAxisScales$ = this.actions$.pipe(
+      ofType(
+        actions.metricsChangeDefaultYAxisScale,
+        actions.metricsChangeDefaultXAxisScale,
+        actions.profileMetricsSettingsApplied
+      ),
+      debounceTime(200),
+      withLatestFrom(
+        this.store.select(getMetricsDefaultYAxisScale),
+        this.store.select(getMetricsDefaultXAxisScale)
+      ),
+      tap(([, yScale, xScale]) => {
+        const payload: StoredAxisScalesV1 = {
+          version: 1,
+          ...(yScale !== ScaleType.LINEAR
+            ? {defaultYAxisScale: scaleTypeToName(yScale)}
+            : undefined),
+          ...(xScale !== ScaleType.LINEAR
+            ? {defaultXAxisScale: scaleTypeToName(xScale)}
+            : undefined),
+        };
+        // Only store if at least one scale is non-default
+        if (payload.defaultYAxisScale || payload.defaultXAxisScale) {
+          window.localStorage.setItem(
+            AXIS_SCALES_STORAGE_KEY,
+            JSON.stringify(payload)
+          );
+        } else {
+          window.localStorage.removeItem(AXIS_SCALES_STORAGE_KEY);
+        }
+      })
+    );
+
+    // Load axis scales from localStorage on navigation
+    this.loadAxisScalesFromStorage$ = this.actions$.pipe(
+      ofType(routingActions.navigated),
+      take(1),
+      map(() => {
+        const raw = window.localStorage.getItem(AXIS_SCALES_STORAGE_KEY);
+        if (!raw) return [];
+        try {
+          const parsed = JSON.parse(raw) as Partial<StoredAxisScalesV1>;
+          if (parsed.version !== 1) return [];
+          const scaleActions: Action[] = [];
+          if (
+            parsed.defaultYAxisScale &&
+            isAxisScaleName(parsed.defaultYAxisScale)
+          ) {
+            scaleActions.push(
+              actions.metricsChangeDefaultYAxisScale({
+                scaleType: nameToScaleType(parsed.defaultYAxisScale),
+              })
+            );
+          }
+          if (
+            parsed.defaultXAxisScale &&
+            isAxisScaleName(parsed.defaultXAxisScale)
+          ) {
+            scaleActions.push(
+              actions.metricsChangeDefaultXAxisScale({
+                scaleType: nameToScaleType(parsed.defaultXAxisScale),
+              })
+            );
+          }
+          return scaleActions;
+        } catch {
+          return [];
+        }
+      }),
+      filter((scaleActions) => scaleActions.length > 0),
+      mergeMap((scaleActions) => scaleActions)
+    );
+
     this.dataEffects$ = createEffect(
       () => {
         return merge(
@@ -733,7 +822,11 @@ export class MetricsEffects implements OnInitEffects {
           /**
            * Subscribes to: superimposed card changes - persists to localStorage.
            */
-          this.persistSuperimposedCards$
+          this.persistSuperimposedCards$,
+          /**
+           * Subscribes to: axis scale changes - persists to localStorage.
+           */
+          this.persistAxisScales$
         );
       },
       {dispatch: false}
@@ -748,6 +841,11 @@ export class MetricsEffects implements OnInitEffects {
     this.applySuperimposedCardsFromStorage$ = createEffect(
       () => this.loadSuperimposedCardsFromStorage$
     );
+
+    // Effect that dispatches actions to load axis scales from localStorage
+    this.applyAxisScalesFromStorage$ = createEffect(
+      () => this.loadAxisScalesFromStorage$
+    );
   }
 
   private readonly persistTagFilter$;
@@ -756,6 +854,9 @@ export class MetricsEffects implements OnInitEffects {
   private readonly persistSuperimposedCards$;
   private readonly loadSuperimposedCardsFromStorage$;
   readonly applySuperimposedCardsFromStorage$;
+  private readonly persistAxisScales$;
+  private readonly loadAxisScalesFromStorage$;
+  readonly applyAxisScalesFromStorage$;
 }
 
 export const TEST_ONLY = {

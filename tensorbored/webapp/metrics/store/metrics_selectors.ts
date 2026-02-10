@@ -52,6 +52,7 @@ import {
 } from './metrics_types';
 import {ColumnHeader, DataTableMode} from '../../widgets/data_table/types';
 import {Extent} from '../../widgets/line_chart_v2/lib/public_types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 import {memoize} from '../../util/memoize';
 import {getDashboardDisplayedHparamColumns} from '../../hparams/_redux/hparams_selectors';
 import {dataTableUtils} from '../../widgets/data_table/utils';
@@ -388,6 +389,16 @@ export const getMetricsImageShowActualSize = createSelector(
 export const getMetricsSavingPinsEnabled = createSelector(
   selectSettings,
   (settings): boolean => settings.savingPinsEnabled
+);
+
+export const getMetricsDefaultYAxisScale = createSelector(
+  selectSettings,
+  (settings): ScaleType => settings.defaultYAxisScale
+);
+
+export const getMetricsDefaultXAxisScale = createSelector(
+  selectSettings,
+  (settings): ScaleType => settings.defaultXAxisScale
 );
 
 export const getMetricsTagFilter = createSelector(

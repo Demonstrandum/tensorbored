@@ -1007,6 +1007,24 @@ const reducer = createReducer(
       },
     };
   }),
+  on(actions.metricsChangeDefaultYAxisScale, (state, {scaleType}) => {
+    return {
+      ...state,
+      settingOverrides: {
+        ...state.settingOverrides,
+        defaultYAxisScale: scaleType,
+      },
+    };
+  }),
+  on(actions.metricsChangeDefaultXAxisScale, (state, {scaleType}) => {
+    return {
+      ...state,
+      settingOverrides: {
+        ...state.settingOverrides,
+        defaultXAxisScale: scaleType,
+      },
+    };
+  }),
   on(
     actions.multipleTimeSeriesRequested,
     (
@@ -1858,7 +1876,17 @@ const reducer = createReducer(
   // Profile integration: Apply profile settings to metrics state
   on(
     actions.profileMetricsSettingsApplied,
-    (state, {pinnedCards, superimposedCards, tagFilter, smoothing}) => {
+    (
+      state,
+      {
+        pinnedCards,
+        superimposedCards,
+        tagFilter,
+        smoothing,
+        defaultYAxisScale,
+        defaultXAxisScale,
+      }
+    ) => {
       // Clear existing pins and apply profile's pins
       let nextCardMetadataMap = {...state.cardMetadataMap};
       let nextCardStepIndex = {...state.cardStepIndex};
@@ -1958,6 +1986,12 @@ const reducer = createReducer(
         settingOverrides: {
           ...state.settingOverrides,
           scalarSmoothing: smoothing,
+          ...(defaultYAxisScale !== undefined
+            ? {defaultYAxisScale}
+            : undefined),
+          ...(defaultXAxisScale !== undefined
+            ? {defaultXAxisScale}
+            : undefined),
         },
       };
     }

@@ -100,6 +100,8 @@ import {
   getMetricsTagMetadata,
   getMetricsTooltipSort,
   getMetricsXAxisType,
+  getMetricsDefaultYAxisScale,
+  getMetricsDefaultXAxisScale,
   getSuperimposedCardsWithMetadata,
   RunToSeries,
 } from '../../store';
@@ -192,6 +194,8 @@ function areSeriesEqual(
       [tooltipSort]="tooltipSort$ | async"
       [xAxisType]="xAxisType$ | async"
       [xScaleType]="xScaleType$ | async"
+      [defaultYAxisScale]="defaultYAxisScale$ | async"
+      [defaultXAxisScale]="defaultXAxisScale$ | async"
       [useDarkMode]="useDarkMode$ | async"
       [linkedTimeSelection]="linkedTimeSelection$ | async"
       [stepOrLinkedTimeSelection]="stepOrLinkedTimeSelection$ | async"
@@ -270,6 +274,8 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
         }
       })
     );
+    this.defaultYAxisScale$ = this.store.select(getMetricsDefaultYAxisScale);
+    this.defaultXAxisScale$ = this.store.select(getMetricsDefaultXAxisScale);
     this.scalarSmoothing$ = this.store.select(getMetricsScalarSmoothing);
     this.smoothingEnabled$ = this.store
       .select(getMetricsScalarSmoothing)
@@ -325,6 +331,8 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
   readonly columnCustomizationEnabled$;
   readonly columnContextMenusEnabled$;
   readonly xScaleType$;
+  readonly defaultYAxisScale$;
+  readonly defaultXAxisScale$;
 
   readonly scalarSmoothing$;
   readonly smoothingEnabled$;

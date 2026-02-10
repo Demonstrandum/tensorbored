@@ -37,6 +37,7 @@ import {
 } from '../types';
 import {SortingInfo, DataTableMode} from '../../widgets/data_table/types';
 import {Extent} from '../../widgets/line_chart_v2/lib/public_types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 
 export const metricsSettingsPaneClosed = createAction(
   '[Metrics] Metrics Settings Pane Closed'
@@ -291,6 +292,16 @@ export const metricsEnableSavingPinsToggled = createAction(
   '[Metrics] Enable Saving Pins Toggled'
 );
 
+export const metricsChangeDefaultYAxisScale = createAction(
+  '[Metrics] Change Default Y Axis Scale',
+  props<{scaleType: ScaleType}>()
+);
+
+export const metricsChangeDefaultXAxisScale = createAction(
+  '[Metrics] Change Default X Axis Scale',
+  props<{scaleType: ScaleType}>()
+);
+
 // TODO(jieweiwu): Delete after internal code is updated.
 export const stepSelectorTimeSelectionChanged = timeSelectionChanged;
 
@@ -379,6 +390,8 @@ export const profileMetricsSettingsApplied = createAction(
     }>;
     tagFilter: string;
     smoothing: number;
+    defaultYAxisScale?: ScaleType;
+    defaultXAxisScale?: ScaleType;
   }>()
 );
 

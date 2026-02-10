@@ -42,6 +42,7 @@ import {
 } from '../types';
 import {ColumnHeader, DataTableMode} from '../../widgets/data_table/types';
 import {Extent} from '../../widgets/line_chart_v2/lib/public_types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 
 export const METRICS_FEATURE_KEY = 'metrics';
 
@@ -265,6 +266,16 @@ export interface MetricsSettings {
   imageShowActualSize: boolean;
   histogramMode: HistogramMode;
   savingPinsEnabled: boolean;
+  /**
+   * Default Y-axis scale type for scalar plots.
+   * LINEAR by default; can be overridden by profiles or UI.
+   */
+  defaultYAxisScale: ScaleType;
+  /**
+   * Default X-axis scale type for scalar plots (STEP/RELATIVE axis types only).
+   * LINEAR by default; can be overridden by profiles or UI.
+   */
+  defaultXAxisScale: ScaleType;
 }
 
 export interface MetricsNonNamespacedState {
@@ -307,4 +318,6 @@ export const METRICS_SETTINGS_DEFAULT: MetricsSettings = {
   imageShowActualSize: false,
   histogramMode: HistogramMode.OFFSET,
   savingPinsEnabled: true,
+  defaultYAxisScale: ScaleType.LINEAR,
+  defaultXAxisScale: ScaleType.LINEAR,
 };

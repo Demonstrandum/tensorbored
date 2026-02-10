@@ -58,6 +58,9 @@ from typing import Any, Dict, List, Optional
 PROFILE_VERSION = 1
 
 
+VALID_AXIS_SCALES = ("linear", "log10", "symlog10")
+
+
 def create_profile(
     name: str = "Default Profile",
     pinned_cards: Optional[List[Dict[str, Any]]] = None,
@@ -71,6 +74,8 @@ def create_profile(
     run_filter: str = "",
     smoothing: float = 0.6,
     group_by: Optional[Dict[str, Any]] = None,
+    default_y_axis_scale: Optional[str] = None,
+    default_x_axis_scale: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Create a TensorBoard profile dictionary.
 
@@ -104,10 +109,33 @@ def create_profile(
         group_by: Grouping configuration dict with:
             - key: str ("RUN", "EXPERIMENT", "REGEX", or "REGEX_BY_EXP")
             - regexString: str (optional, for REGEX/REGEX_BY_EXP)
+        default_y_axis_scale: Default Y-axis scale for scalar plots.
+            One of "linear", "log10", or "symlog10".
+        default_x_axis_scale: Default X-axis scale for scalar plots
+            (STEP/RELATIVE only). One of "linear", "log10", or "symlog10".
 
     Returns:
         A profile dictionary ready to be written to the logdir.
+
+    Raises:
+        ValueError: If an invalid axis scale name is provided.
     """
+    if (
+        default_y_axis_scale is not None
+        and default_y_axis_scale not in VALID_AXIS_SCALES
+    ):
+        raise ValueError(
+            f"Invalid default_y_axis_scale: {default_y_axis_scale!r}. "
+            f"Must be one of {VALID_AXIS_SCALES}"
+        )
+    if (
+        default_x_axis_scale is not None
+        and default_x_axis_scale not in VALID_AXIS_SCALES
+    ):
+        raise ValueError(
+            f"Invalid default_x_axis_scale: {default_x_axis_scale!r}. "
+            f"Must be one of {VALID_AXIS_SCALES}"
+        )
     # Convert run_colors dict to list format
     run_color_entries = []
     if run_colors:
@@ -121,23 +149,29 @@ def create_profile(
             for run_name in selected_runs
         ]
 
+    data: Dict[str, Any] = {
+        "version": PROFILE_VERSION,
+        "name": name,
+        "lastModifiedTimestamp": int(time.time() * 1000),
+        "pinnedCards": pinned_cards or [],
+        "runColors": run_color_entries,
+        "groupColors": group_colors or [],
+        "superimposedCards": superimposed_cards or [],
+        "runSelection": run_selection_entries,
+        "metricDescriptions": metric_descriptions or {},
+        "tagFilter": tag_filter,
+        "runFilter": run_filter,
+        "smoothing": smoothing,
+        "groupBy": group_by,
+    }
+    if default_y_axis_scale is not None:
+        data["defaultYAxisScale"] = default_y_axis_scale
+    if default_x_axis_scale is not None:
+        data["defaultXAxisScale"] = default_x_axis_scale
+
     return {
         "version": PROFILE_VERSION,
-        "data": {
-            "version": PROFILE_VERSION,
-            "name": name,
-            "lastModifiedTimestamp": int(time.time() * 1000),
-            "pinnedCards": pinned_cards or [],
-            "runColors": run_color_entries,
-            "groupColors": group_colors or [],
-            "superimposedCards": superimposed_cards or [],
-            "runSelection": run_selection_entries,
-            "metricDescriptions": metric_descriptions or {},
-            "tagFilter": tag_filter,
-            "runFilter": run_filter,
-            "smoothing": smoothing,
-            "groupBy": group_by,
-        },
+        "data": data,
     }
 
 
@@ -206,6 +240,8 @@ def set_default_profile(
     run_filter: str = "",
     smoothing: float = 0.6,
     group_by: Optional[Dict[str, Any]] = None,
+    default_y_axis_scale: Optional[str] = None,
+    default_x_axis_scale: Optional[str] = None,
 ) -> str:
     """Convenience function to create and write a profile in one call.
 
@@ -224,6 +260,10 @@ def set_default_profile(
         run_filter: Regex pattern to filter runs.
         smoothing: Scalar smoothing value.
         group_by: Grouping configuration.
+        default_y_axis_scale: Default Y-axis scale for scalar plots.
+            One of "linear", "log10", or "symlog10".
+        default_x_axis_scale: Default X-axis scale for scalar plots
+            (STEP/RELATIVE only). One of "linear", "log10", or "symlog10".
 
     Returns:
         The path to the written profile file.
@@ -241,6 +281,8 @@ def set_default_profile(
         run_filter=run_filter,
         smoothing=smoothing,
         group_by=group_by,
+        default_y_axis_scale=default_y_axis_scale,
+        default_x_axis_scale=default_x_axis_scale,
     )
     return write_profile(logdir, profile)
 

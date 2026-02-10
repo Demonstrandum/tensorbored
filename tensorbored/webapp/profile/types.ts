@@ -14,6 +14,33 @@ limitations under the License.
 ==============================================================================*/
 import {CardUniqueInfo, SuperimposedCardMetadata} from '../metrics/types';
 import {GroupByKey} from '../runs/types';
+import {ScaleType} from '../widgets/line_chart_v2/lib/scale_types';
+
+/**
+ * String representation of axis scale types for JSON serialization.
+ * Maps to the ScaleType enum in the line chart widget.
+ */
+export type AxisScaleName = 'linear' | 'log10' | 'symlog10';
+
+const SCALE_TYPE_TO_NAME: ReadonlyMap<ScaleType, AxisScaleName> = new Map([
+  [ScaleType.LINEAR, 'linear'],
+  [ScaleType.LOG10, 'log10'],
+  [ScaleType.SYMLOG10, 'symlog10'],
+]);
+
+const NAME_TO_SCALE_TYPE: ReadonlyMap<AxisScaleName, ScaleType> = new Map([
+  ['linear', ScaleType.LINEAR],
+  ['log10', ScaleType.LOG10],
+  ['symlog10', ScaleType.SYMLOG10],
+]);
+
+export function scaleTypeToName(scaleType: ScaleType): AxisScaleName {
+  return SCALE_TYPE_TO_NAME.get(scaleType) ?? 'linear';
+}
+
+export function nameToScaleType(name: AxisScaleName): ScaleType {
+  return NAME_TO_SCALE_TYPE.get(name) ?? ScaleType.LINEAR;
+}
 
 /**
  * Version number for profile serialization format.
@@ -129,6 +156,18 @@ export interface ProfileData {
    * Run grouping configuration.
    */
   groupBy: ProfileGroupBy | null;
+
+  /**
+   * Default Y-axis scale type for scalar plots.
+   * When set, new scalar cards will use this scale instead of LINEAR.
+   */
+  defaultYAxisScale?: AxisScaleName;
+
+  /**
+   * Default X-axis scale type for scalar plots (STEP/RELATIVE only).
+   * When set, new scalar cards will use this scale instead of LINEAR.
+   */
+  defaultXAxisScale?: AxisScaleName;
 }
 
 /**
@@ -167,6 +206,16 @@ export interface ProfileEntry {
 /**
  * Creates a new empty profile with default values.
  */
+const VALID_AXIS_SCALE_NAMES: ReadonlySet<string> = new Set([
+  'linear',
+  'log10',
+  'symlog10',
+]);
+
+export function isAxisScaleName(value: unknown): value is AxisScaleName {
+  return typeof value === 'string' && VALID_AXIS_SCALE_NAMES.has(value);
+}
+
 export function createEmptyProfile(name: string): ProfileData {
   return {
     version: PROFILE_VERSION,
@@ -271,6 +320,20 @@ export function isValidProfile(data: unknown): data is ProfileData {
         return false;
       }
     }
+  }
+
+  // Validate axis scale names (optional fields)
+  if (
+    profile.defaultYAxisScale !== undefined &&
+    !isAxisScaleName(profile.defaultYAxisScale)
+  ) {
+    return false;
+  }
+  if (
+    profile.defaultXAxisScale !== undefined &&
+    !isAxisScaleName(profile.defaultXAxisScale)
+  ) {
+    return false;
   }
 
   return true;

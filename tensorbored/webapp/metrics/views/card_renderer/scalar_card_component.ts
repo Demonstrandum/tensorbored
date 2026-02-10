@@ -110,6 +110,19 @@ export class ScalarCardComponent<Downloader> {
   @Input() tooltipSort!: TooltipSort;
   @Input() xAxisType!: XAxisType;
   @Input() xScaleType!: ScaleType;
+  @Input()
+  set defaultYAxisScale(value: ScaleType) {
+    if (!this.yScaleUserSet) {
+      this.yScaleType = value;
+    }
+  }
+  @Input()
+  set defaultXAxisScale(value: ScaleType) {
+    if (!this.xScaleUserSet) {
+      this.xScaleTypeOverride =
+        value === ScaleType.LINEAR ? null : value;
+    }
+  }
   @Input() useDarkMode!: boolean;
   @Input() forceSvg!: boolean;
   @Input() columnCustomizationEnabled!: boolean;
@@ -163,6 +176,10 @@ export class ScalarCardComponent<Downloader> {
   yScaleType = ScaleType.LINEAR;
   /** Local override for x-axis scale type. When null, uses the default xScaleType input. */
   xScaleTypeOverride: ScaleType | null = null;
+  /** Whether the user has explicitly changed the Y-axis scale on this card. */
+  yScaleUserSet = false;
+  /** Whether the user has explicitly changed the X-axis scale on this card. */
+  xScaleUserSet = false;
   isViewBoxOverridden: boolean = false;
   additionalItemsCount = 0;
 
@@ -175,6 +192,7 @@ export class ScalarCardComponent<Downloader> {
    * SYMLOG10 (symmetric log) handles negative values gracefully.
    */
   toggleYScaleType() {
+    this.yScaleUserSet = true;
     switch (this.yScaleType) {
       case ScaleType.LINEAR:
         this.yScaleType = ScaleType.LOG10;
@@ -194,6 +212,7 @@ export class ScalarCardComponent<Downloader> {
    * Only available when xAxisType is STEP (not TIME or RELATIVE).
    */
   toggleXScaleType() {
+    this.xScaleUserSet = true;
     // Determine current effective x scale type
     const currentScale = this.xScaleTypeOverride ?? this.xScaleType;
     let nextScale: ScaleType;

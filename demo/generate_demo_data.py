@@ -402,6 +402,8 @@ def setup_default_profile(logdir: Path, run_ids: list):
             "key": "regex",
             "regexString": r"(baseline|adam|large|small)",
         },
+        # Default axis scales: log for loss Y-axis
+        default_y_axis_scale="log10",
     )
 
     print(f"Created default profile with {len(run_ids)} run colors")

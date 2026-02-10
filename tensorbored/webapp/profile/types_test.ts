@@ -19,7 +19,11 @@ import {
   createEmptyProfile,
   isValidProfile,
   migrateProfile,
+  isAxisScaleName,
+  nameToScaleType,
+  scaleTypeToName,
 } from './types';
+import {ScaleType} from '../widgets/line_chart_v2/lib/scale_types';
 
 describe('profile types', () => {
   describe('createEmptyProfile', () => {
@@ -197,6 +201,57 @@ describe('profile types', () => {
       const profile = createEmptyProfile('Test');
       profile.metricDescriptions = {loss: 'Training loss'};
       expect(isValidProfile(profile)).toBe(true);
+    });
+
+    it('returns true when axis scale fields are absent', () => {
+      const profile = createEmptyProfile('Test');
+      expect(isValidProfile(profile)).toBe(true);
+    });
+
+    it('returns true with valid defaultYAxisScale', () => {
+      const profile = {...createEmptyProfile('Test'), defaultYAxisScale: 'log10' as const};
+      expect(isValidProfile(profile)).toBe(true);
+    });
+
+    it('returns true with valid defaultXAxisScale', () => {
+      const profile = {...createEmptyProfile('Test'), defaultXAxisScale: 'symlog10' as const};
+      expect(isValidProfile(profile)).toBe(true);
+    });
+
+    it('returns false for invalid defaultYAxisScale', () => {
+      const profile = {...createEmptyProfile('Test'), defaultYAxisScale: 'quadratic'} as any;
+      expect(isValidProfile(profile)).toBe(false);
+    });
+
+    it('returns false for invalid defaultXAxisScale', () => {
+      const profile = {...createEmptyProfile('Test'), defaultXAxisScale: 42} as any;
+      expect(isValidProfile(profile)).toBe(false);
+    });
+  });
+
+  describe('axis scale conversion', () => {
+    it('isAxisScaleName returns true for valid names', () => {
+      expect(isAxisScaleName('linear')).toBe(true);
+      expect(isAxisScaleName('log10')).toBe(true);
+      expect(isAxisScaleName('symlog10')).toBe(true);
+    });
+
+    it('isAxisScaleName returns false for invalid names', () => {
+      expect(isAxisScaleName('quadratic')).toBe(false);
+      expect(isAxisScaleName(42)).toBe(false);
+      expect(isAxisScaleName(null)).toBe(false);
+    });
+
+    it('nameToScaleType converts correctly', () => {
+      expect(nameToScaleType('linear')).toBe(ScaleType.LINEAR);
+      expect(nameToScaleType('log10')).toBe(ScaleType.LOG10);
+      expect(nameToScaleType('symlog10')).toBe(ScaleType.SYMLOG10);
+    });
+
+    it('scaleTypeToName converts correctly', () => {
+      expect(scaleTypeToName(ScaleType.LINEAR)).toBe('linear');
+      expect(scaleTypeToName(ScaleType.LOG10)).toBe('log10');
+      expect(scaleTypeToName(ScaleType.SYMLOG10)).toBe('symlog10');
     });
   });
 

@@ -75,6 +75,19 @@ export class SuperimposedCardComponent {
   @Input() tooltipSort!: TooltipSort;
   @Input() xAxisType!: XAxisType;
   @Input() xScaleType!: ScaleType;
+  @Input()
+  set defaultYAxisScale(value: ScaleType) {
+    if (!this.yScaleUserSet) {
+      this.yScaleType = value;
+    }
+  }
+  @Input()
+  set defaultXAxisScale(value: ScaleType) {
+    if (!this.xScaleUserSet) {
+      this.xScaleTypeOverride =
+        value === ScaleType.LINEAR ? null : value;
+    }
+  }
   @Input() useDarkMode!: boolean;
   @Input() forceSvg!: boolean;
   @Input() userViewBox: Extent | null = null;
@@ -106,6 +119,10 @@ export class SuperimposedCardComponent {
   yScaleType = ScaleType.LINEAR;
   /** Local override for x-axis scale type. When null, uses xScaleType input. */
   xScaleTypeOverride: ScaleType | null = null;
+  /** Whether the user has explicitly changed the Y-axis scale on this card. */
+  yScaleUserSet = false;
+  /** Whether the user has explicitly changed the X-axis scale on this card. */
+  xScaleUserSet = false;
   isViewBoxOverridden = false;
   additionalItemsCount = 0;
 
@@ -113,6 +130,7 @@ export class SuperimposedCardComponent {
    * Cycles through y-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
    */
   toggleYScaleType() {
+    this.yScaleUserSet = true;
     switch (this.yScaleType) {
       case ScaleType.LINEAR:
         this.yScaleType = ScaleType.LOG10;
@@ -132,6 +150,7 @@ export class SuperimposedCardComponent {
    * Only available when xAxisType is STEP or RELATIVE.
    */
   toggleXScaleType() {
+    this.xScaleUserSet = true;
     const currentScale = this.xScaleTypeOverride ?? this.xScaleType;
     let nextScale: ScaleType;
 
