@@ -208,23 +208,23 @@ describe('profile types', () => {
       expect(isValidProfile(profile)).toBe(true);
     });
 
-    it('returns true with valid defaultYAxisScale', () => {
-      const profile = {...createEmptyProfile('Test'), defaultYAxisScale: 'log10' as const};
+    it('returns true with valid yAxisScale', () => {
+      const profile = {...createEmptyProfile('Test'), yAxisScale: 'log10' as const};
       expect(isValidProfile(profile)).toBe(true);
     });
 
-    it('returns true with valid defaultXAxisScale', () => {
-      const profile = {...createEmptyProfile('Test'), defaultXAxisScale: 'symlog10' as const};
+    it('returns true with valid xAxisScale', () => {
+      const profile = {...createEmptyProfile('Test'), xAxisScale: 'symlog10' as const};
       expect(isValidProfile(profile)).toBe(true);
     });
 
-    it('returns false for invalid defaultYAxisScale', () => {
-      const profile = {...createEmptyProfile('Test'), defaultYAxisScale: 'quadratic'} as any;
+    it('returns false for invalid yAxisScale', () => {
+      const profile = {...createEmptyProfile('Test'), yAxisScale: 'quadratic'} as any;
       expect(isValidProfile(profile)).toBe(false);
     });
 
-    it('returns false for invalid defaultXAxisScale', () => {
-      const profile = {...createEmptyProfile('Test'), defaultXAxisScale: 42} as any;
+    it('returns false for invalid xAxisScale', () => {
+      const profile = {...createEmptyProfile('Test'), xAxisScale: 42} as any;
       expect(isValidProfile(profile)).toBe(false);
     });
   });

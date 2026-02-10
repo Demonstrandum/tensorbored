@@ -267,15 +267,13 @@ export interface MetricsSettings {
   histogramMode: HistogramMode;
   savingPinsEnabled: boolean;
   /**
-   * Default Y-axis scale type for scalar plots.
-   * LINEAR by default; can be overridden by profiles or UI.
+   * Y-axis scale type for scalar plots.
    */
-  defaultYAxisScale: ScaleType;
+  yAxisScale: ScaleType;
   /**
-   * Default X-axis scale type for scalar plots (STEP/RELATIVE axis types only).
-   * LINEAR by default; can be overridden by profiles or UI.
+   * X-axis scale type for scalar plots (STEP/RELATIVE axis types only).
    */
-  defaultXAxisScale: ScaleType;
+  xAxisScale: ScaleType;
 }
 
 export interface MetricsNonNamespacedState {
@@ -318,6 +316,6 @@ export const METRICS_SETTINGS_DEFAULT: MetricsSettings = {
   imageShowActualSize: false,
   histogramMode: HistogramMode.OFFSET,
   savingPinsEnabled: true,
-  defaultYAxisScale: ScaleType.LINEAR,
-  defaultXAxisScale: ScaleType.LINEAR,
+  yAxisScale: ScaleType.LINEAR,
+  xAxisScale: ScaleType.LINEAR,
 };

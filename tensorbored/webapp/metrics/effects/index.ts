@@ -35,8 +35,8 @@ const AXIS_SCALES_STORAGE_KEY = '_tb_axis_scales.v1';
 
 type StoredAxisScalesV1 = {
   version: 1;
-  defaultYAxisScale?: string;
-  defaultXAxisScale?: string;
+  yAxisScale?: string;
+  xAxisScale?: string;
 };
 
 type StoredSuperimposedCard = {
@@ -96,8 +96,8 @@ import {
   getCardLoadState,
   getCardMetadata,
   getMetricsTagMetadataLoadState,
-  getMetricsDefaultYAxisScale,
-  getMetricsDefaultXAxisScale,
+  getMetricsYAxisScale,
+  getMetricsXAxisScale,
   getSuperimposedCardsWithMetadata,
 } from '../store';
 import {
@@ -707,27 +707,27 @@ export class MetricsEffects implements OnInitEffects {
     // Persist axis scales to localStorage when user changes them
     this.persistAxisScales$ = this.actions$.pipe(
       ofType(
-        actions.metricsChangeDefaultYAxisScale,
-        actions.metricsChangeDefaultXAxisScale,
+        actions.metricsChangeYAxisScale,
+        actions.metricsChangeXAxisScale,
         actions.profileMetricsSettingsApplied
       ),
       debounceTime(200),
       withLatestFrom(
-        this.store.select(getMetricsDefaultYAxisScale),
-        this.store.select(getMetricsDefaultXAxisScale)
+        this.store.select(getMetricsYAxisScale),
+        this.store.select(getMetricsXAxisScale)
       ),
       tap(([, yScale, xScale]) => {
         const payload: StoredAxisScalesV1 = {
           version: 1,
           ...(yScale !== ScaleType.LINEAR
-            ? {defaultYAxisScale: scaleTypeToName(yScale)}
+            ? {yAxisScale: scaleTypeToName(yScale)}
             : undefined),
           ...(xScale !== ScaleType.LINEAR
-            ? {defaultXAxisScale: scaleTypeToName(xScale)}
+            ? {xAxisScale: scaleTypeToName(xScale)}
             : undefined),
         };
-        // Only store if at least one scale is non-default
-        if (payload.defaultYAxisScale || payload.defaultXAxisScale) {
+        // Only store if at least one scale is non-linear
+        if (payload.yAxisScale || payload.xAxisScale) {
           window.localStorage.setItem(
             AXIS_SCALES_STORAGE_KEY,
             JSON.stringify(payload)
@@ -750,22 +750,22 @@ export class MetricsEffects implements OnInitEffects {
           if (parsed.version !== 1) return [];
           const scaleActions: Action[] = [];
           if (
-            parsed.defaultYAxisScale &&
-            isAxisScaleName(parsed.defaultYAxisScale)
+            parsed.yAxisScale &&
+            isAxisScaleName(parsed.yAxisScale)
           ) {
             scaleActions.push(
-              actions.metricsChangeDefaultYAxisScale({
-                scaleType: nameToScaleType(parsed.defaultYAxisScale),
+              actions.metricsChangeYAxisScale({
+                scaleType: nameToScaleType(parsed.yAxisScale),
               })
             );
           }
           if (
-            parsed.defaultXAxisScale &&
-            isAxisScaleName(parsed.defaultXAxisScale)
+            parsed.xAxisScale &&
+            isAxisScaleName(parsed.xAxisScale)
           ) {
             scaleActions.push(
-              actions.metricsChangeDefaultXAxisScale({
-                scaleType: nameToScaleType(parsed.defaultXAxisScale),
+              actions.metricsChangeXAxisScale({
+                scaleType: nameToScaleType(parsed.xAxisScale),
               })
             );
           }

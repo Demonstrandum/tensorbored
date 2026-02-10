@@ -74,8 +74,8 @@ def create_profile(
     run_filter: str = "",
     smoothing: float = 0.6,
     group_by: Optional[Dict[str, Any]] = None,
-    default_y_axis_scale: Optional[str] = None,
-    default_x_axis_scale: Optional[str] = None,
+    y_axis_scale: Optional[str] = None,
+    x_axis_scale: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Create a TensorBoard profile dictionary.
 
@@ -109,10 +109,10 @@ def create_profile(
         group_by: Grouping configuration dict with:
             - key: str ("RUN", "EXPERIMENT", "REGEX", or "REGEX_BY_EXP")
             - regexString: str (optional, for REGEX/REGEX_BY_EXP)
-        default_y_axis_scale: Default Y-axis scale for scalar plots.
+        y_axis_scale: Y-axis scale for scalar plots.
             One of "linear", "log10", or "symlog10".
-        default_x_axis_scale: Default X-axis scale for scalar plots
-            (STEP/RELATIVE only). One of "linear", "log10", or "symlog10".
+        x_axis_scale: X-axis scale for scalar plots (STEP/RELATIVE only).
+            One of "linear", "log10", or "symlog10".
 
     Returns:
         A profile dictionary ready to be written to the logdir.
@@ -121,19 +121,19 @@ def create_profile(
         ValueError: If an invalid axis scale name is provided.
     """
     if (
-        default_y_axis_scale is not None
-        and default_y_axis_scale not in VALID_AXIS_SCALES
+        y_axis_scale is not None
+        and y_axis_scale not in VALID_AXIS_SCALES
     ):
         raise ValueError(
-            f"Invalid default_y_axis_scale: {default_y_axis_scale!r}. "
+            f"Invalid y_axis_scale: {y_axis_scale!r}. "
             f"Must be one of {VALID_AXIS_SCALES}"
         )
     if (
-        default_x_axis_scale is not None
-        and default_x_axis_scale not in VALID_AXIS_SCALES
+        x_axis_scale is not None
+        and x_axis_scale not in VALID_AXIS_SCALES
     ):
         raise ValueError(
-            f"Invalid default_x_axis_scale: {default_x_axis_scale!r}. "
+            f"Invalid x_axis_scale: {x_axis_scale!r}. "
             f"Must be one of {VALID_AXIS_SCALES}"
         )
     # Convert run_colors dict to list format
@@ -164,10 +164,10 @@ def create_profile(
         "smoothing": smoothing,
         "groupBy": group_by,
     }
-    if default_y_axis_scale is not None:
-        data["defaultYAxisScale"] = default_y_axis_scale
-    if default_x_axis_scale is not None:
-        data["defaultXAxisScale"] = default_x_axis_scale
+    if y_axis_scale is not None:
+        data["yAxisScale"] = y_axis_scale
+    if x_axis_scale is not None:
+        data["xAxisScale"] = x_axis_scale
 
     return {
         "version": PROFILE_VERSION,
@@ -240,8 +240,8 @@ def set_default_profile(
     run_filter: str = "",
     smoothing: float = 0.6,
     group_by: Optional[Dict[str, Any]] = None,
-    default_y_axis_scale: Optional[str] = None,
-    default_x_axis_scale: Optional[str] = None,
+    y_axis_scale: Optional[str] = None,
+    x_axis_scale: Optional[str] = None,
 ) -> str:
     """Convenience function to create and write a profile in one call.
 
@@ -260,10 +260,10 @@ def set_default_profile(
         run_filter: Regex pattern to filter runs.
         smoothing: Scalar smoothing value.
         group_by: Grouping configuration.
-        default_y_axis_scale: Default Y-axis scale for scalar plots.
+        y_axis_scale: Y-axis scale for scalar plots.
             One of "linear", "log10", or "symlog10".
-        default_x_axis_scale: Default X-axis scale for scalar plots
-            (STEP/RELATIVE only). One of "linear", "log10", or "symlog10".
+        x_axis_scale: X-axis scale for scalar plots (STEP/RELATIVE only).
+            One of "linear", "log10", or "symlog10".
 
     Returns:
         The path to the written profile file.
@@ -281,8 +281,8 @@ def set_default_profile(
         run_filter=run_filter,
         smoothing=smoothing,
         group_by=group_by,
-        default_y_axis_scale=default_y_axis_scale,
-        default_x_axis_scale=default_x_axis_scale,
+        y_axis_scale=y_axis_scale,
+        x_axis_scale=x_axis_scale,
     )
     return write_profile(logdir, profile)
 

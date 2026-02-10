@@ -201,44 +201,42 @@ class ProfileWriterTest(unittest.TestCase):
 
 
     def test_create_profile_with_axis_scales(self):
-        """Test create_profile with axis scale defaults."""
+        """Test create_profile with axis scale settings."""
         profile = profile_writer.create_profile(
-            default_y_axis_scale="log10",
-            default_x_axis_scale="symlog10",
+            y_axis_scale="log10",
+            x_axis_scale="symlog10",
         )
         data = profile["data"]
-        self.assertEqual(data["defaultYAxisScale"], "log10")
-        self.assertEqual(data["defaultXAxisScale"], "symlog10")
+        self.assertEqual(data["yAxisScale"], "log10")
+        self.assertEqual(data["xAxisScale"], "symlog10")
 
     def test_create_profile_omits_axis_scales_when_none(self):
         """Test create_profile omits axis scale fields when None."""
         profile = profile_writer.create_profile()
         data = profile["data"]
-        self.assertNotIn("defaultYAxisScale", data)
-        self.assertNotIn("defaultXAxisScale", data)
+        self.assertNotIn("yAxisScale", data)
+        self.assertNotIn("xAxisScale", data)
 
     def test_create_profile_invalid_y_axis_scale(self):
         """Test create_profile raises for invalid Y axis scale."""
         with self.assertRaises(ValueError):
-            profile_writer.create_profile(default_y_axis_scale="invalid")
+            profile_writer.create_profile(y_axis_scale="invalid")
 
     def test_create_profile_invalid_x_axis_scale(self):
         """Test create_profile raises for invalid X axis scale."""
         with self.assertRaises(ValueError):
-            profile_writer.create_profile(default_x_axis_scale="quadratic")
+            profile_writer.create_profile(x_axis_scale="quadratic")
 
     def test_set_default_profile_with_axis_scales(self):
         """Test set_default_profile passes axis scales through."""
         path = profile_writer.set_default_profile(
             self.logdir,
-            default_y_axis_scale="log10",
-            default_x_axis_scale="symlog10",
+            y_axis_scale="log10",
+            x_axis_scale="symlog10",
         )
         loaded = profile_writer.read_profile(self.logdir)
-        self.assertEqual(loaded["data"]["defaultYAxisScale"], "log10")
-        self.assertEqual(
-            loaded["data"]["defaultXAxisScale"], "symlog10"
-        )
+        self.assertEqual(loaded["data"]["yAxisScale"], "log10")
+        self.assertEqual(loaded["data"]["xAxisScale"], "symlog10")
 
 
 class IntegrationTest(unittest.TestCase):

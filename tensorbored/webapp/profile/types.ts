@@ -158,16 +158,14 @@ export interface ProfileData {
   groupBy: ProfileGroupBy | null;
 
   /**
-   * Default Y-axis scale type for scalar plots.
-   * When set, new scalar cards will use this scale instead of LINEAR.
+   * Y-axis scale type for scalar plots (e.g. 'log10' for loss curves).
    */
-  defaultYAxisScale?: AxisScaleName;
+  yAxisScale?: AxisScaleName;
 
   /**
-   * Default X-axis scale type for scalar plots (STEP/RELATIVE only).
-   * When set, new scalar cards will use this scale instead of LINEAR.
+   * X-axis scale type for scalar plots (STEP/RELATIVE only).
    */
-  defaultXAxisScale?: AxisScaleName;
+  xAxisScale?: AxisScaleName;
 }
 
 /**
@@ -324,14 +322,14 @@ export function isValidProfile(data: unknown): data is ProfileData {
 
   // Validate axis scale names (optional fields)
   if (
-    profile.defaultYAxisScale !== undefined &&
-    !isAxisScaleName(profile.defaultYAxisScale)
+    profile.yAxisScale !== undefined &&
+    !isAxisScaleName(profile.yAxisScale)
   ) {
     return false;
   }
   if (
-    profile.defaultXAxisScale !== undefined &&
-    !isAxisScaleName(profile.defaultXAxisScale)
+    profile.xAxisScale !== undefined &&
+    !isAxisScaleName(profile.xAxisScale)
   ) {
     return false;
   }

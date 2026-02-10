@@ -37,8 +37,8 @@ import {
   getPinnedCardsWithMetadata,
   getUnresolvedImportedPinnedCards,
   getSuperimposedCardsWithMetadata,
-  getMetricsDefaultYAxisScale,
-  getMetricsDefaultXAxisScale,
+  getMetricsYAxisScale,
+  getMetricsXAxisScale,
 } from '../../metrics/store/metrics_selectors';
 import {
   getRunColorOverride,
@@ -327,19 +327,11 @@ export class ProfileEffects {
           })),
           tagFilter,
           smoothing: profile.smoothing,
-          ...(profile.defaultYAxisScale
-            ? {
-                defaultYAxisScale: nameToScaleType(
-                  profile.defaultYAxisScale
-                ),
-              }
+          ...(profile.yAxisScale
+            ? {yAxisScale: nameToScaleType(profile.yAxisScale)}
             : undefined),
-          ...(profile.defaultXAxisScale
-            ? {
-                defaultXAxisScale: nameToScaleType(
-                  profile.defaultXAxisScale
-                ),
-              }
+          ...(profile.xAxisScale
+            ? {xAxisScale: nameToScaleType(profile.xAxisScale)}
             : undefined),
         });
       })
@@ -448,8 +440,8 @@ export class ProfileEffects {
         this.store.select(getRunUserSetGroupBy),
         this.store.select(getRunSelectionMap),
         this.store.select(getDashboardRuns),
-        this.store.select(getMetricsDefaultYAxisScale),
-        this.store.select(getMetricsDefaultXAxisScale)
+        this.store.select(getMetricsYAxisScale),
+        this.store.select(getMetricsXAxisScale)
       ),
       map(
         ([
@@ -465,8 +457,8 @@ export class ProfileEffects {
           groupBy,
           runSelectionMap,
           runs,
-          defaultYAxisScale,
-          defaultXAxisScale,
+          yAxisScale,
+          xAxisScale,
         ]) => {
           // Convert pinned cards to CardUniqueInfo format
           const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map((card) => {
@@ -533,11 +525,11 @@ export class ProfileEffects {
             runFilter,
             smoothing,
             groupBy: profileGroupBy,
-            ...(defaultYAxisScale !== ScaleType.LINEAR
-              ? {defaultYAxisScale: scaleTypeToName(defaultYAxisScale)}
+            ...(yAxisScale !== ScaleType.LINEAR
+              ? {yAxisScale: scaleTypeToName(yAxisScale)}
               : undefined),
-            ...(defaultXAxisScale !== ScaleType.LINEAR
-              ? {defaultXAxisScale: scaleTypeToName(defaultXAxisScale)}
+            ...(xAxisScale !== ScaleType.LINEAR
+              ? {xAxisScale: scaleTypeToName(xAxisScale)}
               : undefined),
           };
 

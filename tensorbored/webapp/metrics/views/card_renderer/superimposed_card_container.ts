@@ -64,8 +64,8 @@ import {
   getMetricsScalarSmoothing,
   getMetricsTooltipSort,
   getMetricsXAxisType,
-  getMetricsDefaultYAxisScale,
-  getMetricsDefaultXAxisScale,
+  getMetricsYAxisScale,
+  getMetricsXAxisScale,
   getSuperimposedCardLoadState,
   getSuperimposedCardMetadata,
   getSuperimposedCardTimeSeries,
@@ -106,8 +106,8 @@ import {getFilteredRenderableRunsIds} from '../main_view/common_selectors';
       [tooltipSort]="tooltipSort$ | async"
       [xAxisType]="xAxisType$ | async"
       [xScaleType]="xScaleType$ | async"
-      [defaultYAxisScale]="defaultYAxisScale$ | async"
-      [defaultXAxisScale]="defaultXAxisScale$ | async"
+      [yAxisScale]="yAxisScale$ | async"
+      [xAxisScale]="xAxisScale$ | async"
       [useDarkMode]="useDarkMode$ | async"
       [forceSvg]="forceSvg$ | async"
       [userViewBox]="userViewBox$ | async"
@@ -151,8 +151,8 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
         }
       })
     );
-    this.defaultYAxisScale$ = this.store.select(getMetricsDefaultYAxisScale);
-    this.defaultXAxisScale$ = this.store.select(getMetricsDefaultXAxisScale);
+    this.yAxisScale$ = this.store.select(getMetricsYAxisScale);
+    this.xAxisScale$ = this.store.select(getMetricsXAxisScale);
     this.scalarSmoothing$ = this.store.select(getMetricsScalarSmoothing);
     this.smoothingEnabled$ = this.store
       .select(getMetricsScalarSmoothing)
@@ -181,8 +181,8 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
   readonly xAxisType$;
   readonly forceSvg$;
   readonly xScaleType$;
-  readonly defaultYAxisScale$;
-  readonly defaultXAxisScale$;
+  readonly yAxisScale$;
+  readonly xAxisScale$;
   readonly scalarSmoothing$;
   readonly smoothingEnabled$;
 

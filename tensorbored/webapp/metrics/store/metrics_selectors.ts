@@ -391,14 +391,14 @@ export const getMetricsSavingPinsEnabled = createSelector(
   (settings): boolean => settings.savingPinsEnabled
 );
 
-export const getMetricsDefaultYAxisScale = createSelector(
+export const getMetricsYAxisScale = createSelector(
   selectSettings,
-  (settings): ScaleType => settings.defaultYAxisScale
+  (settings): ScaleType => settings.yAxisScale
 );
 
-export const getMetricsDefaultXAxisScale = createSelector(
+export const getMetricsXAxisScale = createSelector(
   selectSettings,
-  (settings): ScaleType => settings.defaultXAxisScale
+  (settings): ScaleType => settings.xAxisScale
 );
 
 export const getMetricsTagFilter = createSelector(

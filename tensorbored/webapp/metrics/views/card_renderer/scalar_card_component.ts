@@ -111,13 +111,13 @@ export class ScalarCardComponent<Downloader> {
   @Input() xAxisType!: XAxisType;
   @Input() xScaleType!: ScaleType;
   @Input()
-  set defaultYAxisScale(value: ScaleType) {
+  set yAxisScale(value: ScaleType) {
     if (!this.yScaleUserSet) {
       this.yScaleType = value;
     }
   }
   @Input()
-  set defaultXAxisScale(value: ScaleType) {
+  set xAxisScale(value: ScaleType) {
     if (!this.xScaleUserSet) {
       this.xScaleTypeOverride =
         value === ScaleType.LINEAR ? null : value;

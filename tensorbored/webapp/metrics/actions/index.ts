@@ -292,13 +292,13 @@ export const metricsEnableSavingPinsToggled = createAction(
   '[Metrics] Enable Saving Pins Toggled'
 );
 
-export const metricsChangeDefaultYAxisScale = createAction(
-  '[Metrics] Change Default Y Axis Scale',
+export const metricsChangeYAxisScale = createAction(
+  '[Metrics] Change Y Axis Scale',
   props<{scaleType: ScaleType}>()
 );
 
-export const metricsChangeDefaultXAxisScale = createAction(
-  '[Metrics] Change Default X Axis Scale',
+export const metricsChangeXAxisScale = createAction(
+  '[Metrics] Change X Axis Scale',
   props<{scaleType: ScaleType}>()
 );
 
@@ -390,8 +390,8 @@ export const profileMetricsSettingsApplied = createAction(
     }>;
     tagFilter: string;
     smoothing: number;
-    defaultYAxisScale?: ScaleType;
-    defaultXAxisScale?: ScaleType;
+    yAxisScale?: ScaleType;
+    xAxisScale?: ScaleType;
   }>()
 );
 

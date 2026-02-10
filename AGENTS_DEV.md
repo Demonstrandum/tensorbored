@@ -174,7 +174,7 @@ The frontend uses Angular with NgRx for state management. The pattern is:
 | **Tag filter** | `webapp/metrics/views/main_view/filter_input_*` |
 | **Tag filter persistence** | `webapp/metrics/effects/index.ts` (`persistTagFilter$`, `loadTagFilterFromStorage$`) |
 | **Scale types** | `webapp/widgets/line_chart_v2/lib/scale.ts` (LINEAR, LOG10, SYMLOG10), `webapp/widgets/line_chart_v2/lib/scale_types.ts` |
-| **Default axis scales** | `webapp/metrics/store/metrics_types.ts` (defaultYAxisScale, defaultXAxisScale in MetricsSettings), `webapp/profile/types.ts` (AxisScaleName, conversion utils) |
+| **Axis scales** | `webapp/metrics/store/metrics_types.ts` (yAxisScale, xAxisScale in MetricsSettings), `webapp/profile/types.ts` (AxisScaleName, conversion utils) |
 | **Legacy symlog** | `components/vz_line_chart2/symlog-scale.ts` (Plottable-based `SymLogScale`) |
 | **Metric descriptions** | `webapp/metrics/views/utils.ts` (`htmlToText`, `buildTagTooltip`), card components fetch `tagDescription` |
 | **Card scale cycling** | Scalar cards and superimposed cards cycle `LINEAR → LOG10 → SYMLOG10 → LINEAR` on click for both X and Y axes (X-axis only for STEP/RELATIVE) |
@@ -243,7 +243,7 @@ The frontend persists state to browser localStorage. This is the core mechanism 
 | `_tb_run_selection.v1` | Run visibility states | `{version: 1, runSelection: [[id, bool], ...]}` | Runs effects |
 | `_tb_run_colors.v1` | Color overrides | `{version: 1, runColorOverrides: [...], groupKeyToColorId: [...]}` | Runs effects |
 | `_tb_tag_filter.v1` | Tag filter regex | `{value: string, timestamp: number}` | Metrics effects |
-| `_tb_axis_scales.v1` | Default axis scales | `{version: 1, defaultYAxisScale?: string, defaultXAxisScale?: string}` | Metrics effects |
+| `_tb_axis_scales.v1` | Axis scales | `{version: 1, yAxisScale?: string, xAxisScale?: string}` | Metrics effects |
 | `tb-saved-pins` | Pinned cards | JSON `CardUniqueInfo[]` | Metrics effects |
 
 Important behaviors:
@@ -436,15 +436,15 @@ The tag filter regex is persisted to localStorage (`_tb_tag_filter.v1`) with a t
 
 When loading a profile, runs not explicitly listed in `runSelection` default to visible (not hidden). If a localStorage run selection would result in all runs being hidden, it is discarded and all runs become visible. This prevents the "blank dashboard" problem.
 
-### Default Axis Scales (#32)
+### Axis Scales in Profiles (#32)
 
-Profiles can specify default Y-axis and X-axis scale types for scalar plots via `defaultYAxisScale` and `defaultXAxisScale` fields. Valid values are `"linear"`, `"log10"`, and `"symlog10"`. The feature has three persistence layers:
+Profiles can specify Y-axis and X-axis scale types for scalar plots via `yAxisScale` and `xAxisScale` fields. Valid values are `"linear"`, `"log10"`, and `"symlog10"`. The feature has three persistence layers:
 
-1. **Backend profiles** (`profile_writer.py`): Set `default_y_axis_scale="log10"` in `create_profile()` or `set_default_profile()`. The frontend reads this from the backend's default profile JSON.
-2. **Local profiles**: When saving a profile in the UI, the current axis scale defaults are included. Only non-LINEAR scales are stored (to keep the JSON minimal).
-3. **localStorage** (`_tb_axis_scales.v1`): When the user changes the default axis scale via the metrics settings, it's persisted to localStorage. On reload, the stored scales are restored.
+1. **Backend profiles** (`profile_writer.py`): Set `y_axis_scale="log10"` in `create_profile()` or `set_default_profile()`. The frontend reads this from the backend's default profile JSON.
+2. **Local profiles**: When saving a profile in the UI, the current axis scales are included. Only non-LINEAR scales are stored (to keep the JSON minimal).
+3. **localStorage** (`_tb_axis_scales.v1`): When the user changes the axis scale, it's persisted to localStorage. On reload, the stored scales are restored.
 
-In scalar card and superimposed card components, the profile's default scale is applied as the initial value. Once the user manually toggles the scale on a specific card (cycling LINEAR → LOG10 → SYMLOG10), that card's `yScaleUserSet`/`xScaleUserSet` flag is set to `true`, preventing the profile default from overriding the user's choice. X-axis scale defaults only apply to STEP and RELATIVE axis types (not WALL_TIME).
+In scalar card and superimposed card components, the profile's scale is applied as the initial value. Once the user manually toggles the scale on a specific card (cycling LINEAR → LOG10 → SYMLOG10), that card's `yScaleUserSet`/`xScaleUserSet` flag is set to `true`, preventing the profile value from overriding the user's choice. X-axis scale settings only apply to STEP and RELATIVE axis types (not WALL_TIME).
 
 ---
 
