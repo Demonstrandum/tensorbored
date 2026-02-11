@@ -292,6 +292,11 @@ export interface MetricsNonNamespacedState {
   visibleCardMap: Map<ElementId, CardId>;
   previousCardInteractions: CardInteractions;
   newCardInteractions: CardInteractions;
+  /**
+   * Per-tag axis scale overrides. Key is the tag name.
+   * Takes priority over the global yAxisScale/xAxisScale in settings.
+   */
+  tagAxisScales: Record<string, {yAxisScale: ScaleType; xAxisScale: ScaleType}>;
 }
 
 export type MetricsState = NamespaceContextedState<

@@ -75,18 +75,8 @@ export class SuperimposedCardComponent {
   @Input() tooltipSort!: TooltipSort;
   @Input() xAxisType!: XAxisType;
   @Input() xScaleType!: ScaleType;
-  @Input()
-  set yAxisScale(value: ScaleType) {
-    if (!this.yScaleUserSet) {
-      this.yScaleType = value;
-    }
-  }
-  @Input()
-  set xAxisScale(value: ScaleType) {
-    if (!this.xScaleUserSet) {
-      this.xScaleTypeOverride = value === ScaleType.LINEAR ? null : value;
-    }
-  }
+  @Input() yAxisScale!: ScaleType;
+  @Input() xAxisScale!: ScaleType;
   @Input() useDarkMode!: boolean;
   @Input() forceSvg!: boolean;
   @Input() userViewBox: Extent | null = null;
@@ -96,6 +86,8 @@ export class SuperimposedCardComponent {
   @Output() onViewBoxChange = new EventEmitter<Extent | null>();
   @Output() onFullWidthChanged = new EventEmitter<boolean>();
   @Output() onFullHeightChanged = new EventEmitter<boolean>();
+  @Output() onYAxisScaleChanged = new EventEmitter<ScaleType>();
+  @Output() onXAxisScaleChanged = new EventEmitter<ScaleType>();
 
   showFullWidth = false;
   showFullHeight = false;
@@ -115,80 +107,21 @@ export class SuperimposedCardComponent {
 
   constructor(private readonly ref: ElementRef) {}
 
-  yScaleType = ScaleType.LINEAR;
-  /** Local override for x-axis scale type. When null, uses xScaleType input. */
-  xScaleTypeOverride: ScaleType | null = null;
-  /** Whether the user has explicitly changed the Y-axis scale on this card. */
-  yScaleUserSet = false;
-  /** Whether the user has explicitly changed the X-axis scale on this card. */
-  xScaleUserSet = false;
   isViewBoxOverridden = false;
   additionalItemsCount = 0;
 
-  /**
-   * Cycles through y-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
-   */
-  toggleYScaleType() {
-    this.yScaleUserSet = true;
-    switch (this.yScaleType) {
+  private static nextScale(current: ScaleType): ScaleType {
+    switch (current) {
       case ScaleType.LINEAR:
-        this.yScaleType = ScaleType.LOG10;
-        break;
+        return ScaleType.LOG10;
       case ScaleType.LOG10:
-        this.yScaleType = ScaleType.SYMLOG10;
-        break;
-      case ScaleType.SYMLOG10:
+        return ScaleType.SYMLOG10;
       default:
-        this.yScaleType = ScaleType.LINEAR;
-        break;
+        return ScaleType.LINEAR;
     }
   }
 
-  /**
-   * Cycles through x-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
-   * Only available when xAxisType is STEP or RELATIVE.
-   */
-  toggleXScaleType() {
-    this.xScaleUserSet = true;
-    const currentScale = this.xScaleTypeOverride ?? this.xScaleType;
-    let nextScale: ScaleType;
-
-    switch (currentScale) {
-      case ScaleType.LINEAR:
-        nextScale = ScaleType.LOG10;
-        break;
-      case ScaleType.LOG10:
-        nextScale = ScaleType.SYMLOG10;
-        break;
-      case ScaleType.SYMLOG10:
-      default:
-        nextScale = ScaleType.LINEAR;
-        break;
-    }
-
-    this.xScaleTypeOverride = nextScale === ScaleType.LINEAR ? null : nextScale;
-  }
-
-  getEffectiveXScaleType(): ScaleType {
-    if (this.xScaleType === ScaleType.TIME) {
-      return ScaleType.TIME;
-    }
-    return this.xScaleTypeOverride ?? this.xScaleType;
-  }
-
-  getYScaleLabel(): string {
-    switch (this.yScaleType) {
-      case ScaleType.LOG10:
-        return 'Log';
-      case ScaleType.SYMLOG10:
-        return 'SymLog';
-      default:
-        return 'Linear';
-    }
-  }
-
-  getXScaleLabel(): string {
-    const scaleType = this.getEffectiveXScaleType();
+  private static scaleLabel(scaleType: ScaleType): string {
     switch (scaleType) {
       case ScaleType.LOG10:
         return 'Log';
@@ -199,6 +132,33 @@ export class SuperimposedCardComponent {
       default:
         return 'Linear';
     }
+  }
+
+  toggleYScaleType() {
+    this.onYAxisScaleChanged.emit(
+      SuperimposedCardComponent.nextScale(this.yAxisScale)
+    );
+  }
+
+  toggleXScaleType() {
+    this.onXAxisScaleChanged.emit(
+      SuperimposedCardComponent.nextScale(this.getEffectiveXScaleType())
+    );
+  }
+
+  getEffectiveXScaleType(): ScaleType {
+    if (this.xScaleType === ScaleType.TIME) {
+      return ScaleType.TIME;
+    }
+    return this.xAxisScale;
+  }
+
+  getYScaleLabel(): string {
+    return SuperimposedCardComponent.scaleLabel(this.yAxisScale);
+  }
+
+  getXScaleLabel(): string {
+    return SuperimposedCardComponent.scaleLabel(this.getEffectiveXScaleType());
   }
 
   canToggleXScaleType(): boolean {

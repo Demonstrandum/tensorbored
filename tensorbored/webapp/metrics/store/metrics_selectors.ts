@@ -401,6 +401,36 @@ export const getMetricsXAxisScale = createSelector(
   (settings): ScaleType => settings.xAxisScale
 );
 
+export const getTagAxisScales = createSelector(
+  selectMetricsState,
+  (state): Record<string, {yAxisScale: ScaleType; xAxisScale: ScaleType}> =>
+    state.tagAxisScales
+);
+
+/**
+ * Returns the effective Y-axis scale for a specific tag.
+ * Per-tag override takes priority over the global default.
+ */
+export const getEffectiveTagYAxisScale = memoize((tag: string) =>
+  createSelector(
+    getTagAxisScales,
+    getMetricsYAxisScale,
+    (tagScales, globalY): ScaleType => tagScales[tag]?.yAxisScale ?? globalY
+  )
+);
+
+/**
+ * Returns the effective X-axis scale for a specific tag.
+ * Per-tag override takes priority over the global default.
+ */
+export const getEffectiveTagXAxisScale = memoize((tag: string) =>
+  createSelector(
+    getTagAxisScales,
+    getMetricsXAxisScale,
+    (tagScales, globalX): ScaleType => tagScales[tag]?.xAxisScale ?? globalX
+  )
+);
+
 export const getMetricsTagFilter = createSelector(
   selectMetricsState,
   (state): string => state.tagFilter

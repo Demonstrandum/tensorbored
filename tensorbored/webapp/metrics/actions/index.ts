@@ -302,6 +302,16 @@ export const metricsChangeXAxisScale = createAction(
   props<{scaleType: ScaleType}>()
 );
 
+export const metricsTagYAxisScaleChanged = createAction(
+  '[Metrics] Tag Y Axis Scale Changed',
+  props<{tag: string; scaleType: ScaleType}>()
+);
+
+export const metricsTagXAxisScaleChanged = createAction(
+  '[Metrics] Tag X Axis Scale Changed',
+  props<{tag: string; scaleType: ScaleType}>()
+);
+
 // TODO(jieweiwu): Delete after internal code is updated.
 export const stepSelectorTimeSelectionChanged = timeSelectionChanged;
 
@@ -392,6 +402,10 @@ export const profileMetricsSettingsApplied = createAction(
     smoothing: number;
     yAxisScale: ScaleType;
     xAxisScale: ScaleType;
+    tagAxisScales: Record<
+      string,
+      {yAxisScale: ScaleType; xAxisScale: ScaleType}
+    >;
   }>()
 );
 

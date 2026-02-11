@@ -39,6 +39,7 @@ import {
   getSuperimposedCardsWithMetadata,
   getMetricsYAxisScale,
   getMetricsXAxisScale,
+  getTagAxisScales,
 } from '../../metrics/store/metrics_selectors';
 import {
   getRunColorOverride,
@@ -333,6 +334,21 @@ export class ProfileEffects {
           xAxisScale: profile.xAxisScale
             ? nameToScaleType(profile.xAxisScale)
             : ScaleType.LINEAR,
+          tagAxisScales: profile.tagAxisScales
+            ? Object.fromEntries(
+                Object.entries(profile.tagAxisScales).map(([tag, entry]) => [
+                  tag,
+                  {
+                    yAxisScale: entry.y
+                      ? nameToScaleType(entry.y)
+                      : ScaleType.LINEAR,
+                    xAxisScale: entry.x
+                      ? nameToScaleType(entry.x)
+                      : ScaleType.LINEAR,
+                  },
+                ])
+              )
+            : {},
         });
       })
     )
@@ -441,7 +457,8 @@ export class ProfileEffects {
         this.store.select(getRunSelectionMap),
         this.store.select(getDashboardRuns),
         this.store.select(getMetricsYAxisScale),
-        this.store.select(getMetricsXAxisScale)
+        this.store.select(getMetricsXAxisScale),
+        this.store.select(getTagAxisScales)
       ),
       map(
         ([
@@ -459,6 +476,7 @@ export class ProfileEffects {
           runs,
           yAxisScale,
           xAxisScale,
+          tagAxisScales,
         ]) => {
           // Convert pinned cards to CardUniqueInfo format
           const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map((card) => {
@@ -527,6 +545,20 @@ export class ProfileEffects {
             groupBy: profileGroupBy,
             yAxisScale: scaleTypeToName(yAxisScale),
             xAxisScale: scaleTypeToName(xAxisScale),
+            tagAxisScales: Object.fromEntries(
+              Object.entries(tagAxisScales)
+                .map(([tag, scales]) => {
+                  const entry: {y?: string; x?: string} = {};
+                  if (scales.yAxisScale !== ScaleType.LINEAR) {
+                    entry.y = scaleTypeToName(scales.yAxisScale);
+                  }
+                  if (scales.xAxisScale !== ScaleType.LINEAR) {
+                    entry.x = scaleTypeToName(scales.xAxisScale);
+                  }
+                  return [tag, entry] as const;
+                })
+                .filter(([, entry]) => entry.y || entry.x)
+            ),
           };
 
           // Save to localStorage

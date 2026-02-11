@@ -237,6 +237,35 @@ class ProfileWriterTest(unittest.TestCase):
         self.assertEqual(loaded["data"]["yAxisScale"], "log10")
         self.assertEqual(loaded["data"]["xAxisScale"], "symlog10")
 
+    def test_create_profile_with_tag_axis_scales(self):
+        """Test create_profile with per-tag axis scales."""
+        profile = profile_writer.create_profile(
+            tag_axis_scales={
+                "train/loss": {"y": "log10"},
+                "eval/loss": {"y": "log10", "x": "symlog10"},
+            },
+        )
+        data = profile["data"]
+        self.assertEqual(data["tagAxisScales"]["train/loss"], {"y": "log10"})
+        self.assertEqual(
+            data["tagAxisScales"]["eval/loss"],
+            {"y": "log10", "x": "symlog10"},
+        )
+
+    def test_create_profile_invalid_tag_axis_scale(self):
+        """Test create_profile raises for invalid per-tag axis scale."""
+        with self.assertRaises(ValueError):
+            profile_writer.create_profile(
+                tag_axis_scales={"loss": {"y": "cubic"}}
+            )
+
+    def test_create_profile_invalid_tag_axis_key(self):
+        """Test create_profile raises for invalid axis key."""
+        with self.assertRaises(ValueError):
+            profile_writer.create_profile(
+                tag_axis_scales={"loss": {"z": "log10"}}
+            )
+
 
 class IntegrationTest(unittest.TestCase):
     """Integration tests demonstrating typical usage."""

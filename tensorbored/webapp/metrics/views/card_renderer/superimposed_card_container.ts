@@ -114,6 +114,8 @@ import {getFilteredRenderableRunsIds} from '../main_view/common_selectors';
       (onDeleteCard)="onDeleteCard()"
       (onRemoveTag)="onRemoveTag($event)"
       (onViewBoxChange)="onViewBoxChange($event)"
+      (onYAxisScaleChanged)="onYAxisScaleChanged($event)"
+      (onXAxisScaleChanged)="onXAxisScaleChanged($event)"
       (onFullWidthChanged)="fullWidthChanged.emit($event)"
       (onFullHeightChanged)="fullHeightChanged.emit($event)"
       observeIntersection
@@ -539,6 +541,14 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
         tag,
       })
     );
+  }
+
+  onYAxisScaleChanged(scaleType: ScaleType) {
+    this.store.dispatch(actions.metricsChangeYAxisScale({scaleType}));
+  }
+
+  onXAxisScaleChanged(scaleType: ScaleType) {
+    this.store.dispatch(actions.metricsChangeXAxisScale({scaleType}));
   }
 
   onViewBoxChange(viewBox: Extent | null) {

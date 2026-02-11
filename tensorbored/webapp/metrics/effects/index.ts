@@ -37,6 +37,7 @@ type StoredAxisScalesV1 = {
   version: 1;
   yAxisScale?: string;
   xAxisScale?: string;
+  tagAxisScales?: Record<string, {y?: string; x?: string}>;
 };
 
 type StoredSuperimposedCard = {
@@ -98,6 +99,7 @@ import {
   getMetricsTagMetadataLoadState,
   getMetricsYAxisScale,
   getMetricsXAxisScale,
+  getTagAxisScales,
   getSuperimposedCardsWithMetadata,
 } from '../store';
 import {
@@ -709,14 +711,31 @@ export class MetricsEffects implements OnInitEffects {
       ofType(
         actions.metricsChangeYAxisScale,
         actions.metricsChangeXAxisScale,
+        actions.metricsTagYAxisScaleChanged,
+        actions.metricsTagXAxisScaleChanged,
         actions.profileMetricsSettingsApplied
       ),
       debounceTime(200),
       withLatestFrom(
         this.store.select(getMetricsYAxisScale),
-        this.store.select(getMetricsXAxisScale)
+        this.store.select(getMetricsXAxisScale),
+        this.store.select(getTagAxisScales)
       ),
-      tap(([, yScale, xScale]) => {
+      tap(([, yScale, xScale, tagScales]) => {
+        const tagAxisScalesPayload: Record<string, {y?: string; x?: string}> =
+          {};
+        for (const [tag, scales] of Object.entries(tagScales)) {
+          const entry: {y?: string; x?: string} = {};
+          if (scales.yAxisScale !== ScaleType.LINEAR) {
+            entry.y = scaleTypeToName(scales.yAxisScale);
+          }
+          if (scales.xAxisScale !== ScaleType.LINEAR) {
+            entry.x = scaleTypeToName(scales.xAxisScale);
+          }
+          if (entry.y || entry.x) {
+            tagAxisScalesPayload[tag] = entry;
+          }
+        }
         const payload: StoredAxisScalesV1 = {
           version: 1,
           ...(yScale !== ScaleType.LINEAR
@@ -725,9 +744,11 @@ export class MetricsEffects implements OnInitEffects {
           ...(xScale !== ScaleType.LINEAR
             ? {xAxisScale: scaleTypeToName(xScale)}
             : undefined),
+          ...(Object.keys(tagAxisScalesPayload).length > 0
+            ? {tagAxisScales: tagAxisScalesPayload}
+            : undefined),
         };
-        // Only store if at least one scale is non-linear
-        if (payload.yAxisScale || payload.xAxisScale) {
+        if (payload.yAxisScale || payload.xAxisScale || payload.tagAxisScales) {
           window.localStorage.setItem(
             AXIS_SCALES_STORAGE_KEY,
             JSON.stringify(payload)
@@ -762,6 +783,26 @@ export class MetricsEffects implements OnInitEffects {
                 scaleType: nameToScaleType(parsed.xAxisScale),
               })
             );
+          }
+          if (parsed.tagAxisScales) {
+            for (const [tag, entry] of Object.entries(parsed.tagAxisScales)) {
+              if (entry.y && isAxisScaleName(entry.y)) {
+                scaleActions.push(
+                  actions.metricsTagYAxisScaleChanged({
+                    tag,
+                    scaleType: nameToScaleType(entry.y),
+                  })
+                );
+              }
+              if (entry.x && isAxisScaleName(entry.x)) {
+                scaleActions.push(
+                  actions.metricsTagXAxisScaleChanged({
+                    tag,
+                    scaleType: nameToScaleType(entry.x),
+                  })
+                );
+              }
+            }
           }
           return scaleActions;
         } catch {

@@ -76,6 +76,7 @@ def create_profile(
     group_by: Optional[Dict[str, Any]] = None,
     y_axis_scale: Optional[str] = None,
     x_axis_scale: Optional[str] = None,
+    tag_axis_scales: Optional[Dict[str, Dict[str, str]]] = None,
 ) -> Dict[str, Any]:
     """Create a TensorBoard profile dictionary.
 
@@ -113,6 +114,10 @@ def create_profile(
             One of "linear", "log10", or "symlog10".
         x_axis_scale: X-axis scale for scalar plots (STEP/RELATIVE only).
             One of "linear", "log10", or "symlog10".
+        tag_axis_scales: Per-tag axis scale overrides. Dict mapping tag
+            names to dicts with optional "y" and/or "x" keys, each
+            set to "linear", "log10", or "symlog10". Example:
+            {"train/loss": {"y": "log10"}, "eval/loss": {"y": "log10"}}
 
     Returns:
         A profile dictionary ready to be written to the logdir.
@@ -130,6 +135,20 @@ def create_profile(
             f"Invalid x_axis_scale: {x_axis_scale!r}. "
             f"Must be one of {VALID_AXIS_SCALES}"
         )
+    if tag_axis_scales is not None:
+        for tag, axes in tag_axis_scales.items():
+            for axis_key, scale in axes.items():
+                if axis_key not in ("y", "x"):
+                    raise ValueError(
+                        f"Invalid axis key {axis_key!r} for tag "
+                        f"{tag!r}. Must be 'y' or 'x'"
+                    )
+                if scale not in VALID_AXIS_SCALES:
+                    raise ValueError(
+                        f"Invalid scale {scale!r} for tag "
+                        f"{tag!r} axis {axis_key!r}. "
+                        f"Must be one of {VALID_AXIS_SCALES}"
+                    )
     # Convert run_colors dict to list format
     run_color_entries = []
     if run_colors:
@@ -162,6 +181,8 @@ def create_profile(
         data["yAxisScale"] = y_axis_scale
     if x_axis_scale is not None:
         data["xAxisScale"] = x_axis_scale
+    if tag_axis_scales:
+        data["tagAxisScales"] = tag_axis_scales
 
     return {
         "version": PROFILE_VERSION,
@@ -236,6 +257,7 @@ def set_default_profile(
     group_by: Optional[Dict[str, Any]] = None,
     y_axis_scale: Optional[str] = None,
     x_axis_scale: Optional[str] = None,
+    tag_axis_scales: Optional[Dict[str, Dict[str, str]]] = None,
 ) -> str:
     """Convenience function to create and write a profile in one call.
 
@@ -258,6 +280,7 @@ def set_default_profile(
             One of "linear", "log10", or "symlog10".
         x_axis_scale: X-axis scale for scalar plots (STEP/RELATIVE only).
             One of "linear", "log10", or "symlog10".
+        tag_axis_scales: Per-tag axis scale overrides (see create_profile).
 
     Returns:
         The path to the written profile file.
@@ -277,6 +300,7 @@ def set_default_profile(
         group_by=group_by,
         y_axis_scale=y_axis_scale,
         x_axis_scale=x_axis_scale,
+        tag_axis_scales=tag_axis_scales,
     )
     return write_profile(logdir, profile)
 

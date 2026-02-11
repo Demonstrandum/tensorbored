@@ -166,6 +166,13 @@ export interface ProfileData {
    * X-axis scale type for scalar plots (STEP/RELATIVE only).
    */
   xAxisScale?: AxisScaleName;
+
+  /**
+   * Per-tag axis scale overrides. Keys are tag names, values specify
+   * which axis scales to use for that tag's scalar cards.
+   * Takes priority over the global yAxisScale/xAxisScale.
+   */
+  tagAxisScales?: Record<string, {y?: AxisScaleName; x?: AxisScaleName}>;
 }
 
 /**
@@ -332,6 +339,21 @@ export function isValidProfile(data: unknown): data is ProfileData {
     !isAxisScaleName(profile.xAxisScale)
   ) {
     return false;
+  }
+
+  // Validate per-tag axis scales
+  if (profile.tagAxisScales !== undefined) {
+    if (
+      typeof profile.tagAxisScales !== 'object' ||
+      profile.tagAxisScales === null ||
+      Array.isArray(profile.tagAxisScales)
+    ) {
+      return false;
+    }
+    for (const entry of Object.values(profile.tagAxisScales)) {
+      if (entry.y !== undefined && !isAxisScaleName(entry.y)) return false;
+      if (entry.x !== undefined && !isAxisScaleName(entry.x)) return false;
+    }
   }
 
   return true;

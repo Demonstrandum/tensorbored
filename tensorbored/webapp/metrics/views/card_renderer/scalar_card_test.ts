@@ -78,6 +78,8 @@ import {
   cardViewBoxChanged,
   metricsCardFullSizeToggled,
   metricsCardStateUpdated,
+  metricsTagYAxisScaleChanged,
+  metricsTagXAxisScaleChanged,
   stepSelectorToggled,
   timeSelectionChanged,
   metricsSlideoutMenuOpened,
@@ -856,69 +858,40 @@ describe('scalar card', () => {
       );
     });
 
-    it('cycles yScaleType when you click on button in overflow menu: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR', fakeAsync(() => {
+    it('dispatches per-tag Y-axis scale action on toggle', fakeAsync(() => {
       const fixture = createComponent('card1');
 
-      // Start at LINEAR
-      const lineChartEl = fixture.debugElement.query(Selector.LINE_CHART);
-      expect(lineChartEl.componentInstance.yScaleType).toBe(ScaleType.LINEAR);
-
-      // Click once: LINEAR -> LOG10
+      // Click once: dispatches LOG10 for this tag (current is LINEAR)
       openOverflowMenu(fixture);
       getMenuButton('Cycle Y-axis scale type on line chart').click();
       fixture.detectChanges();
 
-      expect(lineChartEl.componentInstance.yScaleType).toBe(ScaleType.LOG10);
+      expect(dispatchedActions).toEqual([
+        metricsTagYAxisScaleChanged({
+          tag: 'tagA',
+          scaleType: ScaleType.LOG10,
+        }),
+      ]);
 
-      // Click again: LOG10 -> SYMLOG10
-      openOverflowMenu(fixture);
-      getMenuButton('Cycle Y-axis scale type on line chart').click();
-      fixture.detectChanges();
-
-      expect(lineChartEl.componentInstance.yScaleType).toBe(ScaleType.SYMLOG10);
-
-      // Click again: SYMLOG10 -> LINEAR
-      openOverflowMenu(fixture);
-      getMenuButton('Cycle Y-axis scale type on line chart').click();
-      fixture.detectChanges();
-
-      expect(lineChartEl.componentInstance.yScaleType).toBe(ScaleType.LINEAR);
-
-      // Clicking on overflow menu and mat button enqueue asyncs. Flush them.
       flush();
     }));
 
-    it('cycles xScaleType when you click on button in overflow menu: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR (for STEP xAxisType)', fakeAsync(() => {
-      // xScaleType toggle only available for STEP xAxisType
+    it('dispatches per-tag X-axis scale action for STEP xAxisType', fakeAsync(() => {
       store.overrideSelector(selectors.getMetricsXAxisType, XAxisType.STEP);
       const fixture = createComponent('card1');
 
-      // Start at LINEAR (default for STEP)
-      const lineChartEl = fixture.debugElement.query(Selector.LINE_CHART);
-      expect(lineChartEl.componentInstance.xScaleType).toBe(ScaleType.LINEAR);
-
-      // Click once: LINEAR -> LOG10
+      // Click once: dispatches LOG10
       openOverflowMenu(fixture);
       getMenuButton('Cycle X-axis scale type on line chart').click();
       fixture.detectChanges();
 
-      expect(lineChartEl.componentInstance.xScaleType).toBe(ScaleType.LOG10);
+      expect(dispatchedActions).toEqual([
+        metricsTagXAxisScaleChanged({
+          tag: 'tagA',
+          scaleType: ScaleType.LOG10,
+        }),
+      ]);
 
-      // Click again: LOG10 -> SYMLOG10
-      openOverflowMenu(fixture);
-      getMenuButton('Cycle X-axis scale type on line chart').click();
-      fixture.detectChanges();
-
-      expect(lineChartEl.componentInstance.xScaleType).toBe(ScaleType.SYMLOG10);
-
-      // Click again: SYMLOG10 -> LINEAR
-      openOverflowMenu(fixture);
-      getMenuButton('Cycle X-axis scale type on line chart').click();
-      fixture.detectChanges();
-
-      expect(lineChartEl.componentInstance.xScaleType).toBe(ScaleType.LINEAR);
-
-      // Clicking on overflow menu and mat button enqueue asyncs. Flush them.
       flush();
     }));
 
