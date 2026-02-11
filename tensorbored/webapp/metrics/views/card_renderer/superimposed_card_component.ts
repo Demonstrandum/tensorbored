@@ -108,6 +108,8 @@ export class SuperimposedCardComponent {
 
   constructor(private readonly ref: ElementRef) {}
 
+  /** Local override for symlog linear threshold. When null, uses global. */
+  symlogLinearThresholdOverride: number | null = null;
   isViewBoxOverridden = false;
   additionalItemsCount = 0;
 
@@ -166,6 +168,25 @@ export class SuperimposedCardComponent {
     return (
       this.xAxisType === XAxisType.STEP || this.xAxisType === XAxisType.RELATIVE
     );
+  }
+
+  getEffectiveSymlogLinearThreshold(): number {
+    return this.symlogLinearThresholdOverride ?? this.symlogLinearThreshold;
+  }
+
+  onSymlogLinearThresholdOverrideInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.value) {
+      return;
+    }
+    const value = parseFloat(input.value);
+    if (value > 0) {
+      this.symlogLinearThresholdOverride = value;
+    }
+  }
+
+  resetSymlogLinearThresholdOverride() {
+    this.symlogLinearThresholdOverride = null;
   }
 
   resetDomain() {

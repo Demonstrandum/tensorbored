@@ -340,9 +340,7 @@ export class ProfileEffects {
           JSON.stringify(pinnedCards)
         );
 
-        const actionPayload: Parameters<
-          typeof metricsActions.profileMetricsSettingsApplied
-        >[0] = {
+        return metricsActions.profileMetricsSettingsApplied({
           pinnedCards,
           superimposedCards: profile.superimposedCards.map((card) => ({
             id: card.id,

@@ -165,6 +165,8 @@ export class ScalarCardComponent<Downloader> {
 
   constructor(private readonly ref: ElementRef, private dialog: MatDialog) {}
 
+  /** Local override for symlog linear threshold. When null, uses the global symlogLinearThreshold input. */
+  symlogLinearThresholdOverride: number | null = null;
   isViewBoxOverridden: boolean = false;
   additionalItemsCount = 0;
 
@@ -221,6 +223,34 @@ export class ScalarCardComponent<Downloader> {
 
   getXScaleLabel(): string {
     return ScalarCardComponent.scaleLabel(this.getEffectiveXScaleType());
+  }
+
+  /**
+   * Returns the effective symlog linear threshold, considering any local override.
+   */
+  getEffectiveSymlogLinearThreshold(): number {
+    return this.symlogLinearThresholdOverride ?? this.symlogLinearThreshold;
+  }
+
+  /**
+   * Called when the user changes the per-card symlog linear threshold.
+   */
+  onSymlogLinearThresholdOverrideInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.value) {
+      return;
+    }
+    const value = parseFloat(input.value);
+    if (value > 0) {
+      this.symlogLinearThresholdOverride = value;
+    }
+  }
+
+  /**
+   * Resets the per-card symlog linear threshold to use the global default.
+   */
+  resetSymlogLinearThresholdOverride() {
+    this.symlogLinearThresholdOverride = null;
   }
 
   /**
