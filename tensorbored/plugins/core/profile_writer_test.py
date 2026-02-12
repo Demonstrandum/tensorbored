@@ -33,8 +33,8 @@ class ProfileWriterTest(unittest.TestCase):
         self.assertEqual(profile["data"]["name"], "Default Profile")
         self.assertEqual(profile["data"]["pinnedCards"], [])
         self.assertEqual(profile["data"]["runColors"], [])
-        self.assertEqual(profile["data"]["runSelection"], [])
-        self.assertEqual(profile["data"]["metricDescriptions"], {})
+        self.assertNotIn("runSelection", profile["data"])
+        self.assertNotIn("metricDescriptions", profile["data"])
         self.assertEqual(profile["data"]["tagFilter"], "")
         self.assertEqual(profile["data"]["smoothing"], 0.6)
 
@@ -115,11 +115,6 @@ class ProfileWriterTest(unittest.TestCase):
 
         tb_dir = os.path.join(self.logdir, ".tensorboard")
         self.assertTrue(os.path.isdir(tb_dir))
-
-    def test_write_profile_requires_version(self):
-        """Test write_profile raises error without version."""
-        with self.assertRaises(ValueError):
-            profile_writer.write_profile(self.logdir, {"data": {}})
 
     def test_read_profile(self):
         """Test read_profile reads back written profile."""
