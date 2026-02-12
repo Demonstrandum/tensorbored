@@ -14,6 +14,42 @@ limitations under the License.
 ==============================================================================*/
 import {CardUniqueInfo, SuperimposedCardMetadata} from '../metrics/types';
 import {GroupByKey} from '../runs/types';
+import {ScaleType} from '../widgets/line_chart_v2/lib/scale_types';
+
+/**
+ * String representation of axis scale types for JSON serialization.
+ * Maps to the ScaleType enum in the line chart widget.
+ */
+export type AxisScaleName = 'linear' | 'log10' | 'symlog10';
+
+const SCALE_TYPE_TO_NAME: ReadonlyMap<ScaleType, AxisScaleName> = new Map([
+  [ScaleType.LINEAR, 'linear'],
+  [ScaleType.LOG10, 'log10'],
+  [ScaleType.SYMLOG10, 'symlog10'],
+]);
+
+const NAME_TO_SCALE_TYPE: ReadonlyMap<AxisScaleName, ScaleType> = new Map([
+  ['linear', ScaleType.LINEAR],
+  ['log10', ScaleType.LOG10],
+  ['symlog10', ScaleType.SYMLOG10],
+]);
+
+export function scaleTypeToName(scaleType: ScaleType): AxisScaleName {
+  return SCALE_TYPE_TO_NAME.get(scaleType) ?? 'linear';
+}
+
+export function nameToScaleType(name: AxisScaleName): ScaleType {
+  return NAME_TO_SCALE_TYPE.get(name) ?? ScaleType.LINEAR;
+}
+
+/**
+ * Per-axis scale configuration for a single tag.
+ * Both fields are optional; omitted axes keep the global default.
+ */
+export interface TagAxisScale {
+  y?: AxisScaleName;
+  x?: AxisScaleName;
+}
 
 /**
  * Version number for profile serialization format.
@@ -129,6 +165,23 @@ export interface ProfileData {
    * Run grouping configuration.
    */
   groupBy: ProfileGroupBy | null;
+
+  /**
+   * Y-axis scale type for scalar plots (e.g. 'log10' for loss curves).
+   */
+  yAxisScale?: AxisScaleName;
+
+  /**
+   * X-axis scale type for scalar plots (STEP/RELATIVE only).
+   */
+  xAxisScale?: AxisScaleName;
+
+  /**
+   * Per-tag axis scale overrides. Keys are tag names, values specify
+   * which axis scales to use for that tag's scalar cards.
+   * Takes priority over the global yAxisScale/xAxisScale.
+   */
+  tagAxisScales?: Record<string, TagAxisScale>;
 }
 
 /**
@@ -167,6 +220,16 @@ export interface ProfileEntry {
 /**
  * Creates a new empty profile with default values.
  */
+const VALID_AXIS_SCALE_NAMES: ReadonlySet<string> = new Set([
+  'linear',
+  'log10',
+  'symlog10',
+]);
+
+export function isAxisScaleName(value: unknown): value is AxisScaleName {
+  return typeof value === 'string' && VALID_AXIS_SCALE_NAMES.has(value);
+}
+
 export function createEmptyProfile(name: string): ProfileData {
   return {
     version: PROFILE_VERSION,
@@ -270,6 +333,35 @@ export function isValidProfile(data: unknown): data is ProfileData {
       if (typeof tag !== 'string' || typeof description !== 'string') {
         return false;
       }
+    }
+  }
+
+  // Validate axis scale names (optional fields)
+  if (
+    profile.yAxisScale !== undefined &&
+    !isAxisScaleName(profile.yAxisScale)
+  ) {
+    return false;
+  }
+  if (
+    profile.xAxisScale !== undefined &&
+    !isAxisScaleName(profile.xAxisScale)
+  ) {
+    return false;
+  }
+
+  // Validate per-tag axis scales
+  if (profile.tagAxisScales !== undefined) {
+    if (
+      typeof profile.tagAxisScales !== 'object' ||
+      profile.tagAxisScales === null ||
+      Array.isArray(profile.tagAxisScales)
+    ) {
+      return false;
+    }
+    for (const entry of Object.values(profile.tagAxisScales)) {
+      if (entry.y !== undefined && !isAxisScaleName(entry.y)) return false;
+      if (entry.x !== undefined && !isAxisScaleName(entry.x)) return false;
     }
   }
 

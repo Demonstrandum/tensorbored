@@ -83,6 +83,7 @@ import {
   CardToPinnedCard,
   PinnedCardToCard,
 } from './metrics_types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 import {dataTableUtils} from '../../widgets/data_table/utils';
 
 function buildCardMetadataList(tagMetadata: TagMetadata): CardMetadata[] {
@@ -510,6 +511,7 @@ const {initialState, reducers: namespaceContextedReducer} =
       },
       settings: METRICS_SETTINGS_DEFAULT,
       settingOverrides: {},
+      tagAxisScales: {},
       visibleCardMap: new Map<ElementId, CardId>(),
       previousCardInteractions: {
         tagFilters: [],
@@ -1004,6 +1006,50 @@ const reducer = createReducer(
       settingOverrides: {
         ...state.settingOverrides,
         savingPinsEnabled: nextSavingPinsEnabled,
+      },
+    };
+  }),
+  on(actions.metricsChangeYAxisScale, (state, {scaleType}) => {
+    return {
+      ...state,
+      settingOverrides: {
+        ...state.settingOverrides,
+        yAxisScale: scaleType,
+      },
+    };
+  }),
+  on(actions.metricsChangeXAxisScale, (state, {scaleType}) => {
+    return {
+      ...state,
+      settingOverrides: {
+        ...state.settingOverrides,
+        xAxisScale: scaleType,
+      },
+    };
+  }),
+  on(actions.metricsTagYAxisScaleChanged, (state, {tag, scaleType}) => {
+    const existing = state.tagAxisScales[tag];
+    return {
+      ...state,
+      tagAxisScales: {
+        ...state.tagAxisScales,
+        [tag]: {
+          yAxisScale: scaleType,
+          xAxisScale: existing?.xAxisScale ?? ScaleType.LINEAR,
+        },
+      },
+    };
+  }),
+  on(actions.metricsTagXAxisScaleChanged, (state, {tag, scaleType}) => {
+    const existing = state.tagAxisScales[tag];
+    return {
+      ...state,
+      tagAxisScales: {
+        ...state.tagAxisScales,
+        [tag]: {
+          yAxisScale: existing?.yAxisScale ?? ScaleType.LINEAR,
+          xAxisScale: scaleType,
+        },
       },
     };
   }),
@@ -1858,7 +1904,18 @@ const reducer = createReducer(
   // Profile integration: Apply profile settings to metrics state
   on(
     actions.profileMetricsSettingsApplied,
-    (state, {pinnedCards, superimposedCards, tagFilter, smoothing}) => {
+    (
+      state,
+      {
+        pinnedCards,
+        superimposedCards,
+        tagFilter,
+        smoothing,
+        yAxisScale,
+        xAxisScale,
+        tagAxisScales,
+      }
+    ) => {
       // Clear existing pins and apply profile's pins
       let nextCardMetadataMap = {...state.cardMetadataMap};
       let nextCardStepIndex = {...state.cardStepIndex};
@@ -1958,7 +2015,10 @@ const reducer = createReducer(
         settingOverrides: {
           ...state.settingOverrides,
           scalarSmoothing: smoothing,
+          yAxisScale,
+          xAxisScale,
         },
+        tagAxisScales,
       };
     }
   ),

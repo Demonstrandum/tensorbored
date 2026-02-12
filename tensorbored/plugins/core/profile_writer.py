@@ -46,122 +46,266 @@ Example usage:
         logdir,
         pinned_cards=[{"plugin": "scalars", "tag": "train/loss"}],
         run_colors={"train": "#ff0000"},
+        # Log scale for loss, linear for everything else
+        tag_axis_scales={"train/loss": {"y": "log10"}},
     )
 """
+
+from __future__ import annotations
 
 import json
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Literal, TypedDict
 
+# ---------------------------------------------------------------------------
 # Profile format version
+# ---------------------------------------------------------------------------
 PROFILE_VERSION = 1
 
 
+# ---------------------------------------------------------------------------
+# Axis scale types
+# ---------------------------------------------------------------------------
+AxisScale = Literal["linear", "log10", "symlog10"]
+VALID_AXIS_SCALES: tuple[AxisScale, ...] = (
+    "linear",
+    "log10",
+    "symlog10",
+)
+
+
+class TagAxisScale(TypedDict, total=False):
+    """Per-axis scale override for a single tag.
+
+    Both keys are optional; omitted axes keep the global default.
+    """
+
+    y: AxisScale
+    x: AxisScale
+
+
+# ---------------------------------------------------------------------------
+# Typed structures for profile JSON fields
+# ---------------------------------------------------------------------------
+class _PinnedCardRequired(TypedDict):
+    plugin: str
+    tag: str
+
+
+class PinnedCard(_PinnedCardRequired, total=False):
+    """A card to pin at the top of the dashboard."""
+
+    runId: str
+    sample: int
+
+
+class RunColorEntry(TypedDict):
+    """Maps a single run to a hex colour."""
+
+    runId: str
+    color: str
+
+
+class GroupColorEntry(TypedDict):
+    """Maps a group key to a colour-palette index."""
+
+    groupKey: str
+    colorId: int
+
+
+class SuperimposedCardEntry(TypedDict):
+    """A card that overlays multiple scalar tags on one chart."""
+
+    id: str
+    title: str
+    tags: list[str]
+    runId: str | None
+
+
+RunSelectionType = Literal["RUN_ID", "RUN_NAME"]
+
+
+class RunSelectionEntry(TypedDict):
+    """Declares whether a single run is visible."""
+
+    type: RunSelectionType
+    value: str
+    selected: bool
+
+
+GroupByKey = Literal["RUN", "EXPERIMENT", "REGEX", "REGEX_BY_EXP"]
+
+
+class _GroupByRequired(TypedDict):
+    key: GroupByKey
+
+
+class GroupByConfig(_GroupByRequired, total=False):
+    """Run-grouping configuration."""
+
+    regexString: str
+
+
+class _ProfileDataRequired(TypedDict):
+    version: int
+    name: str
+    lastModifiedTimestamp: int
+    pinnedCards: list[PinnedCard]
+    runColors: list[RunColorEntry]
+    groupColors: list[GroupColorEntry]
+    superimposedCards: list[SuperimposedCardEntry]
+    tagFilter: str
+    runFilter: str
+    smoothing: float
+
+
+class ProfileData(_ProfileDataRequired, total=False):
+    """The ``data`` payload inside a serialised profile."""
+
+    runSelection: list[RunSelectionEntry]
+    metricDescriptions: dict[str, str]
+    groupBy: GroupByConfig | None
+    yAxisScale: AxisScale
+    xAxisScale: AxisScale
+    tagAxisScales: dict[str, TagAxisScale]
+
+
+class SerializedProfile(TypedDict):
+    """Top-level wrapper written to ``default_profile.json``."""
+
+    version: int
+    data: ProfileData
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 def create_profile(
     name: str = "Default Profile",
-    pinned_cards: Optional[List[Dict[str, Any]]] = None,
-    run_colors: Optional[Dict[str, str]] = None,
-    group_colors: Optional[List[Dict[str, Any]]] = None,
-    superimposed_cards: Optional[List[Dict[str, Any]]] = None,
-    run_selection: Optional[List[Dict[str, Any]]] = None,
-    selected_runs: Optional[List[str]] = None,
-    metric_descriptions: Optional[Dict[str, str]] = None,
+    pinned_cards: list[PinnedCard] | None = None,
+    run_colors: dict[str, str] | None = None,
+    group_colors: list[GroupColorEntry] | None = None,
+    superimposed_cards: list[SuperimposedCardEntry] | None = None,
+    run_selection: list[RunSelectionEntry] | None = None,
+    selected_runs: list[str] | None = None,
+    metric_descriptions: dict[str, str] | None = None,
     tag_filter: str = "",
     run_filter: str = "",
     smoothing: float = 0.6,
-    group_by: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    group_by: GroupByConfig | None = None,
+    y_axis_scale: AxisScale | None = None,
+    x_axis_scale: AxisScale | None = None,
+    tag_axis_scales: dict[str, TagAxisScale] | None = None,
+) -> SerializedProfile:
     """Create a TensorBoard profile dictionary.
 
     Args:
         name: User-friendly name for the profile.
-        pinned_cards: List of cards to pin. Each card is a dict with:
-            - plugin: str (e.g., "scalars", "images", "histograms")
-            - tag: str (the tag name)
-            - runId: str (optional, for single-run plugins)
-            - sample: int (optional, for sampled plugins like images)
-        run_colors: Dict mapping run names/IDs to hex color strings
-            (e.g., {"run1": "#ff0000", "run2": "#00ff00"}).
-        group_colors: List of group color assignments. Each entry is a dict:
-            - groupKey: str
-            - colorId: int
-        superimposed_cards: List of superimposed card definitions. Each is:
-            - id: str (unique identifier)
-            - title: str (display title)
-            - tags: List[str] (scalar tags to combine)
-            - runId: Optional[str] (run filter, or None for all runs)
-        run_selection: Optional run selection entries. Each entry is:
-            - type: str ("RUN_ID" or "RUN_NAME")
-            - value: str (run id or run name)
-            - selected: bool
-        selected_runs: Convenience list of run names to select by default.
-        metric_descriptions: Mapping from metric tag name to a long-form
-            Markdown description for that metric.
+        pinned_cards: Cards to pin at the top of the dashboard.
+        run_colors: Mapping from run name/ID to hex colour string.
+        group_colors: Group-key to colour-palette-index assignments.
+        superimposed_cards: Multi-tag overlay card definitions.
+        run_selection: Explicit run visibility entries.
+        selected_runs: Convenience list of run names to select
+            (converted to ``RunSelectionEntry`` with ``type="RUN_NAME"``
+            and ``selected=True``).
+        metric_descriptions: Long-form Markdown descriptions per tag.
         tag_filter: Regex pattern to filter tags.
         run_filter: Regex pattern to filter runs.
         smoothing: Scalar smoothing value (0.0 to 0.999).
-        group_by: Grouping configuration dict with:
-            - key: str ("RUN", "EXPERIMENT", "REGEX", or "REGEX_BY_EXP")
-            - regexString: str (optional, for REGEX/REGEX_BY_EXP)
+        group_by: Run-grouping configuration.
+        y_axis_scale: Global Y-axis scale for scalar plots.
+        x_axis_scale: Global X-axis scale for scalar plots
+            (STEP/RELATIVE only).
+        tag_axis_scales: Per-tag axis scale overrides.  Example::
+
+                {"train/loss": {"y": "log10"}}
 
     Returns:
-        A profile dictionary ready to be written to the logdir.
+        A serialised profile ready to be written to the logdir.
+
+    Raises:
+        ValueError: If an invalid axis scale name is provided.
     """
-    # Convert run_colors dict to list format
-    run_color_entries = []
-    if run_colors:
-        for run_id, color in run_colors.items():
-            run_color_entries.append({"runId": run_id, "color": color})
+    if y_axis_scale is not None and y_axis_scale not in VALID_AXIS_SCALES:
+        raise ValueError(
+            f"Invalid y_axis_scale: {y_axis_scale!r}. "
+            f"Must be one of {VALID_AXIS_SCALES}"
+        )
+    if x_axis_scale is not None and x_axis_scale not in VALID_AXIS_SCALES:
+        raise ValueError(
+            f"Invalid x_axis_scale: {x_axis_scale!r}. "
+            f"Must be one of {VALID_AXIS_SCALES}"
+        )
+    if tag_axis_scales is not None:
+        for tag, axes in tag_axis_scales.items():
+            for axis_key, scale in axes.items():
+                if axis_key not in ("y", "x"):
+                    raise ValueError(
+                        f"Invalid axis key {axis_key!r} for tag "
+                        f"{tag!r}. Must be 'y' or 'x'"
+                    )
+                if scale not in VALID_AXIS_SCALES:
+                    raise ValueError(
+                        f"Invalid scale {scale!r} for tag "
+                        f"{tag!r} axis {axis_key!r}. "
+                        f"Must be one of {VALID_AXIS_SCALES}"
+                    )
+
+    run_color_entries: list[RunColorEntry] = [
+        RunColorEntry(runId=run_id, color=color)
+        for run_id, color in (run_colors or {}).items()
+    ]
 
     run_selection_entries = run_selection or []
     if not run_selection_entries and selected_runs:
         run_selection_entries = [
-            {"type": "RUN_NAME", "value": run_name, "selected": True}
+            RunSelectionEntry(type="RUN_NAME", value=run_name, selected=True)
             for run_name in selected_runs
         ]
 
-    return {
-        "version": PROFILE_VERSION,
-        "data": {
-            "version": PROFILE_VERSION,
-            "name": name,
-            "lastModifiedTimestamp": int(time.time() * 1000),
-            "pinnedCards": pinned_cards or [],
-            "runColors": run_color_entries,
-            "groupColors": group_colors or [],
-            "superimposedCards": superimposed_cards or [],
-            "runSelection": run_selection_entries,
-            "metricDescriptions": metric_descriptions or {},
-            "tagFilter": tag_filter,
-            "runFilter": run_filter,
-            "smoothing": smoothing,
-            "groupBy": group_by,
-        },
-    }
+    data = ProfileData(
+        version=PROFILE_VERSION,
+        name=name,
+        lastModifiedTimestamp=int(time.time() * 1000),
+        pinnedCards=pinned_cards or [],
+        runColors=run_color_entries,
+        groupColors=group_colors or [],
+        superimposedCards=superimposed_cards or [],
+        tagFilter=tag_filter,
+        runFilter=run_filter,
+        smoothing=smoothing,
+    )
+    if run_selection_entries:
+        data["runSelection"] = run_selection_entries
+    if metric_descriptions:
+        data["metricDescriptions"] = metric_descriptions
+    if group_by is not None:
+        data["groupBy"] = group_by
+    if y_axis_scale is not None:
+        data["yAxisScale"] = y_axis_scale
+    if x_axis_scale is not None:
+        data["xAxisScale"] = x_axis_scale
+    if tag_axis_scales:
+        data["tagAxisScales"] = tag_axis_scales
+
+    return SerializedProfile(version=PROFILE_VERSION, data=data)
 
 
-def write_profile(logdir: str, profile: Dict[str, Any]) -> str:
+def write_profile(logdir: str, profile: SerializedProfile) -> str:
     """Write a profile to the logdir.
 
-    The profile will be written to `<logdir>/.tensorboard/default_profile.json`.
-    When TensorBoard starts with this logdir, it will offer this profile
-    as the default dashboard configuration.
+    The profile is written to
+    ``<logdir>/.tensorboard/default_profile.json``.
 
     Args:
         logdir: The TensorBoard log directory.
-        profile: A profile dictionary (from create_profile or manually created).
+        profile: A profile dict (from :func:`create_profile`).
 
     Returns:
         The path to the written profile file.
-
-    Raises:
-        ValueError: If the profile is missing required fields.
-        OSError: If unable to write to the logdir.
     """
-    if "version" not in profile:
-        raise ValueError("Profile must have a 'version' field")
-
     profile_dir = os.path.join(logdir, ".tensorboard")
     os.makedirs(profile_dir, exist_ok=True)
 
@@ -172,14 +316,11 @@ def write_profile(logdir: str, profile: Dict[str, Any]) -> str:
     return profile_path
 
 
-def read_profile(logdir: str) -> Optional[Dict[str, Any]]:
+def read_profile(logdir: str) -> SerializedProfile | None:
     """Read the default profile from a logdir.
 
-    Args:
-        logdir: The TensorBoard log directory.
-
     Returns:
-        The profile dictionary, or None if no profile exists.
+        The profile dictionary, or ``None`` if no profile exists.
     """
     profile_path = os.path.join(logdir, ".tensorboard", "default_profile.json")
     if not os.path.exists(profile_path):
@@ -195,35 +336,25 @@ def read_profile(logdir: str) -> Optional[Dict[str, Any]]:
 def set_default_profile(
     logdir: str,
     name: str = "Default Profile",
-    pinned_cards: Optional[List[Dict[str, Any]]] = None,
-    run_colors: Optional[Dict[str, str]] = None,
-    group_colors: Optional[List[Dict[str, Any]]] = None,
-    superimposed_cards: Optional[List[Dict[str, Any]]] = None,
-    run_selection: Optional[List[Dict[str, Any]]] = None,
-    selected_runs: Optional[List[str]] = None,
-    metric_descriptions: Optional[Dict[str, str]] = None,
+    pinned_cards: list[PinnedCard] | None = None,
+    run_colors: dict[str, str] | None = None,
+    group_colors: list[GroupColorEntry] | None = None,
+    superimposed_cards: list[SuperimposedCardEntry] | None = None,
+    run_selection: list[RunSelectionEntry] | None = None,
+    selected_runs: list[str] | None = None,
+    metric_descriptions: dict[str, str] | None = None,
     tag_filter: str = "",
     run_filter: str = "",
     smoothing: float = 0.6,
-    group_by: Optional[Dict[str, Any]] = None,
+    group_by: GroupByConfig | None = None,
+    y_axis_scale: AxisScale | None = None,
+    x_axis_scale: AxisScale | None = None,
+    tag_axis_scales: dict[str, TagAxisScale] | None = None,
 ) -> str:
-    """Convenience function to create and write a profile in one call.
+    """Create and write a profile in one call.
 
-    Args:
-        logdir: The TensorBoard log directory.
-        name: User-friendly name for the profile.
-        pinned_cards: List of cards to pin (see create_profile).
-        run_colors: Dict mapping run names to hex colors.
-        group_colors: List of group color assignments.
-        superimposed_cards: List of superimposed card definitions.
-        run_selection: Optional run selection entries.
-        selected_runs: Convenience list of run names to select by default.
-        metric_descriptions: Mapping from metric tag name to a long-form
-            Markdown description for that metric.
-        tag_filter: Regex pattern to filter tags.
-        run_filter: Regex pattern to filter runs.
-        smoothing: Scalar smoothing value.
-        group_by: Grouping configuration.
+    All parameters are forwarded to :func:`create_profile`;
+    see its docstring for details.
 
     Returns:
         The path to the written profile file.
@@ -241,47 +372,29 @@ def set_default_profile(
         run_filter=run_filter,
         smoothing=smoothing,
         group_by=group_by,
+        y_axis_scale=y_axis_scale,
+        x_axis_scale=x_axis_scale,
+        tag_axis_scales=tag_axis_scales,
     )
     return write_profile(logdir, profile)
 
 
-def pin_scalar(tag: str) -> Dict[str, str]:
-    """Helper to create a pinned scalar card entry.
-
-    Args:
-        tag: The scalar tag name (e.g., "train/loss").
-
-    Returns:
-        A dict suitable for the pinned_cards list.
-    """
-    return {"plugin": "scalars", "tag": tag}
+# ---------------------------------------------------------------------------
+# Convenience helpers for building common card entries
+# ---------------------------------------------------------------------------
+def pin_scalar(tag: str) -> PinnedCard:
+    """Create a pinned scalar card entry."""
+    return PinnedCard(plugin="scalars", tag=tag)
 
 
-def pin_histogram(tag: str, run_id: str) -> Dict[str, str]:
-    """Helper to create a pinned histogram card entry.
-
-    Args:
-        tag: The histogram tag name.
-        run_id: The run ID (required for histograms).
-
-    Returns:
-        A dict suitable for the pinned_cards list.
-    """
-    return {"plugin": "histograms", "tag": tag, "runId": run_id}
+def pin_histogram(tag: str, run_id: str) -> PinnedCard:
+    """Create a pinned histogram card entry."""
+    return PinnedCard(plugin="histograms", tag=tag, runId=run_id)
 
 
-def pin_image(tag: str, run_id: str, sample: int = 0) -> Dict[str, Any]:
-    """Helper to create a pinned image card entry.
-
-    Args:
-        tag: The image tag name.
-        run_id: The run ID (required for images).
-        sample: The sample index (default 0).
-
-    Returns:
-        A dict suitable for the pinned_cards list.
-    """
-    return {"plugin": "images", "tag": tag, "runId": run_id, "sample": sample}
+def pin_image(tag: str, run_id: str, sample: int = 0) -> PinnedCard:
+    """Create a pinned image card entry."""
+    return PinnedCard(plugin="images", tag=tag, runId=run_id, sample=sample)
 
 
 _superimposed_card_counter = 0
@@ -289,26 +402,16 @@ _superimposed_card_counter = 0
 
 def create_superimposed_card(
     title: str,
-    tags: List[str],
-    run_id: Optional[str] = None,
-) -> Dict[str, Any]:
-    """Helper to create a superimposed card entry.
-
-    Superimposed cards combine multiple scalar tags on a single plot.
-
-    Args:
-        title: Display title for the card.
-        tags: List of scalar tag names to superimpose.
-        run_id: Optional run ID filter (None shows all runs).
-
-    Returns:
-        A dict suitable for the superimposed_cards list.
-    """
+    tags: list[str],
+    run_id: str | None = None,
+) -> SuperimposedCardEntry:
+    """Create a superimposed (multi-tag overlay) card entry."""
     global _superimposed_card_counter
     _superimposed_card_counter += 1
-    return {
-        "id": f"superimposed-{int(time.time() * 1000)}-{_superimposed_card_counter}",
-        "title": title,
-        "tags": tags,
-        "runId": run_id,
-    }
+    return SuperimposedCardEntry(
+        id=f"superimposed-{int(time.time() * 1000)}"
+        f"-{_superimposed_card_counter}",
+        title=title,
+        tags=tags,
+        runId=run_id,
+    )

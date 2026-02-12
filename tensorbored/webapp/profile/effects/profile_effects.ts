@@ -37,6 +37,9 @@ import {
   getPinnedCardsWithMetadata,
   getUnresolvedImportedPinnedCards,
   getSuperimposedCardsWithMetadata,
+  getMetricsYAxisScale,
+  getMetricsXAxisScale,
+  getTagAxisScales,
 } from '../../metrics/store/metrics_selectors';
 import {
   getRunColorOverride,
@@ -61,13 +64,37 @@ import {
   RunSelectionEntryType,
   ProfileSource,
   createEmptyProfile,
+  nameToScaleType,
+  scaleTypeToName,
   PROFILE_VERSION,
+  AxisScaleName,
+  TagAxisScale,
 } from '../types';
 import {
   isSampledPlugin,
   isSingleRunPlugin,
 } from '../../metrics/data_source/types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 import * as profileSelectors from '../store/profile_selectors';
+
+function buildTagAxisScalesForProfile(
+  tagAxisScales: Record<string, {yAxisScale: ScaleType; xAxisScale: ScaleType}>
+): Record<string, TagAxisScale> {
+  const result: Record<string, TagAxisScale> = {};
+  for (const [tag, scales] of Object.entries(tagAxisScales)) {
+    const entry: TagAxisScale = {};
+    if (scales.yAxisScale !== ScaleType.LINEAR) {
+      entry.y = scaleTypeToName(scales.yAxisScale);
+    }
+    if (scales.xAxisScale !== ScaleType.LINEAR) {
+      entry.x = scaleTypeToName(scales.xAxisScale);
+    }
+    if (entry.y || entry.x) {
+      result[tag] = entry;
+    }
+  }
+  return result;
+}
 
 const RUN_SELECTION_STORAGE_KEY = '_tb_run_selection.v1';
 
@@ -246,12 +273,17 @@ export class ProfileEffects {
             }
           })();
 
+        const hasStoredAxisScales = Boolean(
+          window.localStorage.getItem('_tb_axis_scales.v1')
+        );
+
         if (
           activeProfileName ||
           localActiveProfile ||
           hasSavedPins ||
           hasLocalProfiles ||
           hasSuperimposedCards ||
+          hasStoredAxisScales ||
           !experimentIds ||
           experimentIds.length !== 1
         ) {
@@ -317,6 +349,27 @@ export class ProfileEffects {
           })),
           tagFilter,
           smoothing: profile.smoothing,
+          yAxisScale: profile.yAxisScale
+            ? nameToScaleType(profile.yAxisScale)
+            : ScaleType.LINEAR,
+          xAxisScale: profile.xAxisScale
+            ? nameToScaleType(profile.xAxisScale)
+            : ScaleType.LINEAR,
+          tagAxisScales: profile.tagAxisScales
+            ? Object.fromEntries(
+                Object.entries(profile.tagAxisScales).map(([tag, entry]) => [
+                  tag,
+                  {
+                    yAxisScale: entry.y
+                      ? nameToScaleType(entry.y)
+                      : ScaleType.LINEAR,
+                    xAxisScale: entry.x
+                      ? nameToScaleType(entry.x)
+                      : ScaleType.LINEAR,
+                  },
+                ])
+              )
+            : {},
         });
       })
     )
@@ -423,7 +476,10 @@ export class ProfileEffects {
         this.store.select(getMetricsScalarSmoothing),
         this.store.select(getRunUserSetGroupBy),
         this.store.select(getRunSelectionMap),
-        this.store.select(getDashboardRuns)
+        this.store.select(getDashboardRuns),
+        this.store.select(getMetricsYAxisScale),
+        this.store.select(getMetricsXAxisScale),
+        this.store.select(getTagAxisScales)
       ),
       map(
         ([
@@ -439,6 +495,9 @@ export class ProfileEffects {
           groupBy,
           runSelectionMap,
           runs,
+          yAxisScale,
+          xAxisScale,
+          tagAxisScales,
         ]) => {
           // Convert pinned cards to CardUniqueInfo format
           const pinnedCardsInfo: CardUniqueInfo[] = pinnedCards.map((card) => {
@@ -505,6 +564,9 @@ export class ProfileEffects {
             runFilter,
             smoothing,
             groupBy: profileGroupBy,
+            yAxisScale: scaleTypeToName(yAxisScale),
+            xAxisScale: scaleTypeToName(xAxisScale),
+            tagAxisScales: buildTagAxisScalesForProfile(tagAxisScales),
           };
 
           // Save to localStorage

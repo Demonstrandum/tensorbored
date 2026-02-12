@@ -110,6 +110,8 @@ export class ScalarCardComponent<Downloader> {
   @Input() tooltipSort!: TooltipSort;
   @Input() xAxisType!: XAxisType;
   @Input() xScaleType!: ScaleType;
+  @Input() yAxisScale!: ScaleType;
+  @Input() xAxisScale!: ScaleType;
   @Input() useDarkMode!: boolean;
   @Input() forceSvg!: boolean;
   @Input() columnCustomizationEnabled!: boolean;
@@ -144,6 +146,8 @@ export class ScalarCardComponent<Downloader> {
 
   @Output() onLineChartZoom = new EventEmitter<Extent | null>();
   @Output() onCardStateChanged = new EventEmitter<Partial<CardState>>();
+  @Output() onYAxisScaleChanged = new EventEmitter<ScaleType>();
+  @Output() onXAxisScaleChanged = new EventEmitter<ScaleType>();
   @Output() onAddToSuperimposed = new EventEmitter<void>();
   @Output() onAddToSuperimposedCard = new EventEmitter<SuperimposedCardId>();
 
@@ -160,9 +164,6 @@ export class ScalarCardComponent<Downloader> {
 
   constructor(private readonly ref: ElementRef, private dialog: MatDialog) {}
 
-  yScaleType = ScaleType.LINEAR;
-  /** Local override for x-axis scale type. When null, uses the default xScaleType input. */
-  xScaleTypeOverride: ScaleType | null = null;
   isViewBoxOverridden: boolean = false;
   additionalItemsCount = 0;
 
@@ -170,77 +171,18 @@ export class ScalarCardComponent<Downloader> {
     return buildTagTooltip(tag, description ?? '');
   }
 
-  /**
-   * Cycles through y-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
-   * SYMLOG10 (symmetric log) handles negative values gracefully.
-   */
-  toggleYScaleType() {
-    switch (this.yScaleType) {
+  private static nextScale(current: ScaleType): ScaleType {
+    switch (current) {
       case ScaleType.LINEAR:
-        this.yScaleType = ScaleType.LOG10;
-        break;
+        return ScaleType.LOG10;
       case ScaleType.LOG10:
-        this.yScaleType = ScaleType.SYMLOG10;
-        break;
-      case ScaleType.SYMLOG10:
+        return ScaleType.SYMLOG10;
       default:
-        this.yScaleType = ScaleType.LINEAR;
-        break;
+        return ScaleType.LINEAR;
     }
   }
 
-  /**
-   * Cycles through x-axis scale types: LINEAR -> LOG10 -> SYMLOG10 -> LINEAR
-   * Only available when xAxisType is STEP (not TIME or RELATIVE).
-   */
-  toggleXScaleType() {
-    // Determine current effective x scale type
-    const currentScale = this.xScaleTypeOverride ?? this.xScaleType;
-    let nextScale: ScaleType;
-
-    switch (currentScale) {
-      case ScaleType.LINEAR:
-        nextScale = ScaleType.LOG10;
-        break;
-      case ScaleType.LOG10:
-        nextScale = ScaleType.SYMLOG10;
-        break;
-      case ScaleType.SYMLOG10:
-      default:
-        nextScale = ScaleType.LINEAR;
-        break;
-    }
-
-    // Store as override (null means use default)
-    this.xScaleTypeOverride = nextScale === ScaleType.LINEAR ? null : nextScale;
-  }
-
-  /**
-   * Returns the effective x-axis scale type, considering any local override.
-   */
-  getEffectiveXScaleType(): ScaleType {
-    return this.xScaleTypeOverride ?? this.xScaleType;
-  }
-
-  /**
-   * Returns a human-readable label for the current y-axis scale type.
-   */
-  getYScaleLabel(): string {
-    switch (this.yScaleType) {
-      case ScaleType.LOG10:
-        return 'Log';
-      case ScaleType.SYMLOG10:
-        return 'SymLog';
-      default:
-        return 'Linear';
-    }
-  }
-
-  /**
-   * Returns a human-readable label for the current x-axis scale type.
-   */
-  getXScaleLabel(): string {
-    const scaleType = this.getEffectiveXScaleType();
+  private static scaleLabel(scaleType: ScaleType): string {
     switch (scaleType) {
       case ScaleType.LOG10:
         return 'Log';
@@ -251,6 +193,33 @@ export class ScalarCardComponent<Downloader> {
       default:
         return 'Linear';
     }
+  }
+
+  toggleYScaleType() {
+    this.onYAxisScaleChanged.emit(
+      ScalarCardComponent.nextScale(this.yAxisScale)
+    );
+  }
+
+  toggleXScaleType() {
+    this.onXAxisScaleChanged.emit(
+      ScalarCardComponent.nextScale(this.getEffectiveXScaleType())
+    );
+  }
+
+  getEffectiveXScaleType(): ScaleType {
+    if (this.xScaleType === ScaleType.TIME) {
+      return ScaleType.TIME;
+    }
+    return this.xAxisScale;
+  }
+
+  getYScaleLabel(): string {
+    return ScalarCardComponent.scaleLabel(this.yAxisScale);
+  }
+
+  getXScaleLabel(): string {
+    return ScalarCardComponent.scaleLabel(this.getEffectiveXScaleType());
   }
 
   /**

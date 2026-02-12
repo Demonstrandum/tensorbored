@@ -43,6 +43,7 @@ import {
   StepDatum,
 } from './store/metrics_types';
 import {CardId, CardMetadata, TooltipSort, XAxisType} from './types';
+import {ScaleType} from '../widgets/line_chart_v2/lib/scale_types';
 import {DataTableMode} from '../widgets/data_table/types';
 
 export function buildMetricsSettingsState(
@@ -61,6 +62,8 @@ export function buildMetricsSettingsState(
     imageShowActualSize: true,
     histogramMode: HistogramMode.OFFSET,
     savingPinsEnabled: true,
+    yAxisScale: ScaleType.LINEAR,
+    xAxisScale: ScaleType.LINEAR,
     ...overrides,
   };
 }
@@ -82,6 +85,8 @@ export function buildMetricsSettingsOverrides(
     imageContrastInMilli: 123,
     imageShowActualSize: true,
     histogramMode: HistogramMode.OFFSET,
+    yAxisScale: ScaleType.LINEAR,
+    xAxisScale: ScaleType.LINEAR,
     ...overrides,
   };
 }
@@ -113,6 +118,7 @@ function buildBlankState(): MetricsState {
     },
     settings: buildMetricsSettingsState(),
     settingOverrides: {},
+    tagAxisScales: {},
     cardList: [],
     cardToPinnedCopy: new Map(),
     cardToPinnedCopyCache: new Map(),

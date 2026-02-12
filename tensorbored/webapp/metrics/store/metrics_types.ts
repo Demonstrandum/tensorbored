@@ -42,6 +42,7 @@ import {
 } from '../types';
 import {ColumnHeader, DataTableMode} from '../../widgets/data_table/types';
 import {Extent} from '../../widgets/line_chart_v2/lib/public_types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 
 export const METRICS_FEATURE_KEY = 'metrics';
 
@@ -265,6 +266,14 @@ export interface MetricsSettings {
   imageShowActualSize: boolean;
   histogramMode: HistogramMode;
   savingPinsEnabled: boolean;
+  /**
+   * Y-axis scale type for scalar plots.
+   */
+  yAxisScale: ScaleType;
+  /**
+   * X-axis scale type for scalar plots (STEP/RELATIVE axis types only).
+   */
+  xAxisScale: ScaleType;
 }
 
 export interface MetricsNonNamespacedState {
@@ -283,6 +292,11 @@ export interface MetricsNonNamespacedState {
   visibleCardMap: Map<ElementId, CardId>;
   previousCardInteractions: CardInteractions;
   newCardInteractions: CardInteractions;
+  /**
+   * Per-tag axis scale overrides. Key is the tag name.
+   * Takes priority over the global yAxisScale/xAxisScale in settings.
+   */
+  tagAxisScales: Record<string, {yAxisScale: ScaleType; xAxisScale: ScaleType}>;
 }
 
 export type MetricsState = NamespaceContextedState<
@@ -307,4 +321,6 @@ export const METRICS_SETTINGS_DEFAULT: MetricsSettings = {
   imageShowActualSize: false,
   histogramMode: HistogramMode.OFFSET,
   savingPinsEnabled: true,
+  yAxisScale: ScaleType.LINEAR,
+  xAxisScale: ScaleType.LINEAR,
 };

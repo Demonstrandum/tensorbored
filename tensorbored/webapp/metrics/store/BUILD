@@ -35,6 +35,7 @@ tf_ts_library(
         "//tensorbored/webapp/widgets/card_fob:types",
         "//tensorbored/webapp/widgets/data_table:types",
         "//tensorbored/webapp/widgets/data_table:utils",
+        "//tensorbored/webapp/widgets/line_chart_v2/lib:internal_types",
         "//tensorbored/webapp/widgets/line_chart_v2/lib:public_types",
         "@npm//@ngrx/store",
     ],
@@ -79,6 +80,7 @@ tf_ts_library(
         "//tensorbored/webapp/types",
         "//tensorbored/webapp/util:dom",
         "//tensorbored/webapp/widgets/data_table:types",
+        "//tensorbored/webapp/widgets/line_chart_v2/lib:internal_types",
         "//tensorbored/webapp/widgets/line_chart_v2/lib:public_types",
     ],
 )

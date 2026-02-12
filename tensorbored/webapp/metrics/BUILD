@@ -93,6 +93,7 @@ tf_ts_library(
         "//tensorbored/webapp/types",
         "//tensorbored/webapp/widgets/data_table:types",
         "//tensorbored/webapp/widgets/histogram:types",
+        "//tensorbored/webapp/widgets/line_chart_v2/lib:internal_types",
         "@npm//@angular/core",
         "@npm//@types/jasmine",
         "@npm//rxjs",

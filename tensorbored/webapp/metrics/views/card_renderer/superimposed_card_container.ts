@@ -64,6 +64,8 @@ import {
   getMetricsScalarSmoothing,
   getMetricsTooltipSort,
   getMetricsXAxisType,
+  getMetricsYAxisScale,
+  getMetricsXAxisScale,
   getSuperimposedCardLoadState,
   getSuperimposedCardMetadata,
   getSuperimposedCardTimeSeries,
@@ -104,12 +106,16 @@ import {getFilteredRenderableRunsIds} from '../main_view/common_selectors';
       [tooltipSort]="tooltipSort$ | async"
       [xAxisType]="xAxisType$ | async"
       [xScaleType]="xScaleType$ | async"
+      [yAxisScale]="yAxisScale$ | async"
+      [xAxisScale]="xAxisScale$ | async"
       [useDarkMode]="useDarkMode$ | async"
       [forceSvg]="forceSvg$ | async"
       [userViewBox]="userViewBox$ | async"
       (onDeleteCard)="onDeleteCard()"
       (onRemoveTag)="onRemoveTag($event)"
       (onViewBoxChange)="onViewBoxChange($event)"
+      (onYAxisScaleChanged)="onYAxisScaleChanged($event)"
+      (onXAxisScaleChanged)="onXAxisScaleChanged($event)"
       (onFullWidthChanged)="fullWidthChanged.emit($event)"
       (onFullHeightChanged)="fullHeightChanged.emit($event)"
       observeIntersection
@@ -147,6 +153,8 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
         }
       })
     );
+    this.yAxisScale$ = this.store.select(getMetricsYAxisScale);
+    this.xAxisScale$ = this.store.select(getMetricsXAxisScale);
     this.scalarSmoothing$ = this.store.select(getMetricsScalarSmoothing);
     this.smoothingEnabled$ = this.store
       .select(getMetricsScalarSmoothing)
@@ -175,6 +183,8 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
   readonly xAxisType$;
   readonly forceSvg$;
   readonly xScaleType$;
+  readonly yAxisScale$;
+  readonly xAxisScale$;
   readonly scalarSmoothing$;
   readonly smoothingEnabled$;
 
@@ -531,6 +541,14 @@ export class SuperimposedCardContainer implements OnInit, OnDestroy {
         tag,
       })
     );
+  }
+
+  onYAxisScaleChanged(scaleType: ScaleType) {
+    this.store.dispatch(actions.metricsChangeYAxisScale({scaleType}));
+  }
+
+  onXAxisScaleChanged(scaleType: ScaleType) {
+    this.store.dispatch(actions.metricsChangeXAxisScale({scaleType}));
   }
 
   onViewBoxChange(viewBox: Extent | null) {

@@ -37,6 +37,7 @@ import {
 } from '../types';
 import {SortingInfo, DataTableMode} from '../../widgets/data_table/types';
 import {Extent} from '../../widgets/line_chart_v2/lib/public_types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 
 export const metricsSettingsPaneClosed = createAction(
   '[Metrics] Metrics Settings Pane Closed'
@@ -291,6 +292,26 @@ export const metricsEnableSavingPinsToggled = createAction(
   '[Metrics] Enable Saving Pins Toggled'
 );
 
+export const metricsChangeYAxisScale = createAction(
+  '[Metrics] Change Y Axis Scale',
+  props<{scaleType: ScaleType}>()
+);
+
+export const metricsChangeXAxisScale = createAction(
+  '[Metrics] Change X Axis Scale',
+  props<{scaleType: ScaleType}>()
+);
+
+export const metricsTagYAxisScaleChanged = createAction(
+  '[Metrics] Tag Y Axis Scale Changed',
+  props<{tag: string; scaleType: ScaleType}>()
+);
+
+export const metricsTagXAxisScaleChanged = createAction(
+  '[Metrics] Tag X Axis Scale Changed',
+  props<{tag: string; scaleType: ScaleType}>()
+);
+
 // TODO(jieweiwu): Delete after internal code is updated.
 export const stepSelectorTimeSelectionChanged = timeSelectionChanged;
 
@@ -379,6 +400,12 @@ export const profileMetricsSettingsApplied = createAction(
     }>;
     tagFilter: string;
     smoothing: number;
+    yAxisScale: ScaleType;
+    xAxisScale: ScaleType;
+    tagAxisScales: Record<
+      string,
+      {yAxisScale: ScaleType; xAxisScale: ScaleType}
+    >;
   }>()
 );
 

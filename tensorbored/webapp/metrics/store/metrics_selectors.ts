@@ -52,6 +52,7 @@ import {
 } from './metrics_types';
 import {ColumnHeader, DataTableMode} from '../../widgets/data_table/types';
 import {Extent} from '../../widgets/line_chart_v2/lib/public_types';
+import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 import {memoize} from '../../util/memoize';
 import {getDashboardDisplayedHparamColumns} from '../../hparams/_redux/hparams_selectors';
 import {dataTableUtils} from '../../widgets/data_table/utils';
@@ -388,6 +389,46 @@ export const getMetricsImageShowActualSize = createSelector(
 export const getMetricsSavingPinsEnabled = createSelector(
   selectSettings,
   (settings): boolean => settings.savingPinsEnabled
+);
+
+export const getMetricsYAxisScale = createSelector(
+  selectSettings,
+  (settings): ScaleType => settings.yAxisScale
+);
+
+export const getMetricsXAxisScale = createSelector(
+  selectSettings,
+  (settings): ScaleType => settings.xAxisScale
+);
+
+export const getTagAxisScales = createSelector(
+  selectMetricsState,
+  (state): Record<string, {yAxisScale: ScaleType; xAxisScale: ScaleType}> =>
+    state.tagAxisScales
+);
+
+/**
+ * Returns the effective Y-axis scale for a specific tag.
+ * Per-tag override takes priority over the global default.
+ */
+export const getEffectiveTagYAxisScale = memoize((tag: string) =>
+  createSelector(
+    getTagAxisScales,
+    getMetricsYAxisScale,
+    (tagScales, globalY): ScaleType => tagScales[tag]?.yAxisScale ?? globalY
+  )
+);
+
+/**
+ * Returns the effective X-axis scale for a specific tag.
+ * Per-tag override takes priority over the global default.
+ */
+export const getEffectiveTagXAxisScale = memoize((tag: string) =>
+  createSelector(
+    getTagAxisScales,
+    getMetricsXAxisScale,
+    (tagScales, globalX): ScaleType => tagScales[tag]?.xAxisScale ?? globalX
+  )
 );
 
 export const getMetricsTagFilter = createSelector(

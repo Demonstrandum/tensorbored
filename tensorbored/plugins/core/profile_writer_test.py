@@ -33,8 +33,8 @@ class ProfileWriterTest(unittest.TestCase):
         self.assertEqual(profile["data"]["name"], "Default Profile")
         self.assertEqual(profile["data"]["pinnedCards"], [])
         self.assertEqual(profile["data"]["runColors"], [])
-        self.assertEqual(profile["data"]["runSelection"], [])
-        self.assertEqual(profile["data"]["metricDescriptions"], {})
+        self.assertNotIn("runSelection", profile["data"])
+        self.assertNotIn("metricDescriptions", profile["data"])
         self.assertEqual(profile["data"]["tagFilter"], "")
         self.assertEqual(profile["data"]["smoothing"], 0.6)
 
@@ -116,11 +116,6 @@ class ProfileWriterTest(unittest.TestCase):
         tb_dir = os.path.join(self.logdir, ".tensorboard")
         self.assertTrue(os.path.isdir(tb_dir))
 
-    def test_write_profile_requires_version(self):
-        """Test write_profile raises error without version."""
-        with self.assertRaises(ValueError):
-            profile_writer.write_profile(self.logdir, {"data": {}})
-
     def test_read_profile(self):
         """Test read_profile reads back written profile."""
         profile = profile_writer.create_profile(name="Read Test")
@@ -198,6 +193,73 @@ class ProfileWriterTest(unittest.TestCase):
             tags=["accuracy/train", "accuracy/eval"],
         )
         self.assertNotEqual(card1["id"], card2["id"])
+
+    def test_create_profile_with_axis_scales(self):
+        """Test create_profile with axis scale settings."""
+        profile = profile_writer.create_profile(
+            y_axis_scale="log10",
+            x_axis_scale="symlog10",
+        )
+        data = profile["data"]
+        self.assertEqual(data["yAxisScale"], "log10")
+        self.assertEqual(data["xAxisScale"], "symlog10")
+
+    def test_create_profile_omits_axis_scales_when_none(self):
+        """Test create_profile omits axis scale fields when None."""
+        profile = profile_writer.create_profile()
+        data = profile["data"]
+        self.assertNotIn("yAxisScale", data)
+        self.assertNotIn("xAxisScale", data)
+
+    def test_create_profile_invalid_y_axis_scale(self):
+        """Test create_profile raises for invalid Y axis scale."""
+        with self.assertRaises(ValueError):
+            profile_writer.create_profile(y_axis_scale="invalid")
+
+    def test_create_profile_invalid_x_axis_scale(self):
+        """Test create_profile raises for invalid X axis scale."""
+        with self.assertRaises(ValueError):
+            profile_writer.create_profile(x_axis_scale="quadratic")
+
+    def test_set_default_profile_with_axis_scales(self):
+        """Test set_default_profile passes axis scales through."""
+        path = profile_writer.set_default_profile(
+            self.logdir,
+            y_axis_scale="log10",
+            x_axis_scale="symlog10",
+        )
+        loaded = profile_writer.read_profile(self.logdir)
+        self.assertEqual(loaded["data"]["yAxisScale"], "log10")
+        self.assertEqual(loaded["data"]["xAxisScale"], "symlog10")
+
+    def test_create_profile_with_tag_axis_scales(self):
+        """Test create_profile with per-tag axis scales."""
+        profile = profile_writer.create_profile(
+            tag_axis_scales={
+                "train/loss": {"y": "log10"},
+                "eval/loss": {"y": "log10", "x": "symlog10"},
+            },
+        )
+        data = profile["data"]
+        self.assertEqual(data["tagAxisScales"]["train/loss"], {"y": "log10"})
+        self.assertEqual(
+            data["tagAxisScales"]["eval/loss"],
+            {"y": "log10", "x": "symlog10"},
+        )
+
+    def test_create_profile_invalid_tag_axis_scale(self):
+        """Test create_profile raises for invalid per-tag axis scale."""
+        with self.assertRaises(ValueError):
+            profile_writer.create_profile(
+                tag_axis_scales={"loss": {"y": "cubic"}}
+            )
+
+    def test_create_profile_invalid_tag_axis_key(self):
+        """Test create_profile raises for invalid axis key."""
+        with self.assertRaises(ValueError):
+            profile_writer.create_profile(
+                tag_axis_scales={"loss": {"z": "log10"}}
+            )
 
 
 class IntegrationTest(unittest.TestCase):

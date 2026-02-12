@@ -100,6 +100,8 @@ import {
   getMetricsTagMetadata,
   getMetricsTooltipSort,
   getMetricsXAxisType,
+  getEffectiveTagYAxisScale,
+  getEffectiveTagXAxisScale,
   getSuperimposedCardsWithMetadata,
   RunToSeries,
 } from '../../store';
@@ -192,6 +194,8 @@ function areSeriesEqual(
       [tooltipSort]="tooltipSort$ | async"
       [xAxisType]="xAxisType$ | async"
       [xScaleType]="xScaleType$ | async"
+      [yAxisScale]="yAxisScale$ | async"
+      [xAxisScale]="xAxisScale$ | async"
       [useDarkMode]="useDarkMode$ | async"
       [linkedTimeSelection]="linkedTimeSelection$ | async"
       [stepOrLinkedTimeSelection]="stepOrLinkedTimeSelection$ | async"
@@ -222,6 +226,8 @@ function areSeriesEqual(
       (removeColumn)="onRemoveColumn($event)"
       (addFilter)="addHparamFilter($event)"
       (loadAllColumns)="loadAllColumns()"
+      (onYAxisScaleChanged)="onYAxisScaleChanged($event)"
+      (onXAxisScaleChanged)="onXAxisScaleChanged($event)"
       (onAddToSuperimposed)="onAddToSuperimposed()"
       (onAddToSuperimposedCard)="onAddToSuperimposedCard($event)"
     ></scalar-card-component>
@@ -325,6 +331,8 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
   readonly columnCustomizationEnabled$;
   readonly columnContextMenusEnabled$;
   readonly xScaleType$;
+  yAxisScale$!: Observable<ScaleType>;
+  xAxisScale$!: Observable<ScaleType>;
 
   readonly scalarSmoothing$;
   readonly smoothingEnabled$;
@@ -638,6 +646,18 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
       })
     );
 
+    this.yAxisScale$ = cardMetadata$.pipe(
+      switchMap((cardMetadata) =>
+        this.store.select(getEffectiveTagYAxisScale(cardMetadata.tag))
+      )
+    );
+
+    this.xAxisScale$ = cardMetadata$.pipe(
+      switchMap((cardMetadata) =>
+        this.store.select(getEffectiveTagXAxisScale(cardMetadata.tag))
+      )
+    );
+
     this.tagDescription$ = combineLatest([
       cardMetadata$,
       this.store.select(getMetricsTagMetadata),
@@ -827,6 +847,32 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
             tags: [tag],
             runId: null,
           })
+        );
+      });
+  }
+
+  onYAxisScaleChanged(scaleType: ScaleType) {
+    this.tag$
+      ?.pipe(
+        filter((tag): tag is string => !!tag),
+        take(1)
+      )
+      .subscribe((tag) => {
+        this.store.dispatch(
+          actions.metricsTagYAxisScaleChanged({tag, scaleType})
+        );
+      });
+  }
+
+  onXAxisScaleChanged(scaleType: ScaleType) {
+    this.tag$
+      ?.pipe(
+        filter((tag): tag is string => !!tag),
+        take(1)
+      )
+      .subscribe((tag) => {
+        this.store.dispatch(
+          actions.metricsTagXAxisScaleChanged({tag, scaleType})
         );
       });
   }
