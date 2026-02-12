@@ -193,6 +193,7 @@ def create_profile(
     tag_filter: str = "",
     run_filter: str = "",
     smoothing: float = 0.6,
+    symlog_linear_threshold: float = 1.0,
     group_by: GroupByConfig | None = None,
     y_axis_scale: AxisScale | None = None,
     x_axis_scale: AxisScale | None = None,
@@ -214,6 +215,8 @@ def create_profile(
         tag_filter: Regex pattern to filter tags.
         run_filter: Regex pattern to filter runs.
         smoothing: Scalar smoothing value (0.0 to 0.999).
+        symlog_linear_threshold: Linear threshold for the symlog scale.
+            Controls the width of the linear region near zero. Default 1.0.
         group_by: Run-grouping configuration.
         y_axis_scale: Global Y-axis scale for scalar plots.
         x_axis_scale: Global X-axis scale for scalar plots
@@ -289,6 +292,8 @@ def create_profile(
         data["xAxisScale"] = x_axis_scale
     if tag_axis_scales:
         data["tagAxisScales"] = tag_axis_scales
+    if symlog_linear_threshold != 1.0:
+        data["symlogLinearThreshold"] = symlog_linear_threshold
 
     return SerializedProfile(version=PROFILE_VERSION, data=data)
 
@@ -346,6 +351,7 @@ def set_default_profile(
     tag_filter: str = "",
     run_filter: str = "",
     smoothing: float = 0.6,
+    symlog_linear_threshold: float = 1.0,
     group_by: GroupByConfig | None = None,
     y_axis_scale: AxisScale | None = None,
     x_axis_scale: AxisScale | None = None,
@@ -371,6 +377,7 @@ def set_default_profile(
         tag_filter=tag_filter,
         run_filter=run_filter,
         smoothing=smoothing,
+        symlog_linear_threshold=symlog_linear_threshold,
         group_by=group_by,
         y_axis_scale=y_axis_scale,
         x_axis_scale=x_axis_scale,

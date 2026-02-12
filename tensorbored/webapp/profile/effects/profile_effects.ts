@@ -33,6 +33,7 @@ import {getExperimentIdsFromRoute} from '../../selectors';
 import {DataLoadState} from '../../types/data';
 import {
   getMetricsScalarSmoothing,
+  getMetricsSymlogLinearThreshold,
   getMetricsTagFilter,
   getPinnedCardsWithMetadata,
   getUnresolvedImportedPinnedCards,
@@ -370,6 +371,9 @@ export class ProfileEffects {
                 ])
               )
             : {},
+          ...(profile.symlogLinearThreshold !== undefined
+            ? {symlogLinearThreshold: profile.symlogLinearThreshold}
+            : {}),
         });
       })
     )
@@ -474,6 +478,7 @@ export class ProfileEffects {
         this.store.select(getMetricsTagFilter),
         this.store.select(getRunSelectorRegexFilter),
         this.store.select(getMetricsScalarSmoothing),
+        this.store.select(getMetricsSymlogLinearThreshold),
         this.store.select(getRunUserSetGroupBy),
         this.store.select(getRunSelectionMap),
         this.store.select(getDashboardRuns),
@@ -492,6 +497,7 @@ export class ProfileEffects {
           tagFilter,
           runFilter,
           smoothing,
+          symlogLinearThreshold,
           groupBy,
           runSelectionMap,
           runs,
@@ -563,6 +569,7 @@ export class ProfileEffects {
             tagFilter,
             runFilter,
             smoothing,
+            symlogLinearThreshold,
             groupBy: profileGroupBy,
             yAxisScale: scaleTypeToName(yAxisScale),
             xAxisScale: scaleTypeToName(xAxisScale),

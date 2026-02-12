@@ -668,6 +668,13 @@ const reducer = createReducer(
     if (typeof partialSettings.scalarSmoothing === 'number') {
       metricsSettings.scalarSmoothing = partialSettings.scalarSmoothing;
     }
+    if (
+      typeof partialSettings.symlogLinearThreshold === 'number' &&
+      partialSettings.symlogLinearThreshold > 0
+    ) {
+      metricsSettings.symlogLinearThreshold =
+        partialSettings.symlogLinearThreshold;
+    }
     if (typeof partialSettings.savingPinsEnabled === 'boolean') {
       metricsSettings.savingPinsEnabled = partialSettings.savingPinsEnabled;
     }
@@ -915,6 +922,18 @@ const reducer = createReducer(
       },
     };
   }),
+  on(
+    actions.metricsChangeSymlogLinearThreshold,
+    (state, {symlogLinearThreshold}) => {
+      return {
+        ...state,
+        settingOverrides: {
+          ...state.settingOverrides,
+          symlogLinearThreshold,
+        },
+      };
+    }
+  ),
   on(actions.metricsChangeImageBrightness, (state, {brightnessInMilli}) => {
     return {
       ...state,
@@ -1914,6 +1933,7 @@ const reducer = createReducer(
         yAxisScale,
         xAxisScale,
         tagAxisScales,
+        symlogLinearThreshold,
       }
     ) => {
       // Clear existing pins and apply profile's pins
@@ -2017,6 +2037,9 @@ const reducer = createReducer(
           scalarSmoothing: smoothing,
           yAxisScale,
           xAxisScale,
+          ...(symlogLinearThreshold !== undefined && symlogLinearThreshold > 0
+            ? {symlogLinearThreshold}
+            : {}),
         },
         tagAxisScales,
       };
