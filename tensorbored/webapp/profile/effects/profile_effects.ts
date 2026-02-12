@@ -67,6 +67,7 @@ import {
   nameToScaleType,
   scaleTypeToName,
   PROFILE_VERSION,
+  AxisScaleName,
 } from '../types';
 import {
   isSampledPlugin,
@@ -74,6 +75,25 @@ import {
 } from '../../metrics/data_source/types';
 import {ScaleType} from '../../widgets/line_chart_v2/lib/scale_types';
 import * as profileSelectors from '../store/profile_selectors';
+
+function buildTagAxisScalesForProfile(
+  tagAxisScales: Record<string, {yAxisScale: ScaleType; xAxisScale: ScaleType}>
+): Record<string, {y?: AxisScaleName; x?: AxisScaleName}> {
+  const result: Record<string, {y?: AxisScaleName; x?: AxisScaleName}> = {};
+  for (const [tag, scales] of Object.entries(tagAxisScales)) {
+    const entry: {y?: AxisScaleName; x?: AxisScaleName} = {};
+    if (scales.yAxisScale !== ScaleType.LINEAR) {
+      entry.y = scaleTypeToName(scales.yAxisScale);
+    }
+    if (scales.xAxisScale !== ScaleType.LINEAR) {
+      entry.x = scaleTypeToName(scales.xAxisScale);
+    }
+    if (entry.y || entry.x) {
+      result[tag] = entry;
+    }
+  }
+  return result;
+}
 
 const RUN_SELECTION_STORAGE_KEY = '_tb_run_selection.v1';
 
@@ -545,20 +565,7 @@ export class ProfileEffects {
             groupBy: profileGroupBy,
             yAxisScale: scaleTypeToName(yAxisScale),
             xAxisScale: scaleTypeToName(xAxisScale),
-            tagAxisScales: Object.fromEntries(
-              Object.entries(tagAxisScales)
-                .map(([tag, scales]) => {
-                  const entry: {y?: string; x?: string} = {};
-                  if (scales.yAxisScale !== ScaleType.LINEAR) {
-                    entry.y = scaleTypeToName(scales.yAxisScale);
-                  }
-                  if (scales.xAxisScale !== ScaleType.LINEAR) {
-                    entry.x = scaleTypeToName(scales.xAxisScale);
-                  }
-                  return [tag, entry] as const;
-                })
-                .filter(([, entry]) => entry.y || entry.x)
-            ),
+            tagAxisScales: buildTagAxisScalesForProfile(tagAxisScales),
           };
 
           // Save to localStorage
