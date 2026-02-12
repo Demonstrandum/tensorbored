@@ -506,6 +506,12 @@ def setup_tensorboard_profile(logdir: str, run_names: list):
         },
         smoothing=0.8,
         tag_filter="loss|accuracy|learning_rate",
+
+        # Per-tag axis scales: log for loss curves
+        tag_axis_scales={
+            "loss/train": {"y": "log10"},
+            "loss/eval": {"y": "log10"},
+        },
     )
 
     print(f"Dashboard profile configured with {len(run_names)} runs")

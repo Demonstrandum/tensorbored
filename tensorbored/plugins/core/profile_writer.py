@@ -46,6 +46,8 @@ Example usage:
         logdir,
         pinned_cards=[{"plugin": "scalars", "tag": "train/loss"}],
         run_colors={"train": "#ff0000"},
+        # Log scale for loss, linear for everything else
+        tag_axis_scales={"train/loss": {"y": "log10"}},
     )
 """
 
