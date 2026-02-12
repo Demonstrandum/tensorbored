@@ -43,6 +43,15 @@ export function nameToScaleType(name: AxisScaleName): ScaleType {
 }
 
 /**
+ * Per-axis scale configuration for a single tag.
+ * Both fields are optional; omitted axes keep the global default.
+ */
+export interface TagAxisScale {
+  y?: AxisScaleName;
+  x?: AxisScaleName;
+}
+
+/**
  * Version number for profile serialization format.
  * Increment when making breaking changes to the format.
  */
@@ -172,7 +181,7 @@ export interface ProfileData {
    * which axis scales to use for that tag's scalar cards.
    * Takes priority over the global yAxisScale/xAxisScale.
    */
-  tagAxisScales?: Record<string, {y?: AxisScaleName; x?: AxisScaleName}>;
+  tagAxisScales?: Record<string, TagAxisScale>;
 }
 
 /**

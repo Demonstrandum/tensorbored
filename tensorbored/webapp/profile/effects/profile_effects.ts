@@ -68,6 +68,7 @@ import {
   scaleTypeToName,
   PROFILE_VERSION,
   AxisScaleName,
+  TagAxisScale,
 } from '../types';
 import {
   isSampledPlugin,
@@ -78,10 +79,10 @@ import * as profileSelectors from '../store/profile_selectors';
 
 function buildTagAxisScalesForProfile(
   tagAxisScales: Record<string, {yAxisScale: ScaleType; xAxisScale: ScaleType}>
-): Record<string, {y?: AxisScaleName; x?: AxisScaleName}> {
-  const result: Record<string, {y?: AxisScaleName; x?: AxisScaleName}> = {};
+): Record<string, TagAxisScale> {
+  const result: Record<string, TagAxisScale> = {};
   for (const [tag, scales] of Object.entries(tagAxisScales)) {
-    const entry: {y?: AxisScaleName; x?: AxisScaleName} = {};
+    const entry: TagAxisScale = {};
     if (scales.yAxisScale !== ScaleType.LINEAR) {
       entry.y = scaleTypeToName(scales.yAxisScale);
     }

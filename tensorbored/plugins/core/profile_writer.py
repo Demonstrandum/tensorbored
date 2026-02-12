@@ -54,13 +54,23 @@ Example usage:
 import json
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional, TypedDict
 
 # Profile format version
 PROFILE_VERSION = 1
 
+AxisScale = Literal["linear", "log10", "symlog10"]
+VALID_AXIS_SCALES: tuple[AxisScale, ...] = ("linear", "log10", "symlog10")
 
-VALID_AXIS_SCALES = ("linear", "log10", "symlog10")
+
+class TagAxisScale(TypedDict, total=False):
+    """Per-axis scale override for a single tag.
+
+    Both keys are optional; omitted axes keep the global default.
+    """
+
+    y: AxisScale
+    x: AxisScale
 
 
 def create_profile(
@@ -76,9 +86,9 @@ def create_profile(
     run_filter: str = "",
     smoothing: float = 0.6,
     group_by: Optional[Dict[str, Any]] = None,
-    y_axis_scale: Optional[str] = None,
-    x_axis_scale: Optional[str] = None,
-    tag_axis_scales: Optional[Dict[str, Dict[str, str]]] = None,
+    y_axis_scale: Optional[AxisScale] = None,
+    x_axis_scale: Optional[AxisScale] = None,
+    tag_axis_scales: Optional[Dict[str, TagAxisScale]] = None,
 ) -> Dict[str, Any]:
     """Create a TensorBoard profile dictionary.
 
@@ -112,14 +122,13 @@ def create_profile(
         group_by: Grouping configuration dict with:
             - key: str ("RUN", "EXPERIMENT", "REGEX", or "REGEX_BY_EXP")
             - regexString: str (optional, for REGEX/REGEX_BY_EXP)
-        y_axis_scale: Y-axis scale for scalar plots.
-            One of "linear", "log10", or "symlog10".
-        x_axis_scale: X-axis scale for scalar plots (STEP/RELATIVE only).
-            One of "linear", "log10", or "symlog10".
-        tag_axis_scales: Per-tag axis scale overrides. Dict mapping tag
-            names to dicts with optional "y" and/or "x" keys, each
-            set to "linear", "log10", or "symlog10". Example:
-            {"train/loss": {"y": "log10"}, "eval/loss": {"y": "log10"}}
+        y_axis_scale: Global Y-axis scale for scalar plots.
+        x_axis_scale: Global X-axis scale for scalar plots
+            (STEP/RELATIVE only).
+        tag_axis_scales: Per-tag axis scale overrides. Overrides the
+            global scale for specific tags. Example::
+
+                {"train/loss": {"y": "log10"}, "eval/loss": {"y": "log10"}}
 
     Returns:
         A profile dictionary ready to be written to the logdir.
@@ -257,9 +266,9 @@ def set_default_profile(
     run_filter: str = "",
     smoothing: float = 0.6,
     group_by: Optional[Dict[str, Any]] = None,
-    y_axis_scale: Optional[str] = None,
-    x_axis_scale: Optional[str] = None,
-    tag_axis_scales: Optional[Dict[str, Dict[str, str]]] = None,
+    y_axis_scale: Optional[AxisScale] = None,
+    x_axis_scale: Optional[AxisScale] = None,
+    tag_axis_scales: Optional[Dict[str, TagAxisScale]] = None,
 ) -> str:
     """Convenience function to create and write a profile in one call.
 
