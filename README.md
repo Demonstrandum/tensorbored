@@ -2,6 +2,11 @@
 
 [![CI](https://github.com/Demonstrandum/tensorbored/actions/workflows/ci.yml/badge.svg)](https://github.com/Demonstrandum/tensorbored/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/tensorbored)](https://pypi.org/project/tensorbored/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/tensorbored)](https://pypi.org/project/tensorbored/)
+[![Python](https://img.shields.io/pypi/pyversions/tensorbored)](https://pypi.org/project/tensorbored/)
+[![License](https://img.shields.io/pypi/l/tensorbored)](https://github.com/Demonstrandum/tensorbored/blob/master/LICENSE)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Demo](https://img.shields.io/badge/%F0%9F%A4%97-Live%20Demo-yellow)](https://huggingface.co/spaces/Demonstrandum/tensorbored-sample)
 
 TensorBored is a suite of web applications for inspecting and understanding your
 runs and graphs, with a focus on PyTorch compatibility.
