@@ -1,5 +1,8 @@
 # TensorBored
 
+[![CI](https://github.com/Demonstrandum/tensorbored/actions/workflows/ci.yml/badge.svg)](https://github.com/Demonstrandum/tensorbored/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/tensorbored)](https://pypi.org/project/tensorbored/)
+
 TensorBored is a suite of web applications for inspecting and understanding your
 runs and graphs, with a focus on PyTorch compatibility.
 
