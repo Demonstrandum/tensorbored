@@ -1,0 +1,27 @@
+TensorBored
+Copyright 2024-present TensorBored authors
+
+This project is licensed under the GNU Affero General Public License v3.0
+(AGPL-3.0). See the LICENSE file for the full license text.
+
+================================================================================
+
+This project is a fork of TensorBoard, originally developed by The TensorFlow
+Authors and licensed under the Apache License, Version 2.0. The original
+TensorBoard source code retains its Apache 2.0 license and copyright notices.
+
+  TensorBoard: https://github.com/tensorflow/tensorboard
+  Copyright 2017 The TensorFlow Authors. All rights reserved.
+  Licensed under the Apache License, Version 2.0
+
+A copy of the Apache License 2.0 is included as LICENSE.apache2 and
+tensorbored/pip_package/LICENSE.tensorflow.
+
+All new code contributed to TensorBored (including but not limited to the
+dashboard profile system, color sampler, superimposed plots, symlog scales,
+pinned card reordering, shift-select runs, and related CI/CD infrastructure)
+is licensed under AGPL-3.0.
+
+The Apache License 2.0 is compatible with AGPL-3.0, permitting distribution
+of the combined work under AGPL-3.0 terms, provided the original copyright
+and attribution notices are retained in the upstream source files.

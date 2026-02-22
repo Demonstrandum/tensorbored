@@ -1,3 +1,5 @@
 include LICENSE
+include LICENSE.apache2
+include NOTICE
 include README.rst
 graft tensorbored
