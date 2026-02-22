@@ -1,7 +1,8 @@
 # TensorBored
 
 [![CI](https://github.com/Demonstrandum/tensorbored/actions/workflows/ci.yml/badge.svg)](https://github.com/Demonstrandum/tensorbored/actions/workflows/ci.yml)
-[![PyPI version](https://img.shields.io/pypi/v/tensorbored)](https://pypi.org/project/tensorbored/)
+[![PyPI version](https://img.shields.io/pypi/v/tensorbored?color=blue)](https://pypi.org/project/tensorbored/)
+[![Nightly version](https://img.shields.io/pypi/v/tensorbored-nightly?label=nightly&color=purple)](https://pypi.org/project/tensorbored-nightly/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/tensorbored)](https://pypi.org/project/tensorbored/)
 [![Python](https://img.shields.io/pypi/pyversions/tensorbored)](https://pypi.org/project/tensorbored/)
 [![License](https://img.shields.io/pypi/l/tensorbored)](https://github.com/Demonstrandum/tensorbored/blob/master/LICENSE)
