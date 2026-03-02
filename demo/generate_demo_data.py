@@ -45,6 +45,7 @@ LOGDIR = Path(__file__).parent / "logs"
 TOTAL_STEPS = 500
 LOG_EVERY = 5
 
+# Experiment configurations
 EXPERIMENTS = {
     "baseline": {
         "lr": 0.001,
@@ -93,15 +94,19 @@ def generate_loss_curve(step: int, config: dict, seed: int) -> float:
     """Generate a realistic loss curve with noise."""
     random.seed(seed + step)
 
+    # Exponential decay with noise
     scale = config["loss_scale"]
     converge = config["converge_step"]
 
+    # Base loss curve: starts high, decays exponentially
     progress = min(step / converge, 1.0)
     base_loss = 2.5 * math.exp(-3 * progress) + 0.1
 
+    # Add realistic noise (more noise early, less late)
     noise_scale = 0.15 * (1 - progress * 0.7)
     noise = random.gauss(0, noise_scale)
 
+    # Occasional spikes (learning rate warmup artifacts)
     if step < 50 and random.random() < 0.1:
         noise += random.uniform(0.1, 0.3)
 
@@ -115,10 +120,14 @@ def generate_accuracy_curve(step: int, config: dict, seed: int) -> float:
     converge = config["converge_step"]
     scale = config["loss_scale"]
 
+    # Sigmoid-like accuracy growth
     progress = min(step / converge, 1.0)
     base_acc = 1 / (1 + math.exp(-8 * (progress - 0.3)))
+
+    # Scale by experiment quality (lower loss_scale = better experiment)
     base_acc = base_acc * (1.1 - scale * 0.15)
 
+    # Add noise
     noise = random.gauss(0, 0.02 * (1 - progress * 0.5))
 
     return min(0.99, max(0.1, base_acc + noise))
@@ -128,9 +137,11 @@ def generate_lr_schedule(step: int, config: dict) -> float:
     """Generate learning rate with warmup and decay."""
     base_lr = config["lr"]
 
+    # Warmup for first 50 steps
     if step < 50:
         return base_lr * (step / 50)
 
+    # Cosine decay after warmup
     progress = (step - 50) / (TOTAL_STEPS - 50)
     return base_lr * (0.5 * (1 + math.cos(math.pi * progress)))
 
@@ -139,17 +150,22 @@ def generate_weight_histogram(step: int, layer: str, seed: int) -> np.ndarray:
     """Generate fake weight distributions that evolve over training."""
     np.random.seed(seed + step)
 
+    # Weights start with larger variance, converge to smaller
     progress = step / TOTAL_STEPS
     std = 0.5 * (1 - progress * 0.6)
 
+    # Different layers have different distributions
     if "conv" in layer:
+        # Conv layers: roughly normal
         return np.random.normal(0, std, 1000)
     elif "bn" in layer:
+        # BatchNorm: gamma near 1, beta near 0
         if "gamma" in layer:
             return np.random.normal(1.0, std * 0.2, 500)
         else:
             return np.random.normal(0, std * 0.3, 500)
     else:
+        # FC layers: slightly wider distribution
         return np.random.normal(0, std * 1.2, 2000)
 
 
@@ -157,9 +173,11 @@ def generate_gradient_histogram(step: int, layer: str, seed: int) -> np.ndarray:
     """Generate fake gradient distributions."""
     np.random.seed(seed + step + 5000)
 
+    # Gradients get smaller as training progresses
     progress = step / TOTAL_STEPS
     scale = 0.1 * (1 - progress * 0.8)
 
+    # Heavy-tailed distribution for gradients
     return np.random.laplace(0, scale, 1000)
 
 
@@ -167,19 +185,24 @@ def generate_sample_image(step: int, seed: int) -> np.ndarray:
     """Generate a fake 'generated sample' image that improves over time."""
     np.random.seed(seed + step)
 
+    # Image quality improves with training
     progress = step / TOTAL_STEPS
     noise_level = 0.5 * (1 - progress * 0.9)
 
+    # Create a pattern that becomes clearer over time
     x = np.linspace(-1, 1, 64)
     y = np.linspace(-1, 1, 64)
     X, Y = np.meshgrid(x, y)
 
+    # Circular pattern
     pattern = np.sin(5 * np.sqrt(X**2 + Y**2) - step * 0.05)
-    pattern = (pattern + 1) / 2
+    pattern = (pattern + 1) / 2  # Normalize to 0-1
 
+    # Add noise
     noise = np.random.uniform(0, noise_level, (64, 64))
     image = np.clip(pattern * (1 - noise_level) + noise, 0, 1)
 
+    # Convert to RGB
     rgb = np.stack([image, image * 0.8, image * 0.6], axis=-1)
     return (rgb * 255).astype(np.uint8)
 
@@ -188,6 +211,7 @@ def generate_attention_map(step: int, seed: int) -> np.ndarray:
     """Generate a fake attention map visualization."""
     np.random.seed(seed + step + 10000)
 
+    # Attention becomes more focused over time
     progress = step / TOTAL_STEPS
     focus = 0.1 + progress * 0.4
 
@@ -195,8 +219,10 @@ def generate_attention_map(step: int, seed: int) -> np.ndarray:
     y = np.linspace(-1, 1, 32)
     X, Y = np.meshgrid(x, y)
 
+    # Multiple attention heads
     attention = np.zeros((32, 32))
-    for i in range(4):
+    n_heads = 4
+    for i in range(n_heads):
         np.random.seed(seed + step + 10000 + i)
         cx = np.random.uniform(-0.5, 0.5)
         cy = np.random.uniform(-0.5, 0.5)
@@ -204,6 +230,7 @@ def generate_attention_map(step: int, seed: int) -> np.ndarray:
 
     attention = attention / attention.max()
 
+    # Apply colormap (viridis-like)
     r = np.clip(attention * 0.3 + 0.1, 0, 1)
     g = np.clip(attention * 0.8, 0, 1)
     b = np.clip(1 - attention * 0.5, 0, 1)
@@ -220,11 +247,14 @@ def generate_attention_map(step: int, seed: int) -> np.ndarray:
 def setup_default_profile(logdir: Path, run_ids: list):
     """Create a default TensorBoard profile showcasing all features."""
 
+    # Generate perceptually uniform colors for all runs
     run_colors = color_sampler.colors_for_runs(run_ids, varied=True)
 
+    # Create the default profile
     profile_writer.set_default_profile(
         logdir=str(logdir),
         name="TensorBored Demo Dashboard",
+        # Pin the most important metrics
         pinned_cards=[
             profile_writer.pin_scalar("loss/train"),
             profile_writer.pin_scalar("loss/eval"),
@@ -232,6 +262,7 @@ def setup_default_profile(logdir: Path, run_ids: list):
             profile_writer.pin_scalar("accuracy/eval"),
             profile_writer.pin_scalar("learning_rate"),
         ],
+        # Create superimposed cards for comparison
         superimposed_cards=[
             profile_writer.create_superimposed_card(
                 title="Train vs Eval Loss",
@@ -242,7 +273,9 @@ def setup_default_profile(logdir: Path, run_ids: list):
                 tags=["accuracy/train", "accuracy/eval"],
             ),
         ],
+        # Apply generated colors
         run_colors=run_colors,
+        # Configure filters and smoothing
         tag_filter="loss|accuracy|learning_rate",
         metric_descriptions={
             "loss/train": "Training loss used for optimization.",
@@ -253,10 +286,12 @@ def setup_default_profile(logdir: Path, run_ids: list):
             "gradients/global_norm": "Global L2 norm of all gradients.",
         },
         smoothing=0.8,
+        # Group runs by experiment type
         group_by={
             "key": "regex",
             "regexString": r"(baseline|adam|large|small)",
         },
+        # Per-tag axis scales: log for loss curves
         tag_axis_scales={
             "loss/train": {"y": "log10"},
             "loss/eval": {"y": "log10"},
@@ -426,6 +461,7 @@ def main():
     print("TensorBored Demo Data Generator")
     print("=" * 60)
 
+    # Clean up old logs
     import shutil
 
     if LOGDIR.exists():
@@ -434,9 +470,11 @@ def main():
 
     LOGDIR.mkdir(parents=True, exist_ok=True)
 
+    # Get run IDs and set up profile
     run_ids = list(EXPERIMENTS.keys())
     setup_default_profile(LOGDIR, run_ids)
 
+    # Generate data for each experiment
     for exp_name, config in EXPERIMENTS.items():
         print(f"\nGenerating data for: {exp_name}")
         print(
@@ -444,12 +482,16 @@ def main():
             f"optimizer={config['optimizer']}"
         )
 
+        # Create a deterministic seed from experiment name
         seed = int(hashlib.md5(exp_name.encode()).hexdigest()[:8], 16)
         writer = SummaryWriter(log_dir=str(LOGDIR / exp_name))
 
         for step in range(0, TOTAL_STEPS + 1, LOG_EVERY):
+            # Scalars
             train_loss = generate_loss_curve(step, config, seed)
-            eval_loss = generate_loss_curve(step, config, seed + 100) * 1.05
+            eval_loss = (
+                generate_loss_curve(step, config, seed + 100) * 1.05
+            )  # Eval slightly worse
             train_acc = generate_accuracy_curve(step, config, seed)
             eval_acc = generate_accuracy_curve(step, config, seed + 100) * 0.98
             lr = generate_lr_schedule(step, config)
@@ -460,12 +502,14 @@ def main():
             writer.add_scalar("accuracy/eval", eval_acc, step)
             writer.add_scalar("learning_rate", lr, step)
 
+            # Additional metrics
             random.seed(seed + step + 2000)
             grad_norm = 1.0 / (1 + step * 0.01) + random.gauss(0, 0.05)
             writer.add_scalar(
                 "gradients/global_norm", max(0.01, grad_norm), step
             )
 
+            # Histograms (less frequent)
             if step % 50 == 0:
                 for layer in ["conv1", "conv2", "fc1", "fc2"]:
                     weights = generate_weight_histogram(step, layer, seed)
@@ -474,6 +518,7 @@ def main():
                     grads = generate_gradient_histogram(step, layer, seed)
                     writer.add_histogram(f"gradients/{layer}", grads, step)
 
+            # Images (less frequent)
             if step % 100 == 0:
                 sample = generate_sample_image(step, seed)
                 writer.add_image(
@@ -485,12 +530,14 @@ def main():
                     "attention/layer1", attention, step, dataformats="HWC"
                 )
 
+            # Progress
             if step % 100 == 0:
                 print(
                     f"    Step {step}/{TOTAL_STEPS}: "
                     f"loss={train_loss:.4f}, acc={train_acc:.4f}"
                 )
 
+        # Write sample training script to text plugin (first run only)
         if exp_name == "baseline":
             writer.add_text("training_script/sample_code", SAMPLE_TEXT, 0)
 
