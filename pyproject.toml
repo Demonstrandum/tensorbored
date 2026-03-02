@@ -51,5 +51,8 @@ line-length = 80
 # The actual package requires Python >=3.9.
 target-version = ["py38", "py39"]
 
+[tool.setuptools.packages.find]
+include = ["tensorbored*"]
+
 [tool.setuptools.dynamic]
 version = {attr = "tensorbored.version.VERSION"}

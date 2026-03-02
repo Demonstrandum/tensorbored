@@ -19,7 +19,10 @@ WORKDIR /app
 # wheel would be used even when a new one is uploaded.
 COPY --chown=user .build-version /tmp/.build-version
 COPY --chown=user *.whl /tmp/
-RUN pip install --no-cache-dir --user /tmp/*.whl pillow>=10.0.0
+RUN pip install --no-cache-dir --user \
+    /tmp/*.whl \
+    pillow>=10.0.0 \
+    torch --extra-index-url https://download.pytorch.org/whl/cpu
 
 COPY --chown=user generate_demo_data.py /app/
 COPY --chown=user start.sh /app/
