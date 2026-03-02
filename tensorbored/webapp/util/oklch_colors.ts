@@ -332,32 +332,45 @@ export function computeDeconfliction(
   const deconflictions = new Map<string, string>();
   const assignedColors: string[] = [];
   const assignedLabs: Lab[] = [];
+  const placed = new Set<string>();
 
-  // Phase 1: Collect effective colors for all cached runs (preserving order).
+  function placeColor(hex: string) {
+    assignedColors.push(hex);
+    assignedLabs.push(hexToOklab(hex));
+  }
+
+  // Phase 0: Place all user-overridden colors as immovable landmarks.
+  // These go first regardless of sort position so that every hash-based
+  // run is always checked against every user-chosen color.
   for (const runId of sortedRunIds) {
-    if (!cachedRunIds.has(runId)) continue;
+    if (!userOverriddenRuns.has(runId)) continue;
+    placeColor(runIdToBaseColor.get(runId)!);
+    placed.add(runId);
+  }
 
-    const baseColor = runIdToBaseColor.get(runId)!;
+  // Phase 1: Place cached non-user runs (preserving their deconflictions).
+  for (const runId of sortedRunIds) {
+    if (placed.has(runId) || !cachedRunIds.has(runId)) continue;
+
     const cached = cachedDeconflictions.get(runId);
-    const effective = cached ?? baseColor;
+    const effective = cached ?? runIdToBaseColor.get(runId)!;
 
     if (cached) {
       deconflictions.set(runId, cached);
     }
-    assignedColors.push(effective);
-    assignedLabs.push(hexToOklab(effective));
+    placeColor(effective);
+    placed.add(runId);
   }
 
-  // Phase 2: Process new runs against all cached + previously-deconflicted colors.
+  // Phase 2: Process remaining (new, non-user) runs.
   for (const runId of sortedRunIds) {
-    if (cachedRunIds.has(runId)) continue;
+    if (placed.has(runId)) continue;
 
     const baseColor = runIdToBaseColor.get(runId)!;
     const baseLab = hexToOklab(baseColor);
 
-    if (assignedLabs.length === 0 || userOverriddenRuns.has(runId)) {
-      assignedColors.push(baseColor);
-      assignedLabs.push(baseLab);
+    if (assignedLabs.length === 0) {
+      placeColor(baseColor);
       continue;
     }
 
@@ -368,17 +381,14 @@ export function computeDeconfliction(
     }
 
     if (minDist >= MIN_DELTA_E) {
-      assignedColors.push(baseColor);
-      assignedLabs.push(baseLab);
+      placeColor(baseColor);
     } else {
       const replacement = findDistantColor(assignedColors, darkMode);
       if (replacement) {
         deconflictions.set(runId, replacement);
-        assignedColors.push(replacement);
-        assignedLabs.push(hexToOklab(replacement));
+        placeColor(replacement);
       } else {
-        assignedColors.push(baseColor);
-        assignedLabs.push(baseLab);
+        placeColor(baseColor);
       }
     }
   }
