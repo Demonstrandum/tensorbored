@@ -41,6 +41,7 @@ sh_binary(
         ":deterministic_tar_gz",
         "//tensorbored",  # Main tensorboard binary and everything it uses
         "//tensorbored:lib",  # User-facing overall TensorBoard API
+        "//tensorbored:torch",  # PyTorch SummaryWriter re-export
         "//tensorbored:version",  # Version module (read by setup.py)
         "//tensorbored/plugins/core:color_sampler",  # User-facing color sampler API
         "//tensorbored/plugins/core:profile_writer",  # User-facing profile writer API

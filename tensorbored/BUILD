@@ -641,6 +641,16 @@ py_library(
     srcs_version = "PY3",
 )
 
+py_library(
+    name = "torch",
+    srcs = ["torch.py"],
+    srcs_version = "PY3",
+    visibility = ["//tensorbored:internal"],
+    deps = [
+        ":lib_init_only",
+    ],
+)
+
 py_test(
     name = "lazy_test",
     size = "small",
