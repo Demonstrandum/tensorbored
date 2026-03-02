@@ -19,6 +19,16 @@ package_group(
     packages = ["//tensorbored/..."],
 )
 
+py_library(
+    name = "module_main",
+    srcs = ["__main__.py"],
+    srcs_version = "PY3",
+    visibility = ["//tensorbored:internal"],
+    deps = [
+        ":main_lib",
+    ],
+)
+
 # The standard TensorBored binary that serves the webapp.
 py_binary(
     name = "tensorbored",
