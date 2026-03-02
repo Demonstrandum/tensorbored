@@ -230,9 +230,9 @@ function isInSrgbGamut(L: number, C: number, H: number): boolean {
 /** Lightness candidates for light-mode deconfliction. */
 const LIGHT_LIGHTNESSES = [0.44, 0.51, 0.58, 0.65, 0.72, 0.79];
 /** Lightness candidates for dark-mode deconfliction. */
-const DARK_LIGHTNESSES = [0.62, 0.68, 0.74, 0.80, 0.86, 0.92];
+const DARK_LIGHTNESSES = [0.62, 0.68, 0.74, 0.8, 0.86, 0.92];
 /** Chroma candidates for deconfliction search. */
-const SEARCH_CHROMAS = [0.07, 0.11, 0.155, 0.20];
+const SEARCH_CHROMAS = [0.07, 0.11, 0.155, 0.2];
 /** Number of hue steps (5 degree increments). */
 const HUE_STEPS = 72;
 
@@ -317,7 +317,9 @@ export interface DeconflictionParams {
  * Returns a map of runId → deconflicted hex color ONLY for runs whose
  * color was changed.
  */
-export function computeDeconfliction(params: DeconflictionParams): Map<string, string> {
+export function computeDeconfliction(
+  params: DeconflictionParams
+): Map<string, string> {
   const {
     sortedRunIds,
     runIdToBaseColor,

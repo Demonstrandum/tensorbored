@@ -456,16 +456,13 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
       };
     }
   ),
-  on(
-    runsActions.runColorDeconflictionLoaded,
-    (state, {deconflictedColors}) => {
-      const next = new Map(state.deconflictedRunColors);
-      for (const [runId, color] of deconflictedColors) {
-        next.set(runId, color);
-      }
-      return {...state, deconflictedRunColors: next};
+  on(runsActions.runColorDeconflictionLoaded, (state, {deconflictedColors}) => {
+    const next = new Map(state.deconflictedRunColors);
+    for (const [runId, color] of deconflictedColors) {
+      next.set(runId, color);
     }
-  ),
+    return {...state, deconflictedRunColors: next};
+  }),
   on(runsActions.runSelectorRegexFilterChanged, (state, action) => {
     return {
       ...state,

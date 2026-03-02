@@ -55,10 +55,7 @@ import {
   getRunColorOverride,
   getRunSelectionMap,
 } from '../store/runs_selectors';
-import {
-  computeDeconfliction,
-  hashColorIdToHex,
-} from '../../util/oklch_colors';
+import {computeDeconfliction, hashColorIdToHex} from '../../util/oklch_colors';
 import {getDarkModeEnabled} from '../../feature_flag/store/feature_flag_selectors';
 
 const RUN_COLOR_STORAGE_KEY = '_tb_run_colors.v1';
@@ -604,79 +601,75 @@ export class RunsEffects {
         ),
         filter(([, defaultMap]) => defaultMap.size > 1),
         map(([, defaultRunColorIdMap, existingOverrides, darkMode]) => {
-            const LEGACY_MAX = 6;
-            const sortedRunIds: string[] = [];
-            const runIdToBaseColor = new Map<string, string>();
-            const userOverriddenRuns = new Set<string>();
+          const LEGACY_MAX = 6;
+          const sortedRunIds: string[] = [];
+          const runIdToBaseColor = new Map<string, string>();
+          const userOverriddenRuns = new Set<string>();
 
-            defaultRunColorIdMap.forEach((colorId, runId) => {
-              if (existingOverrides.has(runId)) {
-                sortedRunIds.push(runId);
-                runIdToBaseColor.set(runId, existingOverrides.get(runId)!);
-                userOverriddenRuns.add(runId);
-              } else if (colorId > LEGACY_MAX) {
-                sortedRunIds.push(runId);
-                runIdToBaseColor.set(
-                  runId,
-                  hashColorIdToHex(colorId, darkMode)
-                );
+          defaultRunColorIdMap.forEach((colorId, runId) => {
+            if (existingOverrides.has(runId)) {
+              sortedRunIds.push(runId);
+              runIdToBaseColor.set(runId, existingOverrides.get(runId)!);
+              userOverriddenRuns.add(runId);
+            } else if (colorId > LEGACY_MAX) {
+              sortedRunIds.push(runId);
+              runIdToBaseColor.set(runId, hashColorIdToHex(colorId, darkMode));
+            }
+            // Legacy palette IDs (0-6) and inactive (-1) are skipped:
+            // they use a separate palette and don't need deconfliction.
+          });
+          sortedRunIds.sort();
+
+          // Determine which cached deconflictions are still valid.
+          const cache = loadDeconflictionCache();
+          let cachedDeconflictions = new Map<string, string>();
+          let cachedRunIds = new Set<string>();
+
+          if (cache && cache.darkMode === darkMode) {
+            const cachedBaseColors = new Map(cache.baseColors);
+            const cachedProcessed = new Set(cache.processedRunIds);
+            const currentRunSet = new Set(sortedRunIds);
+
+            let cacheValid = true;
+            for (const cachedRunId of cachedProcessed) {
+              if (!currentRunSet.has(cachedRunId)) {
+                cacheValid = false;
+                break;
               }
-              // Legacy palette IDs (0-6) and inactive (-1) are skipped:
-              // they use a separate palette and don't need deconfliction.
-            });
-            sortedRunIds.sort();
-
-            // Determine which cached deconflictions are still valid.
-            const cache = loadDeconflictionCache();
-            let cachedDeconflictions = new Map<string, string>();
-            let cachedRunIds = new Set<string>();
-
-            if (cache && cache.darkMode === darkMode) {
-              const cachedBaseColors = new Map(cache.baseColors);
-              const cachedProcessed = new Set(cache.processedRunIds);
-              const currentRunSet = new Set(sortedRunIds);
-
-              let cacheValid = true;
-              for (const cachedRunId of cachedProcessed) {
-                if (!currentRunSet.has(cachedRunId)) {
-                  cacheValid = false;
-                  break;
-                }
-                const oldBase = cachedBaseColors.get(cachedRunId);
-                const newBase = runIdToBaseColor.get(cachedRunId);
-                if (oldBase !== newBase) {
-                  cacheValid = false;
-                  break;
-                }
-              }
-
-              if (cacheValid) {
-                cachedDeconflictions = new Map(cache.deconflictedColors);
-                cachedRunIds = cachedProcessed;
+              const oldBase = cachedBaseColors.get(cachedRunId);
+              const newBase = runIdToBaseColor.get(cachedRunId);
+              if (oldBase !== newBase) {
+                cacheValid = false;
+                break;
               }
             }
 
-            const deconflictions = computeDeconfliction({
-              sortedRunIds,
-              runIdToBaseColor,
-              userOverriddenRuns,
-              darkMode,
-              cachedDeconflictions,
-              cachedRunIds,
-            });
-
-            persistDeconflictionCache(
-              deconflictions,
-              runIdToBaseColor,
-              sortedRunIds,
-              darkMode
-            );
-
-            return actions.runColorDeconflictionComputed({
-              deconflictedColors: Array.from(deconflictions.entries()),
-            });
+            if (cacheValid) {
+              cachedDeconflictions = new Map(cache.deconflictedColors);
+              cachedRunIds = cachedProcessed;
+            }
           }
-        )
+
+          const deconflictions = computeDeconfliction({
+            sortedRunIds,
+            runIdToBaseColor,
+            userOverriddenRuns,
+            darkMode,
+            cachedDeconflictions,
+            cachedRunIds,
+          });
+
+          persistDeconflictionCache(
+            deconflictions,
+            runIdToBaseColor,
+            sortedRunIds,
+            darkMode
+          );
+
+          return actions.runColorDeconflictionComputed({
+            deconflictedColors: Array.from(deconflictions.entries()),
+          });
+        })
       );
     });
   }
