@@ -462,7 +462,9 @@ def main():
 
             random.seed(seed + step + 2000)
             grad_norm = 1.0 / (1 + step * 0.01) + random.gauss(0, 0.05)
-            writer.add_scalar("gradients/global_norm", max(0.01, grad_norm), step)
+            writer.add_scalar(
+                "gradients/global_norm", max(0.01, grad_norm), step
+            )
 
             if step % 50 == 0:
                 for layer in ["conv1", "conv2", "fc1", "fc2"]:
