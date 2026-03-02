@@ -36,6 +36,7 @@ import {State} from '../app_state';
 import {getDarkModeEnabled} from '../feature_flag/store/feature_flag_selectors';
 import {
   getDefaultRunColorIdMap,
+  getDeconflictedRunColors,
   getRunColorOverride,
   getRunIdToExperimentId,
   getRuns,
@@ -138,15 +139,17 @@ const LEGACY_PALETTE_MAX_ID = 6;
  * Returns Observable that emits map of run id to run color (hex).
  *
  * Color priority:
- *   1. Explicit override (user-set, profile, or clash-resolved)
- *   2. Hash-based OKLCH color derived from the 32-bit colorId
- *   3. Legacy palette lookup (for old-format colorIds 0-6)
- *   4. Inactive color (for non-matching / colorId === -1)
+ *   1. Explicit override (user-set, profile, or API-fetched)
+ *   2. Deconfliction override (auto-computed, not stored in profiles)
+ *   3. Hash-based OKLCH color derived from the 32-bit colorId
+ *   4. Legacy palette lookup (for old-format colorIds 0-6)
+ *   5. Inactive color (for non-matching / colorId === -1)
  */
 export const getRunColorMap = createSelector<
   State,
   ColorPalette,
   Map<string, number>,
+  Map<string, string>,
   Map<string, string>,
   boolean,
   {[runId: string]: string}
@@ -154,11 +157,13 @@ export const getRunColorMap = createSelector<
   selectors.getColorPalette,
   getDefaultRunColorIdMap,
   getRunColorOverride,
+  getDeconflictedRunColors,
   getDarkModeEnabled,
   (
     colorPalette,
     defaultRunColorId,
     colorOverride,
+    deconflictedColors,
     useDarkMode
   ): Record<string, string> => {
     const colorObject: Record<string, string> = {};
@@ -166,22 +171,20 @@ export const getRunColorMap = createSelector<
     defaultRunColorId.forEach((colorId, runId) => {
       if (colorOverride.has(runId)) {
         colorObject[runId] = colorOverride.get(runId)!;
+      } else if (deconflictedColors.has(runId)) {
+        colorObject[runId] = deconflictedColors.get(runId)!;
       } else if (colorId > LEGACY_PALETTE_MAX_ID) {
-        // New hash-based OKLCH color (colorId is a full 32-bit FNV hash).
         colorObject[runId] = hashColorIdToHex(colorId, useDarkMode);
       } else if (colorId >= 0) {
-        // Legacy palette lookup for old-format colorIds (0-6).
         const color = colorPalette.colors[colorId % colorPalette.colors.length];
         colorObject[runId] = useDarkMode ? color.darkHex : color.lightHex;
       } else {
-        // Non-matching / inactive run.
         colorObject[runId] = useDarkMode
           ? colorPalette.inactive.darkHex
           : colorPalette.inactive.lightHex;
       }
     });
 
-    // Include color overrides for runs not yet in the default map.
     colorOverride.forEach((color, runId) => {
       if (!colorObject.hasOwnProperty(runId)) {
         colorObject[runId] = color;

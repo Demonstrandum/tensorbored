@@ -129,6 +129,7 @@ const {
 >(
   {
     runColorOverrideForGroupBy: new Map(),
+    deconflictedRunColors: new Map(),
     defaultRunColorIdForGroupBy: new Map(),
     groupKeyToColorId: new Map(),
     initialGroupBy: {key: GroupByKey.RUN},
@@ -444,6 +445,25 @@ const dataReducer: ActionReducer<RunsDataState, Action> = createReducer(
         }
       }
       return {...state, runColorOverrideForGroupBy: nextRunColorOverride};
+    }
+  ),
+  on(
+    runsActions.runColorDeconflictionComputed,
+    (state, {deconflictedColors}) => {
+      return {
+        ...state,
+        deconflictedRunColors: new Map(deconflictedColors),
+      };
+    }
+  ),
+  on(
+    runsActions.runColorDeconflictionLoaded,
+    (state, {deconflictedColors}) => {
+      const next = new Map(state.deconflictedRunColors);
+      for (const [runId, color] of deconflictedColors) {
+        next.set(runId, color);
+      }
+      return {...state, deconflictedRunColors: next};
     }
   ),
   on(runsActions.runSelectorRegexFilterChanged, (state, action) => {

@@ -56,6 +56,7 @@ export function buildRunsState(
       runMetadata: {},
       runsLoadState: {},
       runColorOverrideForGroupBy: new Map(),
+      deconflictedRunColors: new Map(),
       defaultRunColorIdForGroupBy: new Map(),
       groupKeyToColorId: new Map(),
       initialGroupBy: {key: GroupByKey.RUN},

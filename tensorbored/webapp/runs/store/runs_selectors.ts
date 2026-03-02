@@ -300,6 +300,13 @@ export const getRunColorOverride = createSelector(
   }
 );
 
+export const getDeconflictedRunColors = createSelector(
+  getDataState,
+  (state: RunsDataState): Map<string, string> => {
+    return state.deconflictedRunColors;
+  }
+);
+
 export const getDefaultRunColorIdMap = createSelector(
   getDataState,
   (state: RunsDataState): Map<string, number> => {
