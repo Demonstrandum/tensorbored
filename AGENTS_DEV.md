@@ -170,7 +170,7 @@ The frontend uses Angular with NgRx for state management. The pattern is:
 | **Pinned card reorder UI** | `webapp/metrics/views/main_view/` (CDK Drag&Drop, arrow buttons on card headers)                                                                                            |
 | **Run selection**          | `webapp/runs/store/runs_reducers.ts` (single toggle, range toggle, page toggle)                                                                                             |
 | **Shift-select runs**      | `webapp/runs/views/runs_table/runs_data_table.ts` (`selectionClick` with shift key, `lastClickedIndex`), `webapp/runs/actions/runs_actions.ts` (`runRangeSelectionToggled`) |
-| **Run colors**             | `webapp/runs/store/runs_reducers.ts` (hash-based fallback, profile overrides)                                                                                               |
+| **Run colors**             | `webapp/runs/store/runs_reducers.ts` (hash-based fallback, profile overrides), `webapp/util/oklch_colors.ts` (deconfliction algorithm)                                      |
 | **Profile system**         | `webapp/profile/` directory (types, data_source, store, effects, views)                                                                                                     |
 | **Profile menu**           | `webapp/profile/views/profile_menu_component.ts` (mat-icon-button, bookmark icon, unsaved dot indicator)                                                                    |
 | **Tag filter**             | `webapp/metrics/views/main_view/filter_input_*`                                                                                                                             |
@@ -252,6 +252,7 @@ The frontend persists state to browser localStorage. This is the core mechanism 
 | `_tb_run_selection.v1` | Run visibility states (NgRx)  | `{version: 1, runSelection: [[id, bool], ...]}`                    | Runs effects    |
 | `runSelectionState`    | Run visibility states (Polymer) | Base64-encoded JSON `{runName: bool, ...}`                       | tf-runs-selector |
 | `_tb_run_colors.v1`    | Color overrides               | `{version: 1, runColorOverrides: [...], groupKeyToColorId: [...]}` | Runs effects    |
+| `_tb_run_color_deconfliction.v1` | Auto-computed deconfliction overrides | `{version: 1, darkMode, deconflictedColors: [...], baseColors: [...], processedRunIds: [...]}` | Runs effects |
 | `_tb_tag_filter.v1`    | Tag filter regex              | `{value: string, timestamp: number}`                               | Metrics effects |
 | `_tb_axis_scales.v1`   | Axis scales                   | `{version: 1, yAxisScale?: string, xAxisScale?: string}`           | Metrics effects |
 | `_tb_tag_group_expansion.v1` | Section expanded/collapsed state | `{version: 1, groups: [[name, bool], ...]}`                   | Metrics effects |
@@ -405,6 +406,8 @@ This section provides context on _why_ features were built the way they were, ba
 
 TensorBoard assigned random colors to runs, which changed on every page refresh. TensorBored computes colors deterministically from a hash of the run ID/name, so the same run always gets the same color. Colors can also be overridden programmatically via the profile writer. When no explicit colors are set, the frontend uses hash-based fallback colors (never white/invisible). Color overrides are stored in localStorage (`_tb_run_colors.v1`).
 
+After hash-based colors are assigned, a **perceptual deconfliction** pass runs on every `fetchRunsSucceeded`. This checks all pairs of run colors using OKLAB delta-E (threshold 0.075) and, for any clashes, searches across **all three OKLCH axes** (lightness, chroma, hue) to find a maximally-distant replacement color. Deconfliction results are cached in `_tb_run_color_deconfliction.v1` (never in profiles) and are deterministically recomputable given the same set of runs. The algorithm is incremental: when new runs are added, only the new runs are checked against the full set of existing effective colors.
+
 ### Dashboard Profiles (#5, #12)
 
 The single biggest architectural addition. TensorBoard stored all dashboard state in URL parameters, hitting browser URL length limits with many pins. TensorBored moved everything to localStorage-based profiles:
@@ -532,6 +535,8 @@ If charts appear blank:
 
 ### Run Colors Wrong or Missing
 
-1. Check `_tb_run_colors.v1` in localStorage
-2. Verify the profile's `runColors` array entries have valid `runId` and `color` fields
-3. If colors are white/invisible, the hash-based fallback may not be working — check the color computation in runs store
+1. Check `_tb_run_colors.v1` in localStorage (user overrides)
+2. Check `_tb_run_color_deconfliction.v1` in localStorage (auto-computed deconfliction overrides)
+3. Verify the profile's `runColors` array entries have valid `runId` and `color` fields
+4. If colors are white/invisible, the hash-based fallback may not be working — check the color computation in runs store
+5. Deconfliction colors are NOT stored in profiles — they are cached separately and recomputed if the cache is lost

@@ -51,6 +51,9 @@ export interface RunsDataNamespacedState {
   groupKeyToColorId: Map<string, number>;
   // Hex color string user has picked for a run.
   runColorOverrideForGroupBy: Map<RunId, string>;
+  // Auto-computed deconfliction overrides. Separate from user overrides so
+  // they are never stored in profiles and can be deterministically recomputed.
+  deconflictedRunColors: Map<RunId, string>;
   initialGroupBy: GroupBy;
   userSetGroupByKey: GroupByKey | null;
   colorGroupRegexString: string;

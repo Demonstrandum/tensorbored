@@ -186,102 +186,232 @@ export function isHueDistant(hue: number, usedHues: number[]): boolean {
 
 // ---- OKLAB-based color distance ---------------------------------------------
 
-/**
- * Compute OKLAB deltaE (Euclidean distance in OKLAB L,a,b space).
- * Values below ~0.04 are hard to distinguish.
- */
-export function oklabDeltaE(hex1: string, hex2: string): number {
-  const [L1, C1, H1] = hexToOklch(hex1);
-  const [L2, C2, H2] = hexToOklch(hex2);
-  const [, a1, b1] = oklchToOklab(L1, C1, H1);
-  const [, a2, b2] = oklchToOklab(L2, C2, H2);
-  const dL = L1 - L2;
-  const da = a1 - a2;
-  const db = b1 - b2;
+type Lab = [L: number, a: number, b: number];
+
+function hexToOklab(hex: string): Lab {
+  const [L, C, H] = hexToOklch(hex);
+  return oklchToOklab(L, C, H) as Lab;
+}
+
+function deltaELab(lab1: Lab, lab2: Lab): number {
+  const dL = lab1[0] - lab2[0];
+  const da = lab1[1] - lab2[1];
+  const db = lab1[2] - lab2[2];
   return Math.sqrt(dL * dL + da * da + db * db);
 }
 
-/** Minimum acceptable OKLAB delta-E between any two *active* run colors. */
-export const MIN_DELTA_E = 0.04;
-
-// ---- Clash resolution -------------------------------------------------------
+/**
+ * Compute OKLAB deltaE (Euclidean distance in OKLAB L,a,b space).
+ * Values below ~0.075 are hard to reliably distinguish on a chart.
+ */
+export function oklabDeltaE(hex1: string, hex2: string): number {
+  return deltaELab(hexToOklab(hex1), hexToOklab(hex2));
+}
 
 /**
- * Given a map of runId -> hex color, detect pairs of colors that are too
- * close (OKLAB deltaE < MIN_DELTA_E) and re-assign one of them so that
- * every color is sufficiently distant from every other color.
+ * Minimum acceptable OKLAB delta-E between any two *active* run colors.
+ * 0.075 is a conservative threshold that ensures colors are visually
+ * distinguishable across lightness, chroma, and hue simultaneously.
+ */
+export const MIN_DELTA_E = 0.075;
+
+// ---- sRGB gamut check -------------------------------------------------------
+
+function isInSrgbGamut(L: number, C: number, H: number): boolean {
+  const [labL, labA, labB] = oklchToOklab(L, C, H);
+  const [r, g, b] = oklabToLinearSrgb(labL, labA, labB);
+  const lo = -0.003;
+  const hi = 1.003;
+  return r >= lo && r <= hi && g >= lo && g <= hi && b >= lo && b <= hi;
+}
+
+// ---- Three-axis color search ------------------------------------------------
+
+/** Lightness candidates for light-mode deconfliction. */
+const LIGHT_LIGHTNESSES = [0.44, 0.51, 0.58, 0.65, 0.72, 0.79];
+/** Lightness candidates for dark-mode deconfliction. */
+const DARK_LIGHTNESSES = [0.62, 0.68, 0.74, 0.8, 0.86, 0.92];
+/** Chroma candidates for deconfliction search. */
+const SEARCH_CHROMAS = [0.07, 0.11, 0.155, 0.2];
+/** Number of hue steps (5 degree increments). */
+const HUE_STEPS = 72;
+
+/**
+ * Find a color that is maximally distant (in OKLAB delta-E) from all
+ * colors in `otherHexColors`.  Searches across lightness, chroma, and hue
+ * to ensure the result is perceptually distinct on all three axes.
  *
- * Returns a map of runId -> new hex color ONLY for runs whose colors were
- * changed.  The caller should merge these into the override map.
+ * Returns the hex color with the highest minimum delta-E to any color in
+ * the set, or null if no candidates are found.
+ */
+function findDistantColor(
+  otherHexColors: string[],
+  darkMode: boolean
+): string | null {
+  const otherLabs = otherHexColors.map(hexToOklab);
+  const lightnesses = darkMode ? DARK_LIGHTNESSES : LIGHT_LIGHTNESSES;
+
+  let bestHex = '';
+  let bestMinDist = -1;
+
+  for (const L of lightnesses) {
+    for (const C of SEARCH_CHROMAS) {
+      for (let step = 0; step < HUE_STEPS; step++) {
+        const H = step * 5;
+        if (!isInSrgbGamut(L, C, H)) continue;
+
+        const candidateLab = oklchToOklab(L, C, H) as Lab;
+
+        let minDist = Infinity;
+        for (let k = 0; k < otherLabs.length; k++) {
+          const dist = deltaELab(candidateLab, otherLabs[k]);
+          if (dist <= bestMinDist) {
+            minDist = -1;
+            break;
+          }
+          if (dist < minDist) minDist = dist;
+        }
+
+        if (minDist > bestMinDist) {
+          bestMinDist = minDist;
+          bestHex = oklchToHex(L, C, H);
+        }
+      }
+    }
+  }
+
+  return bestHex || null;
+}
+
+// ---- Deconfliction ----------------------------------------------------------
+
+/**
+ * Parameters for incremental deconfliction of run colors.
+ */
+export interface DeconflictionParams {
+  /** All run IDs sorted lexicographically. */
+  sortedRunIds: string[];
+  /** Map from runId to its base color (user override or hash-based). */
+  runIdToBaseColor: ReadonlyMap<string, string>;
+  /** Set of runIds whose color was explicitly set by the user/profile. */
+  userOverriddenRuns: ReadonlySet<string>;
+  darkMode: boolean;
+  /** Previously computed deconflictions (from cache). */
+  cachedDeconflictions: ReadonlyMap<string, string>;
+  /** Run IDs that were present when the cache was computed. */
+  cachedRunIds: ReadonlySet<string>;
+}
+
+/**
+ * Compute perceptual deconfliction for a set of run colors.
+ *
+ * Processes runs in sorted order.  For cached runs whose base color hasn't
+ * changed, the existing deconfliction (if any) is preserved.  For new runs,
+ * the base color is checked against ALL previously-assigned effective colors
+ * (including cached deconflictions) and replaced with a maximally-distant
+ * color if too close.
+ *
+ * User-overridden runs are never deconflicted — their color is respected
+ * even if it clashes.
+ *
+ * Returns a map of runId → deconflicted hex color ONLY for runs whose
+ * color was changed.
+ */
+export function computeDeconfliction(
+  params: DeconflictionParams
+): Map<string, string> {
+  const {
+    sortedRunIds,
+    runIdToBaseColor,
+    userOverriddenRuns,
+    darkMode,
+    cachedDeconflictions,
+    cachedRunIds,
+  } = params;
+
+  const deconflictions = new Map<string, string>();
+  const assignedColors: string[] = [];
+  const assignedLabs: Lab[] = [];
+  const placed = new Set<string>();
+
+  function placeColor(hex: string) {
+    assignedColors.push(hex);
+    assignedLabs.push(hexToOklab(hex));
+  }
+
+  // Phase 0: Place all user-overridden colors as immovable landmarks.
+  // These go first regardless of sort position so that every hash-based
+  // run is always checked against every user-chosen color.
+  for (const runId of sortedRunIds) {
+    if (!userOverriddenRuns.has(runId)) continue;
+    placeColor(runIdToBaseColor.get(runId)!);
+    placed.add(runId);
+  }
+
+  // Phase 1: Place cached non-user runs (preserving their deconflictions).
+  for (const runId of sortedRunIds) {
+    if (placed.has(runId) || !cachedRunIds.has(runId)) continue;
+
+    const cached = cachedDeconflictions.get(runId);
+    const effective = cached ?? runIdToBaseColor.get(runId)!;
+
+    if (cached) {
+      deconflictions.set(runId, cached);
+    }
+    placeColor(effective);
+    placed.add(runId);
+  }
+
+  // Phase 2: Process remaining (new, non-user) runs.
+  for (const runId of sortedRunIds) {
+    if (placed.has(runId)) continue;
+
+    const baseColor = runIdToBaseColor.get(runId)!;
+    const baseLab = hexToOklab(baseColor);
+
+    if (assignedLabs.length === 0) {
+      placeColor(baseColor);
+      continue;
+    }
+
+    let minDist = Infinity;
+    for (let k = 0; k < assignedLabs.length; k++) {
+      const d = deltaELab(baseLab, assignedLabs[k]);
+      if (d < minDist) minDist = d;
+    }
+
+    if (minDist >= MIN_DELTA_E) {
+      placeColor(baseColor);
+    } else {
+      const replacement = findDistantColor(assignedColors, darkMode);
+      if (replacement) {
+        deconflictions.set(runId, replacement);
+        placeColor(replacement);
+      } else {
+        placeColor(baseColor);
+      }
+    }
+  }
+
+  return deconflictions;
+}
+
+// ---- Legacy wrapper (kept for backwards compatibility) ----------------------
+
+/**
+ * @deprecated Use `computeDeconfliction` instead.
  */
 export function resolveColorClashes(
   runIdToColor: ReadonlyMap<string, string>,
   darkMode: boolean
 ): Map<string, string> {
-  const overrides = new Map<string, string>();
-  const entries = Array.from(runIdToColor.entries()).sort((a, b) =>
-    a[0].localeCompare(b[0])
-  );
-  if (entries.length <= 1) return overrides;
-
-  // Working copy of colors.
-  const colors = new Map<string, string>(entries);
-
-  for (let i = 0; i < entries.length; i++) {
-    const [runIdA] = entries[i];
-    const colorA = colors.get(runIdA)!;
-
-    for (let j = i + 1; j < entries.length; j++) {
-      const [runIdB] = entries[j];
-      const colorB = colors.get(runIdB)!;
-
-      if (oklabDeltaE(colorA, colorB) >= MIN_DELTA_E) continue;
-
-      // Clash detected.  Resolve by shifting runIdB's hue until it's distant
-      // from ALL other current colors.
-      const otherColors: string[] = [];
-      colors.forEach((c, id) => {
-        if (id !== runIdB) otherColors.push(c);
-      });
-
-      const newColor = findDistantColor(otherColors, darkMode);
-      if (newColor) {
-        colors.set(runIdB, newColor);
-        overrides.set(runIdB, newColor);
-      }
-    }
-  }
-
-  return overrides;
-}
-
-function findDistantColor(
-  otherColors: string[],
-  darkMode: boolean
-): string | null {
-  const otherOklch = otherColors.map(hexToOklch);
-  const otherHues = otherOklch.map(([, , h]) => h);
-
-  let bestHex = '';
-  let bestMinDist = -1;
-
-  // Sweep hues at 5-degree increments.
-  for (let step = 0; step < 72; step++) {
-    const hue = step * 5;
-    const L = darkMode ? LIGHTNESS_DARK : LIGHTNESS_LIGHT;
-    const candidate = oklchToHex(L, CHROMA, hue);
-
-    let minDist = Infinity;
-    for (const otherHue of otherHues) {
-      const d = hueDist(hue, otherHue);
-      if (d < minDist) minDist = d;
-    }
-
-    if (minDist > bestMinDist) {
-      bestMinDist = minDist;
-      bestHex = candidate;
-    }
-  }
-
-  return bestHex || null;
+  const sorted = Array.from(runIdToColor.keys()).sort();
+  return computeDeconfliction({
+    sortedRunIds: sorted,
+    runIdToBaseColor: runIdToColor,
+    userOverriddenRuns: new Set<string>(),
+    darkMode,
+    cachedDeconflictions: new Map<string, string>(),
+    cachedRunIds: new Set<string>(),
+  });
 }

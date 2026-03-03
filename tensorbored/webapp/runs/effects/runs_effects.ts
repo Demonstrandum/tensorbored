@@ -55,11 +55,20 @@ import {
   getRunColorOverride,
   getRunSelectionMap,
 } from '../store/runs_selectors';
-import {hashColorIdToHex, resolveColorClashes} from '../../util/oklch_colors';
+import {computeDeconfliction, hashColorIdToHex} from '../../util/oklch_colors';
 import {getDarkModeEnabled} from '../../feature_flag/store/feature_flag_selectors';
 
 const RUN_COLOR_STORAGE_KEY = '_tb_run_colors.v1';
 const RUN_SELECTION_STORAGE_KEY = '_tb_run_selection.v1';
+const DECONFLICTION_STORAGE_KEY = '_tb_run_color_deconfliction.v1';
+
+type StoredDeconflictionV1 = {
+  version: 1;
+  darkMode: boolean;
+  deconflictedColors: Array<[runId: string, color: string]>;
+  baseColors: Array<[runId: string, color: string]>;
+  processedRunIds: string[];
+};
 
 type StoredRunColorsV1 = {
   version: 1;
@@ -225,6 +234,40 @@ function storedSelectionEqualsMap(
     if (map.get(runId) !== selected) return false;
   }
   return true;
+}
+
+function loadDeconflictionCache(): StoredDeconflictionV1 | null {
+  const raw = window.localStorage.getItem(DECONFLICTION_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<StoredDeconflictionV1>;
+    if (parsed.version !== 1) return null;
+    if (!Array.isArray(parsed.deconflictedColors)) return null;
+    if (!Array.isArray(parsed.processedRunIds)) return null;
+    if (!Array.isArray(parsed.baseColors)) return null;
+    return parsed as StoredDeconflictionV1;
+  } catch {
+    return null;
+  }
+}
+
+function persistDeconflictionCache(
+  deconflictedColors: Map<string, string>,
+  baseColors: Map<string, string>,
+  processedRunIds: string[],
+  darkMode: boolean
+) {
+  const payload: StoredDeconflictionV1 = {
+    version: 1,
+    darkMode,
+    deconflictedColors: Array.from(deconflictedColors.entries()),
+    baseColors: Array.from(baseColors.entries()),
+    processedRunIds,
+  };
+  window.localStorage.setItem(
+    DECONFLICTION_STORAGE_KEY,
+    JSON.stringify(payload)
+  );
 }
 
 function persistRunColorsToLocalStorage(
@@ -434,6 +477,8 @@ export class RunsEffects {
             actions.runGroupByChanged,
             actions.runColorSettingsLoaded,
             actions.runColorOverridesFetchedFromApi,
+            actions.runColorDeconflictionComputed,
+            actions.runColorDeconflictionLoaded,
             actions.profileRunsSettingsApplied,
             featureFlagActions.partialFeatureFlagsLoaded,
             featureFlagActions.overrideEnableDarkModeChanged
@@ -520,10 +565,30 @@ export class RunsEffects {
     });
 
     /**
-     * After runs are loaded, compute all active run colors and detect
-     * perceptual clashes (OKLAB deltaE below threshold).  For each clash,
-     * pick a maximally-distant replacement color and save it as an
-     * override so it persists across refreshes.
+     * Load cached deconfliction overrides from localStorage on navigation.
+     */
+    this.loadDeconflictionFromStorage$ = createEffect(() => {
+      return this.actions$.pipe(
+        ofType(navigated),
+        map(() => {
+          const cache = loadDeconflictionCache();
+          const entries = cache?.deconflictedColors ?? [];
+          return actions.runColorDeconflictionLoaded({
+            deconflictedColors: entries,
+          });
+        })
+      );
+    });
+
+    /**
+     * After runs are loaded, compute perceptual deconfliction for run colors.
+     *
+     * Searches all three OKLCH axes (lightness, chroma, hue) to find
+     * maximally-distinct replacement colors.  Cached results are reused for
+     * known runs; only new runs are checked against the full color set.
+     *
+     * Deconfliction overrides are stored separately from user overrides and
+     * are never persisted in profiles.
      */
     this.resolveColorClashes$ = createEffect(() => {
       return this.actions$.pipe(
@@ -536,25 +601,75 @@ export class RunsEffects {
         ),
         filter(([, defaultMap]) => defaultMap.size > 1),
         map(([, defaultRunColorIdMap, existingOverrides, darkMode]) => {
-          // Build the current runId -> hex color map.
-          const runIdToColor = new Map<string, string>();
+          const LEGACY_MAX = 6;
+          const sortedRunIds: string[] = [];
+          const runIdToBaseColor = new Map<string, string>();
+          const userOverriddenRuns = new Set<string>();
+
           defaultRunColorIdMap.forEach((colorId, runId) => {
             if (existingOverrides.has(runId)) {
-              runIdToColor.set(runId, existingOverrides.get(runId)!);
-            } else if (colorId >= 0) {
-              runIdToColor.set(runId, hashColorIdToHex(colorId, darkMode));
+              sortedRunIds.push(runId);
+              runIdToBaseColor.set(runId, existingOverrides.get(runId)!);
+              userOverriddenRuns.add(runId);
+            } else if (colorId > LEGACY_MAX) {
+              sortedRunIds.push(runId);
+              runIdToBaseColor.set(runId, hashColorIdToHex(colorId, darkMode));
             }
+            // Legacy palette IDs (0-6) and inactive (-1) are skipped:
+            // they use a separate palette and don't need deconfliction.
+          });
+          sortedRunIds.sort();
+
+          // Determine which cached deconflictions are still valid.
+          const cache = loadDeconflictionCache();
+          let cachedDeconflictions = new Map<string, string>();
+          let cachedRunIds = new Set<string>();
+
+          if (cache && cache.darkMode === darkMode) {
+            const cachedBaseColors = new Map(cache.baseColors);
+            const cachedProcessed = new Set(cache.processedRunIds);
+            const currentRunSet = new Set(sortedRunIds);
+
+            let cacheValid = true;
+            for (const cachedRunId of cachedProcessed) {
+              if (!currentRunSet.has(cachedRunId)) {
+                cacheValid = false;
+                break;
+              }
+              const oldBase = cachedBaseColors.get(cachedRunId);
+              const newBase = runIdToBaseColor.get(cachedRunId);
+              if (oldBase !== newBase) {
+                cacheValid = false;
+                break;
+              }
+            }
+
+            if (cacheValid) {
+              cachedDeconflictions = new Map(cache.deconflictedColors);
+              cachedRunIds = cachedProcessed;
+            }
+          }
+
+          const deconflictions = computeDeconfliction({
+            sortedRunIds,
+            runIdToBaseColor,
+            userOverriddenRuns,
+            darkMode,
+            cachedDeconflictions,
+            cachedRunIds,
           });
 
-          return resolveColorClashes(runIdToColor, darkMode);
-        }),
-        filter((overrides) => overrides.size > 0),
-        map((overrides) =>
-          actions.runColorSettingsLoaded({
-            runColorOverrides: Array.from(overrides.entries()),
-            groupKeyToColorId: [],
-          })
-        )
+          persistDeconflictionCache(
+            deconflictions,
+            runIdToBaseColor,
+            sortedRunIds,
+            darkMode
+          );
+
+          return actions.runColorDeconflictionComputed({
+            deconflictedColors: Array.from(deconflictions.entries()),
+          });
+        })
       );
     });
   }
@@ -615,6 +730,9 @@ export class RunsEffects {
 
   /** @export */
   syncRunSelectionFromPolymer$;
+
+  /** @export */
+  loadDeconflictionFromStorage$;
 
   /** @export */
   resolveColorClashes$;

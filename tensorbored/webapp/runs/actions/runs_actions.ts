@@ -120,6 +120,28 @@ export const runColorOverridesFetchedFromApi = createAction(
   }>()
 );
 
+/**
+ * Dispatched after perceptual deconfliction computes replacement colors
+ * for hash-based colors that are too similar. Stored separately from
+ * user overrides so they are never persisted in profiles.
+ */
+export const runColorDeconflictionComputed = createAction(
+  '[Runs] Run Color Deconfliction Computed',
+  props<{
+    deconflictedColors: Array<[runId: string, color: string]>;
+  }>()
+);
+
+/**
+ * Dispatched on startup to load cached deconfliction from localStorage.
+ */
+export const runColorDeconflictionLoaded = createAction(
+  '[Runs] Run Color Deconfliction Loaded',
+  props<{
+    deconflictedColors: Array<[runId: string, color: string]>;
+  }>()
+);
+
 export const runGroupByChanged = createAction(
   '[Runs] Run Group By Changed',
   props<{
