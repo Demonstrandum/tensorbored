@@ -158,6 +158,8 @@ from tensorbored.plugins.core import profile_writer, color_sampler
 
 p = profile_writer.create_profile(
     'Training Monitor',
+
+    # Pin your most important metrics at the top
     pinned_cards=[
         profile_writer.pin_scalar('train/loss'),
         profile_writer.pin_scalar('eval/loss'),
@@ -165,28 +167,40 @@ p = profile_writer.create_profile(
         profile_writer.pin_scalar('eval/accuracy'),
         profile_writer.pin_scalar('learning_rate'),
     ],
+
+    # Create comparison charts
     superimposed_cards=[
         profile_writer.create_superimposed_card(
             title='Train vs Eval Loss',
             tags=['train/loss', 'eval/loss'],
         ),
     ],
+
+    # Assign colors to runs
     run_colors={
         'baseline': '#9E9E9E',
         'experiment_v1': '#2196F3',
         'experiment_v2': '#4CAF50',
     },
+
+    # Add metric descriptions (shown as hover tooltips)
     metric_descriptions={
         'train/loss': 'Cross-entropy loss on the training set.',
         'eval/loss': 'Cross-entropy loss on the held-out validation set.',
         'learning_rate': 'Effective learning rate after warmup and cosine decay.',
     },
+
+    # Default filter and smoothing
     tag_filter='loss|accuracy|learning_rate',
     smoothing=0.8,
+
+    # Group runs by regex pattern
     group_by={
         'key': 'regex',
         'regexString': r'(baseline|experiment)',
     },
+
+    # Control which sections are expanded on load
     expanded_tag_groups={
         'train': True,
         'eval': True,

@@ -98,6 +98,7 @@ Set up default dashboard configurations from your training code using the
 ```python
 from tensorbored.plugins.core import profile_writer
 
+# Create a profile for your experiment
 p = profile_writer.create_profile(
     'Training Monitor',
     pinned_cards=[
@@ -117,6 +118,8 @@ p = profile_writer.create_profile(
         'eval/accuracy': 'Top-1 accuracy on the validation set.',
     },
 )
+
+# Writes to <logdir>/.tensorboard/default_profile.json
 p.write('/path/to/logs')
 ```
 
