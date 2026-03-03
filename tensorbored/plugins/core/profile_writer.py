@@ -673,39 +673,9 @@ def create_profile(
 ) -> SerializedProfile:
     """Create a TensorBoard profile dictionary.
 
-    Args:
-        name: User-friendly name for the profile.
-        pinned_cards: Cards to pin at the top of the dashboard.
-        run_colors: Mapping from run name/ID to hex colour string.
-        group_colors: Group-key to colour-palette-index assignments.
-        superimposed_cards: Multi-tag overlay card definitions.
-        run_selection: Explicit run visibility entries.
-        selected_runs: Convenience list of run names to select
-            (converted to ``RunSelectionEntry`` with ``type="RUN_NAME"``
-            and ``selected=True``).
-        metric_descriptions: Long-form Markdown descriptions per tag.
-        tag_filter: Regex pattern to filter tags.
-        run_filter: Regex pattern to filter runs.
-        smoothing: Scalar smoothing value (0.0 to 0.999).
-        symlog_linear_threshold: Linear threshold for the symlog scale.
-            Controls the width of the linear region near zero. Default 1.0.
-        group_by: Run-grouping configuration.
-        y_axis_scale: Global Y-axis scale for scalar plots.
-        x_axis_scale: Global X-axis scale for scalar plots
-            (STEP/RELATIVE only).
-        tag_symlog_linear_thresholds: Per-tag symlog linear threshold
-            overrides. Example: ``{"train/loss": 10.0}``
-        tag_axis_scales: Per-tag axis scale overrides.  Example::
-
-                {"train/loss": {"y": "log10"}}
-
-        expanded_tag_groups: Which tag group sections to expand or
-            collapse. Maps tag group names to booleans
-            (``True`` = expanded, ``False`` = collapsed).
-            When omitted, the dashboard uses its default behaviour
-            (auto-expand the first two groups).  Example::
-
-                {"train": True, "eval": True, "debug": False}
+    Thin wrapper around :class:`Profile` that preserves the original
+    function signature for backward compatibility.  See
+    :meth:`Profile.__init__` for parameter documentation.
 
     Returns:
         A serialised profile ready to be written to the logdir.
@@ -713,75 +683,35 @@ def create_profile(
     Raises:
         ValueError: If an invalid axis scale name is provided.
     """
-    if y_axis_scale is not None and y_axis_scale not in VALID_AXIS_SCALES:
-        raise ValueError(
-            f"Invalid y_axis_scale: {y_axis_scale!r}. "
-            f"Must be one of {VALID_AXIS_SCALES}"
-        )
-    if x_axis_scale is not None and x_axis_scale not in VALID_AXIS_SCALES:
-        raise ValueError(
-            f"Invalid x_axis_scale: {x_axis_scale!r}. "
-            f"Must be one of {VALID_AXIS_SCALES}"
-        )
-    if tag_axis_scales is not None:
-        for tag, axes in tag_axis_scales.items():
-            for axis_key, scale in axes.items():
-                if axis_key not in ("y", "x"):
-                    raise ValueError(
-                        f"Invalid axis key {axis_key!r} for tag "
-                        f"{tag!r}. Must be 'y' or 'x'"
-                    )
-                if scale not in VALID_AXIS_SCALES:
-                    raise ValueError(
-                        f"Invalid scale {scale!r} for tag "
-                        f"{tag!r} axis {axis_key!r}. "
-                        f"Must be one of {VALID_AXIS_SCALES}"
-                    )
-
-    run_color_entries: list[RunColorEntry] = [
-        RunColorEntry(runId=run_id, color=color)
-        for run_id, color in (run_colors or {}).items()
-    ]
-
-    run_selection_entries = run_selection or []
-    if not run_selection_entries and selected_runs:
-        run_selection_entries = [
-            RunSelectionEntry(type="RUN_NAME", value=run_name, selected=True)
-            for run_name in selected_runs
-        ]
-
-    data = ProfileData(
-        version=PROFILE_VERSION,
-        name=name,
-        lastModifiedTimestamp=int(time.time() * 1000),
-        pinnedCards=pinned_cards or [],
-        runColors=run_color_entries,
-        groupColors=group_colors or [],
-        superimposedCards=superimposed_cards or [],
-        tagFilter=tag_filter,
-        runFilter=run_filter,
-        smoothing=smoothing,
+    gc = (
+        {e["groupKey"]: e["colorId"] for e in group_colors}
+        if group_colors
+        else None
     )
-    if run_selection_entries:
-        data["runSelection"] = run_selection_entries
-    if metric_descriptions:
-        data["metricDescriptions"] = metric_descriptions
-    if group_by is not None:
-        data["groupBy"] = group_by
-    if y_axis_scale is not None:
-        data["yAxisScale"] = y_axis_scale
-    if x_axis_scale is not None:
-        data["xAxisScale"] = x_axis_scale
-    if tag_axis_scales:
-        data["tagAxisScales"] = tag_axis_scales
-    if symlog_linear_threshold != 1.0:
-        data["symlogLinearThreshold"] = symlog_linear_threshold
-    if tag_symlog_linear_thresholds:
-        data["tagSymlogLinearThresholds"] = tag_symlog_linear_thresholds
-    if expanded_tag_groups:
-        data["expandedTagGroups"] = expanded_tag_groups
-
-    return SerializedProfile(version=PROFILE_VERSION, data=data)
+    return Profile(
+        name,
+        pinned_cards=pinned_cards,
+        run_colors=run_colors,
+        group_colors=gc,
+        superimposed_cards=superimposed_cards,
+        run_selection=run_selection,
+        selected_runs=selected_runs,
+        metric_descriptions=metric_descriptions,
+        tag_filter=tag_filter,
+        run_filter=run_filter,
+        smoothing=smoothing,
+        symlog_linear_threshold=(
+            symlog_linear_threshold
+            if symlog_linear_threshold != 1.0
+            else None
+        ),
+        group_by=group_by,
+        y_axis_scale=y_axis_scale,
+        x_axis_scale=x_axis_scale,
+        tag_axis_scales=tag_axis_scales,
+        tag_symlog_linear_thresholds=tag_symlog_linear_thresholds,
+        expanded_tag_groups=expanded_tag_groups,
+    ).serialize()
 
 
 def write_profile(
