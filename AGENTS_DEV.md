@@ -202,15 +202,19 @@ Plugins are registered via entry points in `pyproject.toml` or discovered by the
 
 Python API for training scripts to configure default dashboard profiles. Writes `<logdir>/.tensorboard/default_profile.json`.
 
-Key functions:
+The core type is the `Profile` class, which wraps the camelCase JSON the frontend expects and exposes snake_case properties with getters and setters:
 
-- `create_profile(...)` — builds a profile dict
-- `write_profile(logdir, profile)` — writes to disk
+- `create_profile(...)` — returns a `Profile` object
+- `Profile.write(logdir)` — serialises and writes to disk
+- `Profile.serialize()` — returns the `SerializedProfile` dict
+- `Profile.load(logdir)` / `Profile.from_serialized(dict)` — construct from existing data
+- `Profile.update(other)` / `a | b` — merge two profiles (dicts merged, lists extended, scalars replaced)
+- `write_profile(logdir, profile)` — writes a `Profile` or `SerializedProfile` to disk
 - `set_default_profile(logdir, ...)` — convenience: create + write in one call
 - `pin_scalar(tag)`, `pin_histogram(tag, run_id)`, `pin_image(tag, run_id, sample)` — helpers for pinned card entries
 - `create_superimposed_card(title, tags, run_id)` — helper for superimposed card entries
 
-Key parameters of `create_profile` / `set_default_profile` include `pinned_cards`, `run_colors`, `superimposed_cards`, `run_selection`, `selected_runs`, `metric_descriptions`, `tag_filter`, `smoothing`, `y_axis_scale`, `x_axis_scale`, `tag_axis_scales`, `symlog_linear_threshold`, `tag_symlog_linear_thresholds`, `expanded_tag_groups`, and `group_by`. See the docstrings for full details.
+`Profile` properties include `name`, `pinned_cards`, `run_colors` (dict, not list), `group_colors` (dict), `superimposed_cards`, `run_selection`, `metric_descriptions`, `tag_filter`, `smoothing`, `y_axis_scale`, `x_axis_scale`, `tag_axis_scales`, `symlog_linear_threshold`, `tag_symlog_linear_thresholds`, `expanded_tag_groups`, and `group_by`. Convenience methods: `pin_scalar()`, `pin_histogram()`, `pin_image()`, `add_superimposed_card()`, `select_runs()`. See the docstrings for full details.
 
 Profile data schema version is tracked via `PROFILE_VERSION = 1`.
 
@@ -366,7 +370,11 @@ Key CI details:
 2. Update `createEmptyProfile()` to include the new field's default value
 3. Update `isValidProfile()` to validate the new field
 4. If the change is breaking: bump `PROFILE_VERSION` and add migration logic in `migrateProfile()`
-5. Update `profile_writer.py` (`create_profile` function) to accept the new field
+5. Update `profile_writer.py`:
+   - Add the field to the `ProfileData` TypedDict (and `_ProfileDataRequired` if required)
+   - Add a property (getter + setter) on the `Profile` class
+   - Add the field to `Profile.__init__`, `serialize()`, `from_serialized()`, `update()`, and `__or__`
+   - Add the field to the `create_profile()` / `set_default_profile()` signatures
 6. Update `profile_effects.ts` to apply the new field when activating a profile
 
 ### Adding a New Superimposed Card Feature

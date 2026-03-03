@@ -84,15 +84,15 @@ To take advantage of the new features, you can optionally configure a dashboard 
 ```python
 from tensorbored.plugins.core import profile_writer
 
-profile_writer.set_default_profile(
-    logdir='./logs',
-    name='My Experiment',
+p = profile_writer.create_profile(
+    'My Experiment',
     pinned_cards=[
         profile_writer.pin_scalar('train/loss'),
         profile_writer.pin_scalar('eval/accuracy'),
     ],
     smoothing=0.8,
 )
+p.write('./logs')
 ```
 
 When anyone opens TensorBored pointed at this logdir, they get your pre-configured view automatically.
@@ -151,13 +151,13 @@ This replaces TensorBoard's approach of sharing long URLs.
 
 The most powerful feature: configure the dashboard **before users even open it**.
 
+`create_profile` returns a `Profile` object you can inspect, tweak, merge, and write to disk:
+
 ```python
 from tensorbored.plugins.core import profile_writer, color_sampler
 
-# This writes <logdir>/.tensorboard/default_profile.json
-profile_writer.set_default_profile(
-    logdir='/path/to/logs',
-    name='Training Monitor',
+p = profile_writer.create_profile(
+    'Training Monitor',
 
     # Pin your most important metrics at the top
     pinned_cards=[
@@ -207,9 +207,33 @@ profile_writer.set_default_profile(
         'debug': False,
     },
 )
+
+# Tweak after creation
+p.pin_scalar('gradients/global_norm')
+p.run_colors['experiment_v3'] = '#FF9800'
+
+# Write to <logdir>/.tensorboard/default_profile.json
+p.write('/path/to/logs')
+```
+
+Profiles can also be **merged** with `|` or `update()`:
+
+```python
+base = profile_writer.create_profile(
+    'Base', smoothing=0.8, run_colors={'train': '#2196F3'},
+)
+overlay = profile_writer.create_profile(
+    'Overlay',
+    pinned_cards=[profile_writer.pin_scalar('eval/loss')],
+    y_axis_scale='log10',
+)
+combined = base | overlay   # dicts merged, lists extended, scalars from overlay
+combined.write(logdir)
 ```
 
 The default profile auto-applies when a user opens TensorBored at this logdir, but only if they don't already have a local profile active. User-created profiles always take priority over the backend default.
+
+The one-shot `set_default_profile(logdir, ...)` helper is still available if you don't need the intermediate `Profile` object.
 
 ### Profile Data Schema
 
@@ -258,23 +282,11 @@ Superimposed cards support:
 ```python
 from tensorbored.plugins.core import profile_writer
 
-profile_writer.set_default_profile(
-    logdir='./logs',
-    superimposed_cards=[
-        profile_writer.create_superimposed_card(
-            title='Train vs Eval Loss',
-            tags=['loss/train', 'loss/eval'],
-        ),
-        profile_writer.create_superimposed_card(
-            title='All Accuracies',
-            tags=['accuracy/train', 'accuracy/eval', 'accuracy/test'],
-        ),
-        profile_writer.create_superimposed_card(
-            title='Loss + Grad Norm',
-            tags=['loss/train', 'gradients/global_norm'],
-        ),
-    ],
-)
+p = profile_writer.create_profile()
+p.add_superimposed_card('Train vs Eval Loss', ['loss/train', 'loss/eval'])
+p.add_superimposed_card('All Accuracies', ['accuracy/train', 'accuracy/eval', 'accuracy/test'])
+p.add_superimposed_card('Loss + Grad Norm', ['loss/train', 'gradients/global_norm'])
+p.write('./logs')
 ```
 
 ---
@@ -300,8 +312,7 @@ Add long-form descriptions that appear as hover tooltips on metric card headers.
 ```python
 from tensorbored.plugins.core import profile_writer
 
-profile_writer.set_default_profile(
-    logdir='./logs',
+p = profile_writer.create_profile(
     metric_descriptions={
         'loss/train': 'Cross-entropy training loss used for backpropagation.',
         'loss/eval': 'Cross-entropy loss on the held-out validation split, computed every 100 steps.',
@@ -311,6 +322,7 @@ profile_writer.set_default_profile(
         'gradients/global_norm': 'Global L2 norm of all model gradients before clipping.',
     },
 )
+p.write('./logs')
 ```
 
 Descriptions are set via the `metric_descriptions` parameter in the profile writer. They support Markdown formatting. The descriptions are served by the backend through the `/data/tags` endpoint and displayed as tooltips on scalar, histogram, and image cards.
@@ -527,9 +539,66 @@ The `SummaryWriter` API is identical — only the import changes. You no longer 
 
 **Module:** `tensorbored.plugins.core.profile_writer`
 
+#### `Profile` class
+
+The core type. Wraps the camelCase JSON the frontend expects behind snake_case properties. Created via `create_profile()`, `Profile(...)`, `Profile.load(logdir)`, or `Profile.from_serialized(dict)`.
+
+**Properties** (all have getters and setters):
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `name` | `str` | `"Default Profile"` | Display name |
+| `pinned_cards` | `list[dict]` | `[]` | Cards to pin (use `pin_scalar` etc.) |
+| `run_colors` | `dict[str, str]` | `{}` | Run name/ID → hex color |
+| `group_colors` | `dict[str, int]` | `{}` | Group key → color palette index |
+| `superimposed_cards` | `list[dict]` | `[]` | Multi-tag chart definitions |
+| `run_selection` | `list[dict]` | `[]` | Run visibility entries |
+| `metric_descriptions` | `dict[str, str]` | `{}` | Tag → description |
+| `tag_filter` | `str` | `""` | Tag filter regex |
+| `run_filter` | `str` | `""` | Run filter regex |
+| `smoothing` | `float` | `0.6` | Scalar smoothing (0.0–0.999) |
+| `symlog_linear_threshold` | `float \| None` | `None` | Linear threshold for symlog |
+| `group_by` | `dict \| None` | `None` | Run grouping config |
+| `y_axis_scale` | `str \| None` | `None` | `"linear"`, `"log10"`, or `"symlog10"` |
+| `x_axis_scale` | `str \| None` | `None` | Same (STEP/RELATIVE only) |
+| `tag_axis_scales` | `dict[str, dict]` | `{}` | Per-tag axis overrides |
+| `tag_symlog_linear_thresholds` | `dict[str, float]` | `{}` | Per-tag symlog thresholds |
+| `expanded_tag_groups` | `dict[str, bool]` | `{}` | Section expand/collapse state |
+
+**Convenience methods:**
+
+| Method | Description |
+|--------|-------------|
+| `pin_scalar(tag)` | Append a scalar pin |
+| `pin_histogram(tag, run_id)` | Append a histogram pin |
+| `pin_image(tag, run_id, sample=0)` | Append an image pin |
+| `add_superimposed_card(title, tags, run_id=None)` | Append a superimposed card |
+| `select_runs(run_names)` | Set visible runs by name |
+
+**Serialization & I/O:**
+
+| Method | Description |
+|--------|-------------|
+| `serialize() -> dict` | Return `SerializedProfile` dict |
+| `write(logdir) -> str` | Serialize + write to disk, returns path |
+| `Profile.load(logdir) -> Profile \| None` | Load from logdir |
+| `Profile.from_serialized(dict) -> Profile` | Construct from dict |
+
+**Merging:**
+
+| Operation | Description |
+|-----------|-------------|
+| `a.update(b)` | Merge `b` into `a` in place (dicts merged, lists extended, scalars replaced) |
+| `a \| b` | Return a new merged profile |
+| `a \|= b` | In-place merge (same as `update`) |
+
+#### `create_profile(**kwargs) -> Profile`
+
+Create a `Profile` object. Same parameters as `set_default_profile` minus `logdir`. This is the primary way to build profiles.
+
 #### `set_default_profile(logdir, **kwargs) -> str`
 
-Create and write a default profile in one call. Returns the path to the written profile file.
+Create and write a default profile in one call. Returns the path to the written file. Parameters:
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -548,13 +617,9 @@ Create and write a default profile in one call. Returns the path to the written 
 | `group_by` | `dict` | `None` | Grouping config (`key`: `"RUN"`, `"EXPERIMENT"`, `"REGEX"`, or `"REGEX_BY_EXP"`; optional `regexString`) |
 | `expanded_tag_groups` | `dict[str, bool]` | `None` | Which tag group sections to expand/collapse (omit for default behavior) |
 
-#### `create_profile(**kwargs) -> dict`
-
-Create a profile dictionary without writing it. Same parameters as `set_default_profile` minus `logdir`.
-
 #### `write_profile(logdir, profile) -> str`
 
-Write a profile dict to `<logdir>/.tensorboard/default_profile.json`.
+Write a `Profile` or `SerializedProfile` dict to `<logdir>/.tensorboard/default_profile.json`.
 
 #### `read_profile(logdir) -> dict | None`
 
