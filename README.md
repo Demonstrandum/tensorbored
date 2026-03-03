@@ -98,10 +98,8 @@ Set up default dashboard configurations from your training code using the
 ```python
 from tensorbored.plugins.core import profile_writer
 
-# Set a default profile for your experiment
-profile_writer.set_default_profile(
-    logdir='/path/to/logs',
-    name='Training Monitor',
+p = profile_writer.create_profile(
+    'Training Monitor',
     pinned_cards=[
         profile_writer.pin_scalar('train/loss'),
         profile_writer.pin_scalar('train/accuracy'),
@@ -119,6 +117,16 @@ profile_writer.set_default_profile(
         'eval/accuracy': 'Top-1 accuracy on the validation set.',
     },
 )
+p.write('/path/to/logs')
+```
+
+The returned `Profile` object supports merging with `|`:
+
+```python
+base = profile_writer.create_profile('Base', smoothing=0.8)
+extra = profile_writer.create_profile(pinned_cards=[profile_writer.pin_scalar('eval/loss')])
+combined = base | extra
+combined.write(logdir)
 ```
 
 ### Metric Descriptions
@@ -216,22 +224,25 @@ cm = color_sampler.ColorMap(15, varied=True)
 
 ### API Reference
 
-#### `profile_writer.set_default_profile()`
+#### `profile_writer.create_profile()` → `Profile`
 
-Creates and writes a default profile to the log directory.
+Creates and returns a `Profile` object. The `Profile` has snake_case properties for all profile fields, convenience methods (`pin_scalar`, `add_superimposed_card`, `select_runs`, etc.), and supports merging via `|` and `update()`. Call `profile.write(logdir)` to write to disk.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `logdir` | `str` | Path to TensorBored log directory |
 | `name` | `str` | Display name for the profile (default: "Default Profile") |
 | `pinned_cards` | `list` | List of cards to pin (use helper functions below) |
 | `run_colors` | `dict` | Mapping of run names to hex color codes |
-| `group_colors` | `dict` | Mapping of group keys to color IDs |
+| `group_colors` | `list` | Group key → color ID assignments |
 | `smoothing` | `float` | Scalar smoothing value, 0.0-0.999 (default: 0.6) |
 | `tag_filter` | `str` | Regex to filter displayed tags |
 | `metric_descriptions` | `dict` | Optional `{tag: description}` hover text |
 | `run_filter` | `str` | Regex to filter displayed runs |
 | `group_by` | `dict` | Run grouping configuration |
+
+#### `profile_writer.set_default_profile(logdir, ...)`
+
+Convenience: calls `create_profile(...)` then `profile.write(logdir)`. Same parameters as above plus `logdir`.
 
 #### Pin Helper Functions
 
@@ -479,7 +490,7 @@ from tensorbored.plugins.core import profile_writer
 import json
 
 profile = profile_writer.create_profile(
-    name='Team Standard View',
+    'Team Standard View',
     pinned_cards=[
         profile_writer.pin_scalar('train/loss'),
         profile_writer.pin_scalar('eval/loss'),
@@ -490,7 +501,7 @@ profile = profile_writer.create_profile(
 
 # Save to a shared location
 with open('team_profile.json', 'w') as f:
-    json.dump(profile, f, indent=2)
+    json.dump(profile.serialize(), f, indent=2)
 
 # Team members can import this via the TensorBored UI
 ```

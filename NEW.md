@@ -29,14 +29,14 @@ Want full control? Set them from your training script:
 ```python
 from tensorbored.plugins.core import profile_writer
 
-profile_writer.set_default_profile(
-    logdir='./logs',
+p = profile_writer.create_profile(
     run_colors={
         'baseline': '#9E9E9E',
         'experiment_v1': '#2196F3',
         'experiment_v2': '#4CAF50',
     },
 )
+p.write('./logs')
 ```
 
 Or generate perceptually uniform palettes automatically:
@@ -56,15 +56,9 @@ TensorBoard gives you one chart per tag. Want to see `train/loss` and `eval/loss
 TensorBored lets you superimpose any scalar tags onto a single chart. From the UI: click the menu on any card, "Add to superimposed plot", done. Or pre-configure them:
 
 ```python
-profile_writer.set_default_profile(
-    logdir='./logs',
-    superimposed_cards=[
-        profile_writer.create_superimposed_card(
-            title='Train vs Eval Loss',
-            tags=['loss/train', 'loss/eval'],
-        ),
-    ],
-)
+p = profile_writer.create_profile()
+p.add_superimposed_card('Train vs Eval Loss', ['loss/train', 'loss/eval'])
+p.write('./logs')
 ```
 
 ---
@@ -83,9 +77,8 @@ Pin limit went from ~15 (URL length cap) to **1,000**.
 Set up the dashboard from Python before anyone even opens a browser:
 
 ```python
-profile_writer.set_default_profile(
-    logdir='./logs',
-    name='Training Dashboard',
+p = profile_writer.create_profile(
+    'Training Dashboard',
     pinned_cards=[
         profile_writer.pin_scalar('loss/train'),
         profile_writer.pin_scalar('accuracy/eval'),
@@ -93,6 +86,7 @@ profile_writer.set_default_profile(
     tag_filter='loss|accuracy',
     smoothing=0.8,
 )
+p.write('./logs')
 ```
 
 ---
@@ -114,14 +108,14 @@ Drag-and-drop to reorder. Arrow buttons for precise positioning. Order persists 
 ## You have 50 metrics and can't remember what `aux_head_3/nll` means? Add descriptions.
 
 ```python
-profile_writer.set_default_profile(
-    logdir='./logs',
+p = profile_writer.create_profile(
     metric_descriptions={
         'loss/train': 'Cross-entropy loss for backprop.',
         'aux_head_3/nll': 'NLL from the auxiliary prediction head on layer 3.',
         'gradients/global_norm': 'Global L2 norm of all gradients before clipping.',
     },
 )
+p.write('./logs')
 ```
 
 Hover over any metric card header and the description appears as a tooltip. Set it once in your training harness, every teammate sees it.
@@ -156,7 +150,7 @@ Type a filter, refresh — it's still there. Clear the filter, refresh — it st
 | All runs hidden | Blank dashboard | Auto-reset to visible |
 | Tag filter on refresh | Resets | Remembered |
 | Share config | Long URL | JSON export/import |
-| Configure from Python | No | `profile_writer` API |
+| Configure from Python | No | `Profile` object + `profile_writer` API |
 | Colour palette | Random | OKLCH perceptually uniform |
 
 ---

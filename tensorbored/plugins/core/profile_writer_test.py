@@ -26,17 +26,26 @@ class ProfileWriterTest(unittest.TestCase):
     def setUp(self):
         self.logdir = tempfile.mkdtemp()
 
+    def test_create_profile_returns_profile(self):
+        """Test create_profile returns a Profile instance."""
+        profile = profile_writer.create_profile()
+        self.assertIsInstance(profile, profile_writer.Profile)
+
     def test_create_profile_defaults(self):
         """Test create_profile with default values."""
         profile = profile_writer.create_profile()
-        self.assertEqual(profile["version"], profile_writer.PROFILE_VERSION)
-        self.assertEqual(profile["data"]["name"], "Default Profile")
-        self.assertEqual(profile["data"]["pinnedCards"], [])
-        self.assertEqual(profile["data"]["runColors"], [])
-        self.assertNotIn("runSelection", profile["data"])
-        self.assertNotIn("metricDescriptions", profile["data"])
-        self.assertEqual(profile["data"]["tagFilter"], "")
-        self.assertEqual(profile["data"]["smoothing"], 0.6)
+        self.assertEqual(profile.name, "Default Profile")
+        self.assertEqual(profile.pinned_cards, [])
+        self.assertEqual(profile.run_colors, {})
+        self.assertEqual(profile.run_selection, [])
+        self.assertEqual(profile.metric_descriptions, {})
+        self.assertEqual(profile.tag_filter, "")
+        self.assertEqual(profile.smoothing, 0.6)
+        # Serialized form should have the correct version.
+        s = profile.serialize()
+        self.assertEqual(s["version"], profile_writer.PROFILE_VERSION)
+        self.assertNotIn("runSelection", s["data"])
+        self.assertNotIn("metricDescriptions", s["data"])
 
     def test_create_profile_with_pinned_cards(self):
         """Test create_profile with pinned cards."""
@@ -45,20 +54,13 @@ class ProfileWriterTest(unittest.TestCase):
             {"plugin": "scalars", "tag": "accuracy"},
         ]
         profile = profile_writer.create_profile(pinned_cards=pinned)
-        self.assertEqual(profile["data"]["pinnedCards"], pinned)
+        self.assertEqual(profile.pinned_cards, pinned)
 
     def test_create_profile_with_run_colors(self):
-        """Test create_profile converts run_colors dict to list format."""
+        """Test create_profile stores run_colors as a dict."""
         colors = {"run1": "#ff0000", "run2": "#00ff00"}
         profile = profile_writer.create_profile(run_colors=colors)
-
-        run_colors = profile["data"]["runColors"]
-        self.assertEqual(len(run_colors), 2)
-
-        # Convert to dict for easier assertion
-        color_dict = {entry["runId"]: entry["color"] for entry in run_colors}
-        self.assertEqual(color_dict["run1"], "#ff0000")
-        self.assertEqual(color_dict["run2"], "#00ff00")
+        self.assertEqual(profile.run_colors, colors)
 
     def test_create_profile_with_all_options(self):
         """Test create_profile with all options."""
@@ -75,26 +77,18 @@ class ProfileWriterTest(unittest.TestCase):
             smoothing=0.9,
             group_by={"key": "REGEX", "regexString": "(.*)_train"},
         )
-
-        data = profile["data"]
-        self.assertEqual(data["name"], "My Dashboard")
-        self.assertEqual(len(data["pinnedCards"]), 1)
-        self.assertEqual(len(data["runColors"]), 1)
+        self.assertEqual(profile.name, "My Dashboard")
+        self.assertEqual(len(profile.pinned_cards), 1)
+        self.assertEqual(profile.run_colors, {"train": "#0000ff"})
+        self.assertEqual(len(profile.run_selection), 2)
         self.assertEqual(
-            data["runSelection"],
-            [
-                {"type": "RUN_NAME", "value": "train", "selected": True},
-                {"type": "RUN_NAME", "value": "eval", "selected": True},
-            ],
-        )
-        self.assertEqual(
-            data["metricDescriptions"]["train/loss"],
+            profile.metric_descriptions["train/loss"],
             "The loss used to optimize the model.",
         )
-        self.assertEqual(data["tagFilter"], "train.*")
-        self.assertEqual(data["runFilter"], "exp1")
-        self.assertEqual(data["smoothing"], 0.9)
-        self.assertEqual(data["groupBy"]["key"], "REGEX")
+        self.assertEqual(profile.tag_filter, "train.*")
+        self.assertEqual(profile.run_filter, "exp1")
+        self.assertEqual(profile.smoothing, 0.9)
+        self.assertEqual(profile.group_by["key"], "REGEX")
 
     def test_write_profile(self):
         """Test write_profile creates the profile file."""
@@ -200,14 +194,13 @@ class ProfileWriterTest(unittest.TestCase):
             y_axis_scale="log10",
             x_axis_scale="symlog10",
         )
-        data = profile["data"]
-        self.assertEqual(data["yAxisScale"], "log10")
-        self.assertEqual(data["xAxisScale"], "symlog10")
+        self.assertEqual(profile.y_axis_scale, "log10")
+        self.assertEqual(profile.x_axis_scale, "symlog10")
 
     def test_create_profile_omits_axis_scales_when_none(self):
         """Test create_profile omits axis scale fields when None."""
         profile = profile_writer.create_profile()
-        data = profile["data"]
+        data = profile.serialize()["data"]
         self.assertNotIn("yAxisScale", data)
         self.assertNotIn("xAxisScale", data)
 
@@ -223,7 +216,7 @@ class ProfileWriterTest(unittest.TestCase):
 
     def test_set_default_profile_with_axis_scales(self):
         """Test set_default_profile passes axis scales through."""
-        path = profile_writer.set_default_profile(
+        profile_writer.set_default_profile(
             self.logdir,
             y_axis_scale="log10",
             x_axis_scale="symlog10",
@@ -240,10 +233,11 @@ class ProfileWriterTest(unittest.TestCase):
                 "eval/loss": {"y": "log10", "x": "symlog10"},
             },
         )
-        data = profile["data"]
-        self.assertEqual(data["tagAxisScales"]["train/loss"], {"y": "log10"})
         self.assertEqual(
-            data["tagAxisScales"]["eval/loss"],
+            profile.tag_axis_scales["train/loss"], {"y": "log10"}
+        )
+        self.assertEqual(
+            profile.tag_axis_scales["eval/loss"],
             {"y": "log10", "x": "symlog10"},
         )
 
@@ -252,41 +246,40 @@ class ProfileWriterTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             profile_writer.create_profile(
                 tag_axis_scales={"loss": {"y": "cubic"}}
-            )
+            ).serialize()
 
     def test_create_profile_invalid_tag_axis_key(self):
         """Test create_profile raises for invalid axis key."""
         with self.assertRaises(ValueError):
             profile_writer.create_profile(
                 tag_axis_scales={"loss": {"z": "log10"}}
-            )
+            ).serialize()
 
     def test_create_profile_with_expanded_tag_groups(self):
         """Test create_profile with expanded_tag_groups."""
         profile = profile_writer.create_profile(
             expanded_tag_groups={"train": True, "eval": True, "debug": False},
         )
-        data = profile["data"]
         self.assertEqual(
-            data["expandedTagGroups"],
+            profile.expanded_tag_groups,
             {"train": True, "eval": True, "debug": False},
         )
 
     def test_create_profile_omits_expanded_tag_groups_when_none(self):
         """Test create_profile omits expandedTagGroups when not provided."""
         profile = profile_writer.create_profile()
-        data = profile["data"]
+        data = profile.serialize()["data"]
         self.assertNotIn("expandedTagGroups", data)
 
     def test_create_profile_omits_expanded_tag_groups_when_empty(self):
         """Test create_profile omits expandedTagGroups when empty dict."""
         profile = profile_writer.create_profile(expanded_tag_groups={})
-        data = profile["data"]
+        data = profile.serialize()["data"]
         self.assertNotIn("expandedTagGroups", data)
 
     def test_set_default_profile_with_expanded_tag_groups(self):
         """Test set_default_profile passes expanded_tag_groups through."""
-        path = profile_writer.set_default_profile(
+        profile_writer.set_default_profile(
             self.logdir,
             expanded_tag_groups={"train": True, "eval": False},
         )
@@ -640,6 +633,128 @@ class ProfileClassTest(unittest.TestCase):
         p = profile_writer.Profile("Test")
         self.assertEqual(repr(p), "Profile('Test')")
 
+    # ---- update / merge ----
+
+    def test_update_merges_dicts(self):
+        a = profile_writer.Profile(
+            run_colors={"r1": "#aaa"},
+            metric_descriptions={"loss": "d1"},
+            expanded_tag_groups={"train": True},
+        )
+        b = profile_writer.Profile(
+            run_colors={"r2": "#bbb"},
+            metric_descriptions={"acc": "d2"},
+            expanded_tag_groups={"eval": False},
+        )
+        a.update(b)
+        self.assertEqual(
+            a.run_colors, {"r1": "#aaa", "r2": "#bbb"}
+        )
+        self.assertEqual(
+            a.metric_descriptions, {"loss": "d1", "acc": "d2"}
+        )
+        self.assertEqual(
+            a.expanded_tag_groups,
+            {"train": True, "eval": False},
+        )
+
+    def test_update_extends_lists(self):
+        a = profile_writer.Profile(
+            pinned_cards=[profile_writer.pin_scalar("loss")]
+        )
+        b = profile_writer.Profile(
+            pinned_cards=[profile_writer.pin_scalar("acc")]
+        )
+        a.update(b)
+        self.assertEqual(len(a.pinned_cards), 2)
+
+    def test_update_replaces_scalars(self):
+        a = profile_writer.Profile("A", smoothing=0.8)
+        b = profile_writer.Profile("B", smoothing=0.5)
+        a.update(b)
+        self.assertEqual(a.name, "B")
+        self.assertEqual(a.smoothing, 0.5)
+
+    def test_update_merges_tag_filter(self):
+        a = profile_writer.Profile(tag_filter="loss")
+        b = profile_writer.Profile(tag_filter="accuracy")
+        a.update(b)
+        self.assertEqual(a.tag_filter, "(loss)|(accuracy)")
+
+    def test_update_merges_run_filter(self):
+        a = profile_writer.Profile(run_filter="train")
+        b = profile_writer.Profile(run_filter="eval")
+        a.update(b)
+        self.assertEqual(a.run_filter, "(train)|(eval)")
+
+    def test_update_filter_one_side_empty(self):
+        a = profile_writer.Profile(tag_filter="loss")
+        b = profile_writer.Profile()
+        a.update(b)
+        self.assertEqual(a.tag_filter, "loss")
+
+        c = profile_writer.Profile()
+        d = profile_writer.Profile(tag_filter="acc")
+        c.update(d)
+        self.assertEqual(c.tag_filter, "acc")
+
+    def test_update_skips_none_optionals(self):
+        a = profile_writer.Profile(y_axis_scale="log10")
+        b = profile_writer.Profile()
+        a.update(b)
+        self.assertEqual(a.y_axis_scale, "log10")
+
+    def test_update_overrides_non_none_optionals(self):
+        a = profile_writer.Profile(y_axis_scale="log10")
+        b = profile_writer.Profile(y_axis_scale="symlog10")
+        a.update(b)
+        self.assertEqual(a.y_axis_scale, "symlog10")
+
+    def test_or_returns_new_profile(self):
+        a = profile_writer.Profile(
+            "A",
+            run_colors={"r1": "#aaa"},
+            pinned_cards=[profile_writer.pin_scalar("loss")],
+        )
+        b = profile_writer.Profile(
+            "B",
+            run_colors={"r2": "#bbb"},
+            pinned_cards=[profile_writer.pin_scalar("acc")],
+            y_axis_scale="log10",
+        )
+        c = a | b
+        self.assertIsNot(c, a)
+        self.assertIsNot(c, b)
+        self.assertEqual(c.name, "B")
+        self.assertEqual(
+            c.run_colors, {"r1": "#aaa", "r2": "#bbb"}
+        )
+        self.assertEqual(len(c.pinned_cards), 2)
+        self.assertEqual(c.y_axis_scale, "log10")
+        # Originals are unmodified.
+        self.assertEqual(a.run_colors, {"r1": "#aaa"})
+        self.assertEqual(len(a.pinned_cards), 1)
+
+    def test_ior_mutates_in_place(self):
+        a = profile_writer.Profile(
+            "A", run_colors={"r1": "#aaa"}
+        )
+        b = profile_writer.Profile(
+            "B", run_colors={"r2": "#bbb"}
+        )
+        a |= b
+        self.assertEqual(a.name, "B")
+        self.assertEqual(
+            a.run_colors, {"r1": "#aaa", "r2": "#bbb"}
+        )
+
+    def test_or_not_implemented_for_non_profile(self):
+        p = profile_writer.Profile()
+        self.assertEqual(p.__or__("not a profile"), NotImplemented)
+        self.assertEqual(
+            p.__ior__("not a profile"), NotImplemented
+        )
+
     # ---- builder workflow ----
 
     def test_builder_workflow(self):
@@ -688,7 +803,6 @@ class IntegrationTest(unittest.TestCase):
 
     def test_typical_training_setup(self):
         """Test a typical training script setup."""
-        # This is what a user's training script might look like
         profile_writer.set_default_profile(
             self.logdir,
             name="Training Dashboard",
@@ -698,19 +812,18 @@ class IntegrationTest(unittest.TestCase):
                 profile_writer.pin_scalar("eval/loss"),
             ],
             run_colors={
-                "train": "#2196F3",  # Blue
-                "eval": "#4CAF50",  # Green
+                "train": "#2196F3",
+                "eval": "#4CAF50",
             },
             tag_filter="loss|accuracy",
             smoothing=0.8,
         )
 
-        # Verify profile was written correctly
-        loaded = profile_writer.read_profile(self.logdir)
+        loaded = profile_writer.Profile.load(self.logdir)
         self.assertIsNotNone(loaded)
-        self.assertEqual(loaded["data"]["name"], "Training Dashboard")
-        self.assertEqual(len(loaded["data"]["pinnedCards"]), 3)
-        self.assertEqual(len(loaded["data"]["runColors"]), 2)
+        self.assertEqual(loaded.name, "Training Dashboard")
+        self.assertEqual(len(loaded.pinned_cards), 3)
+        self.assertEqual(len(loaded.run_colors), 2)
 
     def test_superimposed_cards_setup(self):
         """Test setting up superimposed cards."""

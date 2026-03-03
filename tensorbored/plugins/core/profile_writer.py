@@ -18,39 +18,39 @@ This module provides a simple API for training scripts to set default
 TensorBoard dashboard configurations.  When users load TensorBoard,
 the default profile will be automatically applied.
 
-The recommended approach is the :class:`Profile` wrapper, which gives
-Pythonic attribute access over the camelCase JSON the frontend expects::
+Create a profile, tweak it, and write it to disk::
 
     from tensorbored.plugins.core import profile_writer
 
-    p = profile_writer.Profile("Training Dashboard")
-    p.pin_scalar("train/loss")
-    p.pin_scalar("eval/loss")
-    p.run_colors["train"] = "#2196F3"
-    p.run_colors["eval"] = "#4CAF50"
-    p.tag_filter = "loss|accuracy"
-    p.smoothing = 0.8
-    p.write("./logs")
-
-Or construct from keyword arguments::
-
-    p = profile_writer.Profile(
+    p = profile_writer.create_profile(
         "Training Dashboard",
         pinned_cards=[profile_writer.pin_scalar("train/loss")],
-        run_colors={"train": "#ff0000"},
-        tag_axis_scales={"train/loss": {"y": "log10"}},
+        run_colors={"train": "#2196F3", "eval": "#4CAF50"},
         smoothing=0.8,
     )
-    p.write(logdir)
+    p.tag_filter = "loss|accuracy"
+    p.y_axis_scale = "log10"
+    p.write("./logs")
 
-The one-shot helpers ``set_default_profile`` and ``create_profile``
-are still available for simple cases::
+Profiles can be merged with ``|``::
+
+    base = profile_writer.create_profile(
+        "Base", smoothing=0.8, run_colors={"train": "#ff0000"},
+    )
+    extra = profile_writer.create_profile(
+        "Extra", y_axis_scale="log10",
+        pinned_cards=[profile_writer.pin_scalar("eval/loss")],
+    )
+    combined = base | extra
+    combined.write(logdir)
+
+The one-shot helper ``set_default_profile`` creates and writes in
+a single call::
 
     profile_writer.set_default_profile(
         logdir,
-        pinned_cards=[{"plugin": "scalars", "tag": "train/loss"}],
+        pinned_cards=[profile_writer.pin_scalar("train/loss")],
         run_colors={"train": "#ff0000"},
-        tag_axis_scales={"train/loss": {"y": "log10"}},
     )
 """
 
@@ -185,6 +185,18 @@ class SerializedProfile(TypedDict):
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def _merge_regex(a: str, b: str) -> str:
+    """Combine two regex filter strings with alternation."""
+    if not a:
+        return b
+    if not b:
+        return a
+    return f"({a})|({b})"
+
+
+# ---------------------------------------------------------------------------
 # Profile wrapper
 # ---------------------------------------------------------------------------
 class Profile:
@@ -194,31 +206,24 @@ class Profile:
     the camelCase ``ProfileData`` dictionary that the frontend and
     JSON serialisation format expect.
 
-    Basic usage::
+    Prefer :func:`create_profile` to construct new instances (it
+    bridges the ``group_colors`` and ``symlog_linear_threshold``
+    type differences from the legacy API).  Direct construction
+    works too::
 
-        from tensorbored.plugins.core import profile_writer
-
-        p = profile_writer.Profile("My Dashboard")
+        p = Profile("My Dashboard", run_colors={"train": "#ff0000"})
         p.pin_scalar("train/loss")
-        p.pin_scalar("eval/loss")
-        p.run_colors["train"] = "#2196F3"
-        p.smoothing = 0.8
-        p.y_axis_scale = "log10"
         p.write("./logs")
 
-    Keyword-argument construction::
+    Profiles support merging via ``update()`` and ``|``::
 
-        p = profile_writer.Profile(
-            "Training Monitor",
-            pinned_cards=[profile_writer.pin_scalar("train/loss")],
-            run_colors={"train": "#ff0000"},
-            smoothing=0.9,
-        )
-        p.write(logdir)
+        combined = base | overlay   # new profile
+        base |= overlay             # in-place
+        base.update(overlay)        # same as |=
 
     Loading an existing profile::
 
-        p = profile_writer.Profile.load("./logs")
+        p = Profile.load("./logs")
         p.smoothing = 0.95
         p.write("./logs")
     """
@@ -644,6 +649,98 @@ class Profile:
             return None
         return cls.from_serialized(serialized)
 
+    # --------------------------------------------------------------- #
+    # Merging
+    # --------------------------------------------------------------- #
+
+    def update(self, other: Profile) -> None:
+        """Merge *other* into this profile in place.
+
+        * **Dict fields** are merged (other's entries win on key
+          conflict).
+        * **List fields** are extended (other's items appended).
+        * **Required scalar fields** (``name``, ``smoothing``) are
+          replaced by other's value.
+        * **Regex fields** (``tag_filter``, ``run_filter``) are
+          combined with ``|`` (regex alternation) when both sides
+          are non-empty.
+        * **Optional scalar fields** (those whose "unset" state is
+          ``None``) are replaced only when other's value is not
+          ``None``.
+        """
+        self._name = other._name
+        self._tag_filter = _merge_regex(
+            self._tag_filter, other._tag_filter
+        )
+        self._run_filter = _merge_regex(
+            self._run_filter, other._run_filter
+        )
+        self._smoothing = other._smoothing
+
+        if other._symlog_linear_threshold is not None:
+            self._symlog_linear_threshold = (
+                other._symlog_linear_threshold
+            )
+        if other._group_by is not None:
+            self._group_by = other._group_by
+        if other._y_axis_scale is not None:
+            self._y_axis_scale = other._y_axis_scale
+        if other._x_axis_scale is not None:
+            self._x_axis_scale = other._x_axis_scale
+
+        self._pinned_cards.extend(other._pinned_cards)
+        self._superimposed_cards.extend(other._superimposed_cards)
+        self._run_selection.extend(other._run_selection)
+
+        self._run_colors.update(other._run_colors)
+        self._group_colors.update(other._group_colors)
+        self._metric_descriptions.update(other._metric_descriptions)
+        self._tag_axis_scales.update(other._tag_axis_scales)
+        self._tag_symlog_linear_thresholds.update(
+            other._tag_symlog_linear_thresholds
+        )
+        self._expanded_tag_groups.update(other._expanded_tag_groups)
+
+    def __or__(self, other: Profile) -> Profile:
+        """Return a new profile merging *self* and *other*.
+
+        Equivalent to ``self.copy()`` followed by
+        ``result.update(other)``.  See :meth:`update` for the
+        merging rules.
+        """
+        if not isinstance(other, Profile):
+            return NotImplemented
+        result = Profile(
+            name=self._name,
+            pinned_cards=list(self._pinned_cards),
+            run_colors=dict(self._run_colors),
+            group_colors=dict(self._group_colors),
+            superimposed_cards=list(self._superimposed_cards),
+            run_selection=list(self._run_selection),
+            metric_descriptions=dict(self._metric_descriptions),
+            tag_filter=self._tag_filter,
+            run_filter=self._run_filter,
+            smoothing=self._smoothing,
+            symlog_linear_threshold=self._symlog_linear_threshold,
+            group_by=self._group_by,
+            y_axis_scale=self._y_axis_scale,
+            x_axis_scale=self._x_axis_scale,
+            tag_axis_scales=dict(self._tag_axis_scales),
+            tag_symlog_linear_thresholds=dict(
+                self._tag_symlog_linear_thresholds
+            ),
+            expanded_tag_groups=dict(self._expanded_tag_groups),
+        )
+        result.update(other)
+        return result
+
+    def __ior__(self, other: Profile) -> Profile:
+        """In-place merge: ``self |= other``."""
+        if not isinstance(other, Profile):
+            return NotImplemented
+        self.update(other)
+        return self
+
     def __repr__(self) -> str:
         return f"Profile({self._name!r})"
 
@@ -670,15 +767,39 @@ def create_profile(
     tag_axis_scales: dict[str, TagAxisScale] | None = None,
     tag_symlog_linear_thresholds: dict[str, float] | None = None,
     expanded_tag_groups: dict[str, bool] | None = None,
-) -> SerializedProfile:
-    """Create a TensorBoard profile dictionary.
+) -> Profile:
+    """Create a :class:`Profile`.
 
-    Thin wrapper around :class:`Profile` that preserves the original
-    function signature for backward compatibility.  See
-    :meth:`Profile.__init__` for parameter documentation.
+    This is the primary way to build a profile.  The returned object
+    can be inspected, mutated, merged with ``|``, and written to
+    disk with :meth:`Profile.write`.
+
+    Args:
+        name: User-friendly name for the profile.
+        pinned_cards: Cards to pin at the top of the dashboard.
+        run_colors: Mapping from run name/ID to hex colour string.
+        group_colors: Group-key to colour-palette-index assignments
+            (list of ``GroupColorEntry`` dicts for backward compat).
+        superimposed_cards: Multi-tag overlay card definitions.
+        run_selection: Explicit run visibility entries.
+        selected_runs: Convenience list of run names to select
+            (converted to ``RunSelectionEntry`` with
+            ``type="RUN_NAME"`` and ``selected=True``).
+        metric_descriptions: Long-form Markdown descriptions per tag.
+        tag_filter: Regex pattern to filter tags.
+        run_filter: Regex pattern to filter runs.
+        smoothing: Scalar smoothing value (0.0 to 0.999).
+        symlog_linear_threshold: Linear threshold for the symlog
+            scale.  Default 1.0 (omitted from JSON when default).
+        group_by: Run-grouping configuration.
+        y_axis_scale: Global Y-axis scale for scalar plots.
+        x_axis_scale: Global X-axis scale (STEP/RELATIVE only).
+        tag_axis_scales: Per-tag axis scale overrides.
+        tag_symlog_linear_thresholds: Per-tag symlog thresholds.
+        expanded_tag_groups: Tag-group expand/collapse state.
 
     Returns:
-        A serialised profile ready to be written to the logdir.
+        A new :class:`Profile` instance.
 
     Raises:
         ValueError: If an invalid axis scale name is provided.
@@ -711,7 +832,7 @@ def create_profile(
         tag_axis_scales=tag_axis_scales,
         tag_symlog_linear_thresholds=tag_symlog_linear_thresholds,
         expanded_tag_groups=expanded_tag_groups,
-    ).serialize()
+    )
 
 
 def write_profile(
@@ -788,7 +909,7 @@ def set_default_profile(
     Returns:
         The path to the written profile file.
     """
-    profile = create_profile(
+    return create_profile(
         name=name,
         pinned_cards=pinned_cards,
         run_colors=run_colors,
@@ -807,8 +928,7 @@ def set_default_profile(
         tag_axis_scales=tag_axis_scales,
         tag_symlog_linear_thresholds=tag_symlog_linear_thresholds,
         expanded_tag_groups=expanded_tag_groups,
-    )
-    return write_profile(logdir, profile)
+    ).write(logdir)
 
 
 # ---------------------------------------------------------------------------
