@@ -297,6 +297,389 @@ class ProfileWriterTest(unittest.TestCase):
         )
 
 
+class ProfileClassTest(unittest.TestCase):
+    """Tests for the Profile wrapper class."""
+
+    def setUp(self):
+        self.logdir = tempfile.mkdtemp()
+
+    # ---- construction ----
+
+    def test_defaults(self):
+        p = profile_writer.Profile()
+        self.assertEqual(p.name, "Default Profile")
+        self.assertEqual(p.pinned_cards, [])
+        self.assertEqual(p.run_colors, {})
+        self.assertEqual(p.group_colors, {})
+        self.assertEqual(p.superimposed_cards, [])
+        self.assertEqual(p.run_selection, [])
+        self.assertEqual(p.metric_descriptions, {})
+        self.assertEqual(p.tag_filter, "")
+        self.assertEqual(p.run_filter, "")
+        self.assertEqual(p.smoothing, 0.6)
+        self.assertIsNone(p.symlog_linear_threshold)
+        self.assertIsNone(p.group_by)
+        self.assertIsNone(p.y_axis_scale)
+        self.assertIsNone(p.x_axis_scale)
+        self.assertEqual(p.tag_axis_scales, {})
+        self.assertEqual(p.tag_symlog_linear_thresholds, {})
+        self.assertEqual(p.expanded_tag_groups, {})
+
+    def test_construction_with_kwargs(self):
+        p = profile_writer.Profile(
+            "My Dashboard",
+            pinned_cards=[{"plugin": "scalars", "tag": "loss"}],
+            run_colors={"train": "#ff0000"},
+            group_colors={"grp": 3},
+            metric_descriptions={"loss": "The loss"},
+            tag_filter="loss",
+            run_filter="train",
+            smoothing=0.9,
+            symlog_linear_threshold=10.0,
+            group_by={"key": "REGEX", "regexString": "(.*)"},
+            y_axis_scale="log10",
+            x_axis_scale="symlog10",
+            tag_axis_scales={"loss": {"y": "log10"}},
+            tag_symlog_linear_thresholds={"loss": 5.0},
+            expanded_tag_groups={"train": True, "eval": False},
+        )
+        self.assertEqual(p.name, "My Dashboard")
+        self.assertEqual(len(p.pinned_cards), 1)
+        self.assertEqual(p.run_colors, {"train": "#ff0000"})
+        self.assertEqual(p.group_colors, {"grp": 3})
+        self.assertEqual(p.smoothing, 0.9)
+        self.assertEqual(p.symlog_linear_threshold, 10.0)
+        self.assertEqual(p.y_axis_scale, "log10")
+        self.assertEqual(p.x_axis_scale, "symlog10")
+        self.assertEqual(p.tag_axis_scales, {"loss": {"y": "log10"}})
+        self.assertEqual(
+            p.tag_symlog_linear_thresholds, {"loss": 5.0}
+        )
+        self.assertEqual(
+            p.expanded_tag_groups, {"train": True, "eval": False}
+        )
+
+    def test_selected_runs_convenience(self):
+        p = profile_writer.Profile(selected_runs=["train", "eval"])
+        self.assertEqual(len(p.run_selection), 2)
+        self.assertEqual(p.run_selection[0]["value"], "train")
+        self.assertTrue(p.run_selection[0]["selected"])
+
+    def test_run_selection_takes_priority_over_selected_runs(self):
+        sel = [{"type": "RUN_ID", "value": "abc", "selected": False}]
+        p = profile_writer.Profile(
+            run_selection=sel, selected_runs=["x"]
+        )
+        self.assertEqual(len(p.run_selection), 1)
+        self.assertEqual(p.run_selection[0]["value"], "abc")
+
+    # ---- setters ----
+
+    def test_property_setters(self):
+        p = profile_writer.Profile()
+        p.name = "Updated"
+        p.tag_filter = "acc"
+        p.run_filter = "exp"
+        p.smoothing = 0.99
+        p.symlog_linear_threshold = 0.5
+        p.group_by = {"key": "RUN"}
+        p.y_axis_scale = "symlog10"
+        p.x_axis_scale = "log10"
+        p.expanded_tag_groups = {"a": True}
+        self.assertEqual(p.name, "Updated")
+        self.assertEqual(p.tag_filter, "acc")
+        self.assertEqual(p.run_filter, "exp")
+        self.assertEqual(p.smoothing, 0.99)
+        self.assertEqual(p.symlog_linear_threshold, 0.5)
+        self.assertEqual(p.y_axis_scale, "symlog10")
+        self.assertEqual(p.x_axis_scale, "log10")
+        self.assertEqual(p.expanded_tag_groups, {"a": True})
+
+    def test_invalid_y_axis_scale(self):
+        with self.assertRaises(ValueError):
+            profile_writer.Profile(y_axis_scale="bad")
+
+    def test_invalid_x_axis_scale(self):
+        p = profile_writer.Profile()
+        with self.assertRaises(ValueError):
+            p.x_axis_scale = "bad"
+
+    # ---- mutation of returned collections ----
+
+    def test_run_colors_mutation(self):
+        p = profile_writer.Profile()
+        p.run_colors["train"] = "#aabbcc"
+        self.assertEqual(p.run_colors["train"], "#aabbcc")
+
+    def test_pinned_cards_mutation(self):
+        p = profile_writer.Profile()
+        p.pinned_cards.append({"plugin": "scalars", "tag": "loss"})
+        self.assertEqual(len(p.pinned_cards), 1)
+
+    def test_metric_descriptions_mutation(self):
+        p = profile_writer.Profile()
+        p.metric_descriptions["loss"] = "Training loss"
+        self.assertEqual(p.metric_descriptions["loss"], "Training loss")
+
+    def test_expanded_tag_groups_mutation(self):
+        p = profile_writer.Profile()
+        p.expanded_tag_groups["train"] = True
+        self.assertTrue(p.expanded_tag_groups["train"])
+
+    # ---- convenience helpers ----
+
+    def test_pin_scalar(self):
+        p = profile_writer.Profile()
+        p.pin_scalar("train/loss")
+        self.assertEqual(
+            p.pinned_cards[-1],
+            {"plugin": "scalars", "tag": "train/loss"},
+        )
+
+    def test_pin_histogram(self):
+        p = profile_writer.Profile()
+        p.pin_histogram("weights", "run1")
+        self.assertEqual(
+            p.pinned_cards[-1],
+            {
+                "plugin": "histograms",
+                "tag": "weights",
+                "runId": "run1",
+            },
+        )
+
+    def test_pin_image(self):
+        p = profile_writer.Profile()
+        p.pin_image("images/input", "run1", sample=2)
+        self.assertEqual(
+            p.pinned_cards[-1],
+            {
+                "plugin": "images",
+                "tag": "images/input",
+                "runId": "run1",
+                "sample": 2,
+            },
+        )
+
+    def test_add_superimposed_card(self):
+        p = profile_writer.Profile()
+        p.add_superimposed_card(
+            "Train vs Eval", ["train/loss", "eval/loss"]
+        )
+        self.assertEqual(len(p.superimposed_cards), 1)
+        self.assertEqual(
+            p.superimposed_cards[0]["title"], "Train vs Eval"
+        )
+        self.assertEqual(
+            p.superimposed_cards[0]["tags"],
+            ["train/loss", "eval/loss"],
+        )
+
+    def test_select_runs(self):
+        p = profile_writer.Profile()
+        p.select_runs(["train", "eval"])
+        self.assertEqual(len(p.run_selection), 2)
+        self.assertEqual(p.run_selection[0]["type"], "RUN_NAME")
+        self.assertEqual(p.run_selection[0]["value"], "train")
+        self.assertTrue(p.run_selection[1]["selected"])
+
+    # ---- serialization ----
+
+    def test_serialize_defaults(self):
+        p = profile_writer.Profile()
+        s = p.serialize()
+        self.assertEqual(s["version"], profile_writer.PROFILE_VERSION)
+        data = s["data"]
+        self.assertEqual(data["name"], "Default Profile")
+        self.assertEqual(data["pinnedCards"], [])
+        self.assertEqual(data["runColors"], [])
+        self.assertEqual(data["groupColors"], [])
+        self.assertEqual(data["superimposedCards"], [])
+        self.assertEqual(data["tagFilter"], "")
+        self.assertEqual(data["smoothing"], 0.6)
+        self.assertNotIn("runSelection", data)
+        self.assertNotIn("metricDescriptions", data)
+        self.assertNotIn("yAxisScale", data)
+        self.assertNotIn("xAxisScale", data)
+        self.assertNotIn("tagAxisScales", data)
+        self.assertNotIn("symlogLinearThreshold", data)
+        self.assertNotIn("expandedTagGroups", data)
+
+    def test_serialize_run_colors(self):
+        p = profile_writer.Profile(
+            run_colors={"a": "#111", "b": "#222"}
+        )
+        data = p.serialize()["data"]
+        color_dict = {
+            e["runId"]: e["color"] for e in data["runColors"]
+        }
+        self.assertEqual(color_dict, {"a": "#111", "b": "#222"})
+
+    def test_serialize_group_colors(self):
+        p = profile_writer.Profile(group_colors={"grp": 5})
+        data = p.serialize()["data"]
+        self.assertEqual(
+            data["groupColors"],
+            [{"groupKey": "grp", "colorId": 5}],
+        )
+
+    def test_serialize_all_optional_fields(self):
+        p = profile_writer.Profile(
+            run_colors={"r": "#000"},
+            selected_runs=["train"],
+            metric_descriptions={"loss": "d"},
+            group_by={"key": "RUN"},
+            y_axis_scale="log10",
+            x_axis_scale="symlog10",
+            tag_axis_scales={"loss": {"y": "log10"}},
+            symlog_linear_threshold=2.0,
+            tag_symlog_linear_thresholds={"loss": 3.0},
+            expanded_tag_groups={"train": True},
+        )
+        data = p.serialize()["data"]
+        self.assertIn("runSelection", data)
+        self.assertIn("metricDescriptions", data)
+        self.assertEqual(data["groupBy"]["key"], "RUN")
+        self.assertEqual(data["yAxisScale"], "log10")
+        self.assertEqual(data["xAxisScale"], "symlog10")
+        self.assertEqual(
+            data["tagAxisScales"], {"loss": {"y": "log10"}}
+        )
+        self.assertEqual(data["symlogLinearThreshold"], 2.0)
+        self.assertEqual(
+            data["tagSymlogLinearThresholds"], {"loss": 3.0}
+        )
+        self.assertEqual(data["expandedTagGroups"], {"train": True})
+
+    def test_serialize_validates_tag_axis_scales(self):
+        p = profile_writer.Profile()
+        p.tag_axis_scales["loss"] = {"z": "log10"}
+        with self.assertRaises(ValueError):
+            p.serialize()
+
+    def test_serialize_validates_tag_axis_scale_values(self):
+        p = profile_writer.Profile()
+        p.tag_axis_scales["loss"] = {"y": "cubic"}
+        with self.assertRaises(ValueError):
+            p.serialize()
+
+    # ---- from_serialized round-trip ----
+
+    def test_from_serialized_round_trip(self):
+        original = profile_writer.Profile(
+            "Round Trip",
+            pinned_cards=[
+                profile_writer.pin_scalar("train/loss"),
+            ],
+            run_colors={"train": "#ff0000", "eval": "#00ff00"},
+            group_colors={"grp": 2},
+            metric_descriptions={"loss": "desc"},
+            tag_filter="loss",
+            smoothing=0.8,
+            y_axis_scale="log10",
+            expanded_tag_groups={"train": True},
+            symlog_linear_threshold=5.0,
+            tag_symlog_linear_thresholds={"loss": 10.0},
+        )
+        serialized = original.serialize()
+        loaded = profile_writer.Profile.from_serialized(serialized)
+
+        self.assertEqual(loaded.name, "Round Trip")
+        self.assertEqual(len(loaded.pinned_cards), 1)
+        self.assertEqual(
+            loaded.run_colors,
+            {"train": "#ff0000", "eval": "#00ff00"},
+        )
+        self.assertEqual(loaded.group_colors, {"grp": 2})
+        self.assertEqual(
+            loaded.metric_descriptions, {"loss": "desc"}
+        )
+        self.assertEqual(loaded.tag_filter, "loss")
+        self.assertEqual(loaded.smoothing, 0.8)
+        self.assertEqual(loaded.y_axis_scale, "log10")
+        self.assertEqual(
+            loaded.expanded_tag_groups, {"train": True}
+        )
+        self.assertEqual(loaded.symlog_linear_threshold, 5.0)
+        self.assertEqual(
+            loaded.tag_symlog_linear_thresholds, {"loss": 10.0}
+        )
+
+    # ---- write / load round-trip ----
+
+    def test_write_and_load(self):
+        p = profile_writer.Profile(
+            "Disk Trip",
+            run_colors={"r1": "#abc"},
+            smoothing=0.75,
+        )
+        p.pin_scalar("loss")
+        path = p.write(self.logdir)
+        self.assertTrue(os.path.exists(path))
+
+        loaded = profile_writer.Profile.load(self.logdir)
+        self.assertIsNotNone(loaded)
+        self.assertEqual(loaded.name, "Disk Trip")
+        self.assertEqual(loaded.run_colors, {"r1": "#abc"})
+        self.assertEqual(loaded.smoothing, 0.75)
+        self.assertEqual(len(loaded.pinned_cards), 1)
+
+    def test_load_returns_none_when_missing(self):
+        self.assertIsNone(profile_writer.Profile.load(self.logdir))
+
+    def test_write_profile_accepts_profile_instance(self):
+        p = profile_writer.Profile("Direct Write")
+        path = profile_writer.write_profile(self.logdir, p)
+        self.assertTrue(os.path.exists(path))
+        loaded = profile_writer.read_profile(self.logdir)
+        self.assertEqual(loaded["data"]["name"], "Direct Write")
+
+    # ---- repr ----
+
+    def test_repr(self):
+        p = profile_writer.Profile("Test")
+        self.assertEqual(repr(p), "Profile('Test')")
+
+    # ---- builder workflow ----
+
+    def test_builder_workflow(self):
+        """End-to-end builder-pattern workflow."""
+        p = profile_writer.Profile("Builder Test")
+        p.pin_scalar("train/loss")
+        p.pin_scalar("eval/loss")
+        p.run_colors["train"] = "#2196F3"
+        p.run_colors["eval"] = "#4CAF50"
+        p.smoothing = 0.8
+        p.tag_filter = "loss|accuracy"
+        p.y_axis_scale = "log10"
+        p.metric_descriptions["train/loss"] = "Training loss"
+        p.expanded_tag_groups["train"] = True
+        p.add_superimposed_card(
+            "Loss Comparison", ["train/loss", "eval/loss"]
+        )
+        p.select_runs(["train", "eval"])
+
+        path = p.write(self.logdir)
+        loaded = profile_writer.Profile.load(self.logdir)
+
+        self.assertEqual(loaded.name, "Builder Test")
+        self.assertEqual(len(loaded.pinned_cards), 2)
+        self.assertEqual(
+            loaded.run_colors,
+            {"train": "#2196F3", "eval": "#4CAF50"},
+        )
+        self.assertEqual(loaded.smoothing, 0.8)
+        self.assertEqual(loaded.tag_filter, "loss|accuracy")
+        self.assertEqual(loaded.y_axis_scale, "log10")
+        self.assertEqual(
+            loaded.metric_descriptions["train/loss"],
+            "Training loss",
+        )
+        self.assertTrue(loaded.expanded_tag_groups["train"])
+        self.assertEqual(len(loaded.superimposed_cards), 1)
+        self.assertEqual(len(loaded.run_selection), 2)
+
+
 class IntegrationTest(unittest.TestCase):
     """Integration tests demonstrating typical usage."""
 
