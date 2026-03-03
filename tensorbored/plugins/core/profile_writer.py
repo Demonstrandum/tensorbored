@@ -278,14 +278,10 @@ class Profile:
             superimposed_cards or []
         )
         if run_selection is not None:
-            self._run_selection: list[RunSelectionEntry] = list(
-                run_selection
-            )
+            self._run_selection: list[RunSelectionEntry] = list(run_selection)
         elif selected_runs is not None:
             self._run_selection = [
-                RunSelectionEntry(
-                    type="RUN_NAME", value=r, selected=True
-                )
+                RunSelectionEntry(type="RUN_NAME", value=r, selected=True)
                 for r in selected_runs
             ]
         else:
@@ -352,9 +348,7 @@ class Profile:
         return self._superimposed_cards
 
     @superimposed_cards.setter
-    def superimposed_cards(
-        self, value: list[SuperimposedCardEntry]
-    ) -> None:
+    def superimposed_cards(self, value: list[SuperimposedCardEntry]) -> None:
         self._superimposed_cards = list(value)
 
     @property
@@ -444,9 +438,7 @@ class Profile:
         return self._tag_axis_scales
 
     @tag_axis_scales.setter
-    def tag_axis_scales(
-        self, value: dict[str, TagAxisScale]
-    ) -> None:
+    def tag_axis_scales(self, value: dict[str, TagAxisScale]) -> None:
         self._tag_axis_scales = dict(value)
 
     @property
@@ -454,9 +446,7 @@ class Profile:
         return self._tag_symlog_linear_thresholds
 
     @tag_symlog_linear_thresholds.setter
-    def tag_symlog_linear_thresholds(
-        self, value: dict[str, float]
-    ) -> None:
+    def tag_symlog_linear_thresholds(self, value: dict[str, float]) -> None:
         self._tag_symlog_linear_thresholds = dict(value)
 
     @property
@@ -473,9 +463,7 @@ class Profile:
 
     def pin_scalar(self, tag: str) -> None:
         """Pin a scalar card."""
-        self._pinned_cards.append(
-            PinnedCard(plugin="scalars", tag=tag)
-        )
+        self._pinned_cards.append(PinnedCard(plugin="scalars", tag=tag))
 
     def pin_histogram(self, tag: str, run_id: str) -> None:
         """Pin a histogram card."""
@@ -483,9 +471,7 @@ class Profile:
             PinnedCard(plugin="histograms", tag=tag, runId=run_id)
         )
 
-    def pin_image(
-        self, tag: str, run_id: str, sample: int = 0
-    ) -> None:
+    def pin_image(self, tag: str, run_id: str, sample: int = 0) -> None:
         """Pin an image card."""
         self._pinned_cards.append(
             PinnedCard(
@@ -510,9 +496,7 @@ class Profile:
     def select_runs(self, run_names: list[str]) -> None:
         """Set visible runs by name (replaces current selection)."""
         self._run_selection = [
-            RunSelectionEntry(
-                type="RUN_NAME", value=name, selected=True
-            )
+            RunSelectionEntry(type="RUN_NAME", value=name, selected=True)
             for name in run_names
         ]
 
@@ -575,17 +559,13 @@ class Profile:
         if self._tag_axis_scales:
             data["tagAxisScales"] = dict(self._tag_axis_scales)
         if self._symlog_linear_threshold is not None:
-            data["symlogLinearThreshold"] = (
-                self._symlog_linear_threshold
-            )
+            data["symlogLinearThreshold"] = self._symlog_linear_threshold
         if self._tag_symlog_linear_thresholds:
             data["tagSymlogLinearThresholds"] = dict(
                 self._tag_symlog_linear_thresholds
             )
         if self._expanded_tag_groups:
-            data["expandedTagGroups"] = dict(
-                self._expanded_tag_groups
-            )
+            data["expandedTagGroups"] = dict(self._expanded_tag_groups)
         return SerializedProfile(version=PROFILE_VERSION, data=data)
 
     def write(self, logdir: str) -> str:
@@ -603,21 +583,17 @@ class Profile:
     # --------------------------------------------------------------- #
 
     @classmethod
-    def from_serialized(
-        cls, serialized: SerializedProfile
-    ) -> Profile:
+    def from_serialized(cls, serialized: SerializedProfile) -> Profile:
         """Create a :class:`Profile` from a ``SerializedProfile``."""
         data = serialized["data"]
         return cls(
             name=data["name"],
             pinned_cards=data.get("pinnedCards", []),
             run_colors={
-                e["runId"]: e["color"]
-                for e in data.get("runColors", [])
+                e["runId"]: e["color"] for e in data.get("runColors", [])
             },
             group_colors={
-                e["groupKey"]: e["colorId"]
-                for e in data.get("groupColors", [])
+                e["groupKey"]: e["colorId"] for e in data.get("groupColors", [])
             },
             superimposed_cards=data.get("superimposedCards", []),
             run_selection=data.get("runSelection"),
@@ -625,16 +601,12 @@ class Profile:
             tag_filter=data.get("tagFilter", ""),
             run_filter=data.get("runFilter", ""),
             smoothing=data.get("smoothing", 0.6),
-            symlog_linear_threshold=data.get(
-                "symlogLinearThreshold"
-            ),
+            symlog_linear_threshold=data.get("symlogLinearThreshold"),
             group_by=data.get("groupBy"),
             y_axis_scale=data.get("yAxisScale"),
             x_axis_scale=data.get("xAxisScale"),
             tag_axis_scales=data.get("tagAxisScales"),
-            tag_symlog_linear_thresholds=data.get(
-                "tagSymlogLinearThresholds"
-            ),
+            tag_symlog_linear_thresholds=data.get("tagSymlogLinearThresholds"),
             expanded_tag_groups=data.get("expandedTagGroups"),
         )
 
@@ -669,18 +641,12 @@ class Profile:
           ``None``.
         """
         self._name = other._name
-        self._tag_filter = _merge_regex(
-            self._tag_filter, other._tag_filter
-        )
-        self._run_filter = _merge_regex(
-            self._run_filter, other._run_filter
-        )
+        self._tag_filter = _merge_regex(self._tag_filter, other._tag_filter)
+        self._run_filter = _merge_regex(self._run_filter, other._run_filter)
         self._smoothing = other._smoothing
 
         if other._symlog_linear_threshold is not None:
-            self._symlog_linear_threshold = (
-                other._symlog_linear_threshold
-            )
+            self._symlog_linear_threshold = other._symlog_linear_threshold
         if other._group_by is not None:
             self._group_by = other._group_by
         if other._y_axis_scale is not None:
@@ -822,9 +788,7 @@ def create_profile(
         run_filter=run_filter,
         smoothing=smoothing,
         symlog_linear_threshold=(
-            symlog_linear_threshold
-            if symlog_linear_threshold != 1.0
-            else None
+            symlog_linear_threshold if symlog_linear_threshold != 1.0 else None
         ),
         group_by=group_by,
         y_axis_scale=y_axis_scale,
@@ -835,9 +799,7 @@ def create_profile(
     )
 
 
-def write_profile(
-    logdir: str, profile: SerializedProfile | Profile
-) -> str:
+def write_profile(logdir: str, profile: SerializedProfile | Profile) -> str:
     """Write a profile to the logdir.
 
     The profile is written to
