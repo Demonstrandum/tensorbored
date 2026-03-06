@@ -106,6 +106,7 @@ export class ScalarCardComponent<Downloader> {
   @Input() superimposedCards: SuperimposedCardMetadata[] = [];
   @Input() tag!: string;
   @Input() tagDescription: string | null = null;
+  @Input() tagRunDescriptions: {[run: string]: string} | null = null;
   @Input() title!: string;
   @Input() tooltipSort!: TooltipSort;
   @Input() xAxisType!: XAxisType;
@@ -169,6 +170,42 @@ export class ScalarCardComponent<Downloader> {
 
   isViewBoxOverridden: boolean = false;
   additionalItemsCount = 0;
+  descriptionTooltipVisible = false;
+  selectedRunTab: string | null = null;
+
+  get hasRunDescriptions(): boolean {
+    return (
+      !!this.tagRunDescriptions &&
+      Object.keys(this.tagRunDescriptions).length > 0
+    );
+  }
+
+  get runDescriptionEntries(): Array<{run: string; description: string}> {
+    if (!this.tagRunDescriptions) return [];
+    return Object.keys(this.tagRunDescriptions)
+      .sort()
+      .map((run) => ({run, description: this.tagRunDescriptions![run]}));
+  }
+
+  get selectedRunDescription(): string {
+    if (!this.tagRunDescriptions || !this.selectedRunTab) return '';
+    return this.tagRunDescriptions[this.selectedRunTab] ?? '';
+  }
+
+  showDescriptionTooltip() {
+    this.descriptionTooltipVisible = true;
+    if (this.hasRunDescriptions && !this.selectedRunTab) {
+      this.selectedRunTab = this.runDescriptionEntries[0]?.run ?? null;
+    }
+  }
+
+  hideDescriptionTooltip() {
+    this.descriptionTooltipVisible = false;
+  }
+
+  selectRunTab(run: string) {
+    this.selectedRunTab = run;
+  }
 
   getTagTooltip(tag: string, description: string | null): string {
     return buildTagTooltip(tag, description ?? '');

@@ -23,6 +23,7 @@ import {
   SampledPluginType,
   ScalarStepDatum,
   TagToDescription,
+  TagToRunDescriptions,
   TagToRunSampledInfo,
 } from '../data_source';
 import {
@@ -52,11 +53,13 @@ type tagToRunIds = Record<string, RunId[]>;
 
 export interface NonSampledPluginTagMetadata {
   tagDescriptions: TagToDescription;
+  tagRunDescriptions: TagToRunDescriptions;
   tagToRuns: tagToRunIds;
 }
 
 export interface SampledPluginTagMetadata {
   tagDescriptions: TagToDescription;
+  tagRunDescriptions: TagToRunDescriptions;
   tagRunSampledInfo: TagToRunSampledInfo;
 }
 

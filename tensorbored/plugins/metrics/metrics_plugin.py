@@ -66,6 +66,35 @@ def _get_tag_to_description(mapping):
     return result
 
 
+def _get_per_run_tag_descriptions(mapping):
+    """Returns per-run descriptions for tags that have varying descriptions.
+
+    Only includes entries where at least two runs provide different
+    description text for the same tag.
+
+    Args:
+        mapping: a nested map `d` such that `d[run][tag]` is a time series
+          produced by DataProvider's `list_*` methods.
+
+    Returns:
+        A map ``{tag: {run: description_html}}`` containing only tags
+        where descriptions differ across runs.
+    """
+    tag_run_descs = {}
+    for run in sorted(mapping):
+        for tag, metadatum in mapping[run].items():
+            if not metadatum.description:
+                continue
+            tag_run_descs.setdefault(tag, {})[run] = (
+                plugin_util.markdown_to_safe_html(metadatum.description)
+            )
+    return {
+        tag: run_descs
+        for tag, run_descs in tag_run_descs.items()
+        if len(set(run_descs.values())) > 1
+    }
+
+
 def _get_run_tag_info(mapping):
     """Returns a map of run names to a list of tag names.
 
@@ -119,16 +148,22 @@ def _format_basic_mapping(mapping, profile_descriptions=None):
         A dict with the following fields:
             runTagInfo: the return type of `_get_run_tag_info`
             tagDescriptions: the return type of `_get_tag_to_description`
+            tagRunDescriptions: per-run descriptions for tags with
+                varying descriptions across runs (may be empty)
     """
     tag_descriptions = _merge_profile_tag_descriptions(
         _get_tag_to_description(mapping),
         _get_available_tags(mapping),
         profile_descriptions,
     )
-    return {
+    tag_run_descriptions = _get_per_run_tag_descriptions(mapping)
+    result = {
         "runTagInfo": _get_run_tag_info(mapping),
         "tagDescriptions": tag_descriptions,
     }
+    if tag_run_descriptions:
+        result["tagRunDescriptions"] = tag_run_descriptions
+    return result
 
 
 def _format_image_blob_sequence_datum(sorted_datum_list, sample):
@@ -200,17 +235,23 @@ def _format_image_mapping(mapping, profile_descriptions=None):
     Returns:
         A dict with the following fields:
             tagRunSampledInfo: the return type of `_get_tag_run_image_info`
-            tagDescriptions: the return type of `_get_tag_description_info`
+            tagDescriptions: 1:1 tag-to-description map
+            tagRunDescriptions: per-run descriptions for tags with
+                varying descriptions across runs (may be absent)
     """
     tag_descriptions = _merge_profile_tag_descriptions(
         _get_tag_to_description(mapping),
         _get_available_tags(mapping),
         profile_descriptions,
     )
-    return {
+    tag_run_descriptions = _get_per_run_tag_descriptions(mapping)
+    result = {
         "tagDescriptions": tag_descriptions,
         "tagRunSampledInfo": _get_tag_run_image_info(mapping),
     }
+    if tag_run_descriptions:
+        result["tagRunDescriptions"] = tag_run_descriptions
+    return result
 
 
 class MetricsPlugin(base_plugin.TBPlugin):

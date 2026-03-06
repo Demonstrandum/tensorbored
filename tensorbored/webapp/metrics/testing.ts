@@ -102,14 +102,17 @@ function buildBlankState(): MetricsState {
     tagMetadata: {
       scalars: {
         tagDescriptions: {},
+        tagRunDescriptions: {},
         tagToRuns: {},
       },
       histograms: {
         tagDescriptions: {},
+        tagRunDescriptions: {},
         tagToRuns: {},
       },
       images: {
         tagDescriptions: {},
+        tagRunDescriptions: {},
         tagRunSampledInfo: {},
       },
     },
@@ -177,14 +180,17 @@ export function buildTagMetadata(): TagMetadata {
   return {
     scalars: {
       tagDescriptions: {},
+      tagRunDescriptions: {},
       tagToRuns: {},
     },
     histograms: {
       tagDescriptions: {},
+      tagRunDescriptions: {},
       tagToRuns: {},
     },
     images: {
       tagDescriptions: {},
+      tagRunDescriptions: {},
       tagRunSampledInfo: {},
     },
   };

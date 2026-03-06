@@ -315,18 +315,21 @@ class MetricsPluginTest(tf.test.TestCase):
             },
             response["scalars"]["tagDescriptions"],
         )
+        self.assertNotIn("tagRunDescriptions", response["scalars"])
         self.assertEqual(
             {
                 "histograms/tagA": "<p>Profile histogram description</p>",
             },
             response["histograms"]["tagDescriptions"],
         )
+        self.assertNotIn("tagRunDescriptions", response["histograms"])
         self.assertEqual(
             {
                 "images/tagA": "<p>Profile image description</p>",
             },
             response["images"]["tagDescriptions"],
         )
+        self.assertNotIn("tagRunDescriptions", response["images"])
 
     def test_tags_profile_descriptions_override_event_descriptions(self):
         self._write_scalar("run1", "scalars/tagA", "Event description A")
@@ -378,6 +381,26 @@ class MetricsPluginTest(tf.test.TestCase):
             {"histograms/tagA": "<p>tagA is hot</p>"},
             response["histograms"]["tagDescriptions"],
         )
+        self.assertEqual(
+            {
+                "scalars/tagA": {
+                    "run2": "<p>tagA is hot</p>",
+                    "run3": "<p>tagA is cold</p>",
+                    "run4": "<p>tagA is cold</p>",
+                },
+            },
+            response["scalars"].get("tagRunDescriptions", {}),
+        )
+        self.assertEqual(
+            {
+                "histograms/tagA": {
+                    "run2": "<p>tagA is hot</p>",
+                    "run3": "<p>tagA is cold</p>",
+                    "run4": "<p>tagA is cold</p>",
+                },
+            },
+            response["histograms"].get("tagRunDescriptions", {}),
+        )
 
     def test_tags_unsafe_description(self):
         self._write_scalar("<&#run>", "scalars/<&#tag>", "<&#description>")
@@ -417,6 +440,12 @@ class MetricsPluginTest(tf.test.TestCase):
         self.assertEqual(
             {"histograms/<&#tag>": "<p>&lt;&amp;# is hot&gt;</p>"},
             response["histograms"]["tagDescriptions"],
+        )
+        self.assertIn(
+            "tagRunDescriptions", response["scalars"],
+        )
+        self.assertIn(
+            "tagRunDescriptions", response["histograms"],
         )
 
     def test_time_series_scalar(self):

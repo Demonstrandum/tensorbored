@@ -70,6 +70,7 @@ $_data_table_initial_height: 100px;
     display: grid;
     gap: 5px;
     grid-template-columns: auto auto;
+    position: relative;
   }
 
   vis-selected-time-clipped {

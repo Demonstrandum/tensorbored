@@ -272,6 +272,7 @@ describe('metrics store utils', () => {
             ...buildTagMetadata(),
             [PluginType.SCALARS]: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagToRuns: {tagA: []},
             },
           },
@@ -288,6 +289,7 @@ describe('metrics store utils', () => {
             ...buildTagMetadata(),
             [PluginType.SCALARS]: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagToRuns: {tagA: []},
             },
           },
@@ -303,6 +305,7 @@ describe('metrics store utils', () => {
             ...buildTagMetadata(),
             [PluginType.SCALARS]: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagToRuns: {tagA: []},
             },
           },
@@ -318,6 +321,7 @@ describe('metrics store utils', () => {
             ...buildTagMetadata(),
             [PluginType.IMAGES]: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagRunSampledInfo: {tagA: {run1: {maxSamplesPerStep: 5}}},
             },
           },
@@ -335,6 +339,7 @@ describe('metrics store utils', () => {
             ...buildTagMetadata(),
             [PluginType.SCALARS]: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagToRuns: {tagA: ['run1', 'run2']},
             },
           },
@@ -351,6 +356,7 @@ describe('metrics store utils', () => {
             ...buildTagMetadata(),
             [PluginType.IMAGES]: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagRunSampledInfo: {
                 tagA: {
                   run1: {maxSamplesPerStep: 5},

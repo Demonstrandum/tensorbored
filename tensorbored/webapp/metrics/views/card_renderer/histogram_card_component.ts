@@ -45,6 +45,7 @@ export class HistogramCardComponent {
   @Input() title!: string;
   @Input() tag!: string;
   @Input() tagDescription: string | null = null;
+  @Input() tagRunDescriptions: {[run: string]: string} | null = null;
   @Input() runId!: string;
   @Input() data!: HistogramDatum[];
   @Input() mode!: HistogramMode;
@@ -60,6 +61,43 @@ export class HistogramCardComponent {
   @Output() onLinkedTimeSelectionChanged =
     new EventEmitter<TimeSelectionWithAffordance>();
   @Output() onLinkedTimeToggled = new EventEmitter();
+
+  descriptionTooltipVisible = false;
+  selectedRunTab: string | null = null;
+
+  get hasRunDescriptions(): boolean {
+    return (
+      !!this.tagRunDescriptions &&
+      Object.keys(this.tagRunDescriptions).length > 0
+    );
+  }
+
+  get runDescriptionEntries(): Array<{run: string; description: string}> {
+    if (!this.tagRunDescriptions) return [];
+    return Object.keys(this.tagRunDescriptions)
+      .sort()
+      .map((run) => ({run, description: this.tagRunDescriptions![run]}));
+  }
+
+  get selectedRunDescription(): string {
+    if (!this.tagRunDescriptions || !this.selectedRunTab) return '';
+    return this.tagRunDescriptions[this.selectedRunTab] ?? '';
+  }
+
+  showDescriptionTooltip() {
+    this.descriptionTooltipVisible = true;
+    if (this.hasRunDescriptions && !this.selectedRunTab) {
+      this.selectedRunTab = this.runDescriptionEntries[0]?.run ?? null;
+    }
+  }
+
+  hideDescriptionTooltip() {
+    this.descriptionTooltipVisible = false;
+  }
+
+  selectRunTab(run: string) {
+    this.selectedRunTab = run;
+  }
 
   getTagTooltip(tag: string, description: string | null): string {
     return buildTagTooltip(tag, description ?? '');

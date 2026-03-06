@@ -39,6 +39,7 @@ import {
   RunToTags,
   SingleRunTimeSeriesRequest,
   TagMetadata,
+  TagToRunDescriptions,
   TagToRunSampledInfo,
   TimeSeriesRequest,
   TimeSeriesResponse,
@@ -90,6 +91,23 @@ function buildRunIdKeyedObject<T extends {}>(
   return frontendObject as T;
 }
 
+function buildFrontendRunDescriptions(
+  backendRunDescriptions: TagToRunDescriptions | undefined,
+  experimentId: string
+): TagToRunDescriptions | undefined {
+  if (!backendRunDescriptions) return undefined;
+  const result: TagToRunDescriptions = {};
+  for (const tag in backendRunDescriptions) {
+    if (backendRunDescriptions.hasOwnProperty(tag)) {
+      result[tag] = buildRunIdKeyedObject<{[run: string]: string}>(
+        backendRunDescriptions[tag],
+        experimentId
+      );
+    }
+  }
+  return result;
+}
+
 function buildFrontendTagMetadata(
   backendTagMetadata: BackendTagMetadata,
   experimentId: string
@@ -98,7 +116,8 @@ function buildFrontendTagMetadata(
   for (const pluginType of Object.keys(backendTagMetadata)) {
     const plugin = pluginType as PluginType;
     if (isSampledPlugin(plugin)) {
-      const {tagRunSampledInfo, ...rest} = backendTagMetadata[plugin];
+      const {tagRunSampledInfo, tagRunDescriptions, ...rest} =
+        backendTagMetadata[plugin];
       const frontendTagRunSampledInfo = {} as TagToRunSampledInfo;
       for (const tag in tagRunSampledInfo) {
         if (tagRunSampledInfo.hasOwnProperty(tag)) {
@@ -111,12 +130,21 @@ function buildFrontendTagMetadata(
       }
       tagMetadata[plugin] = {
         ...rest,
+        tagRunDescriptions: buildFrontendRunDescriptions(
+          tagRunDescriptions,
+          experimentId
+        ),
         tagRunSampledInfo: frontendTagRunSampledInfo,
       };
     } else {
-      const {runTagInfo, ...rest} = backendTagMetadata[plugin];
+      const {runTagInfo, tagRunDescriptions, ...rest} =
+        backendTagMetadata[plugin];
       tagMetadata[plugin] = {
         ...rest,
+        tagRunDescriptions: buildFrontendRunDescriptions(
+          tagRunDescriptions,
+          experimentId
+        ),
         runTagInfo: buildRunIdKeyedObject<RunToTags>(runTagInfo, experimentId),
       };
     }
@@ -124,8 +152,20 @@ function buildFrontendTagMetadata(
   return tagMetadata;
 }
 
+function mergeRunDescriptions(
+  target: TagToRunDescriptions | undefined,
+  source: TagToRunDescriptions | undefined
+): TagToRunDescriptions | undefined {
+  if (!source) return target;
+  if (!target) return {...source};
+  const merged = {...target};
+  for (const tag of Object.keys(source)) {
+    merged[tag] = {...(merged[tag] || {}), ...source[tag]};
+  }
+  return merged;
+}
+
 function buildCombinedTagMetadata(results: TagMetadata[]): TagMetadata {
-  // Collate results from different experiments.
   const tagMetadata = {} as TagMetadata;
   for (const experimentTagMetadata of results) {
     for (const plugin of Object.values(PluginType)) {
@@ -134,12 +174,16 @@ function buildCombinedTagMetadata(results: TagMetadata[]): TagMetadata {
           tagDescriptions: {},
           tagRunSampledInfo: {},
         };
-        const {tagDescriptions, tagRunSampledInfo} =
+        const {tagDescriptions, tagRunDescriptions, tagRunSampledInfo} =
           experimentTagMetadata[plugin];
         tagMetadata[plugin].tagDescriptions = {
           ...tagMetadata[plugin].tagDescriptions,
           ...tagDescriptions,
         };
+        tagMetadata[plugin].tagRunDescriptions = mergeRunDescriptions(
+          tagMetadata[plugin].tagRunDescriptions,
+          tagRunDescriptions
+        );
         const combinedTagRunSampledInfo = tagMetadata[plugin].tagRunSampledInfo;
         for (const tag of Object.keys(tagRunSampledInfo)) {
           combinedTagRunSampledInfo[tag] = combinedTagRunSampledInfo[tag] || {};
@@ -153,11 +197,16 @@ function buildCombinedTagMetadata(results: TagMetadata[]): TagMetadata {
           tagDescriptions: {},
           runTagInfo: {},
         };
-        const {tagDescriptions, runTagInfo} = experimentTagMetadata[plugin];
+        const {tagDescriptions, tagRunDescriptions, runTagInfo} =
+          experimentTagMetadata[plugin];
         tagMetadata[plugin].tagDescriptions = {
           ...tagMetadata[plugin].tagDescriptions,
           ...tagDescriptions,
         };
+        tagMetadata[plugin].tagRunDescriptions = mergeRunDescriptions(
+          tagMetadata[plugin].tagRunDescriptions,
+          tagRunDescriptions
+        );
         tagMetadata[plugin].runTagInfo = {
           ...tagMetadata[plugin].runTagInfo,
           ...runTagInfo,
@@ -203,6 +252,7 @@ export class TBMetricsDataSource implements MetricsDataSource {
         if (!isImagesSupported) {
           tagMetadata[PluginType.IMAGES] = {
             tagDescriptions: {},
+            tagRunDescriptions: undefined,
             tagRunSampledInfo: {},
           };
         }

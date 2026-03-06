@@ -219,6 +219,7 @@ describe('metrics reducers', () => {
         },
         images: {
           tagDescriptions: {},
+          tagRunDescriptions: {},
           tagRunSampledInfo: {
             tagC: {run3: {maxSamplesPerStep: 3}},
           },
@@ -358,6 +359,7 @@ describe('metrics reducers', () => {
           ...buildDataSourceTagMetadata(),
           [PluginType.IMAGES]: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagRunSampledInfo: {tagA: {run1: {maxSamplesPerStep: 1}}},
           },
           [PluginType.HISTOGRAMS]: {
@@ -772,6 +774,7 @@ describe('metrics reducers', () => {
             ...buildDataSourceTagMetadata(),
             [PluginType.IMAGES]: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagRunSampledInfo: {
                 tagA: {
                   // Matching run, but incorrect sample.
@@ -964,6 +967,7 @@ describe('metrics reducers', () => {
         ...buildTagMetadata(),
         scalars: {
           tagDescriptions: {},
+          tagRunDescriptions: {},
           tagToRuns: {tagA: ['exp1/run1', 'exp1/run2']},
         },
       },
@@ -1261,6 +1265,7 @@ describe('metrics reducers', () => {
           ...buildTagMetadata(),
           scalars: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagToRuns: {tagA: ['exp1/run1', 'exp1/run2']},
           },
         },
@@ -1291,14 +1296,17 @@ describe('metrics reducers', () => {
         tagMetadata: {
           scalars: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagToRuns: {tagA: ['exp1/run1', 'exp1/run2']},
           },
           histograms: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagToRuns: {tagB: ['exp1/run1', 'exp1/run2']},
           },
           images: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagRunSampledInfo: {
               tagC: {
                 'exp1/run1': {maxSamplesPerStep: 1},
@@ -1375,14 +1383,17 @@ describe('metrics reducers', () => {
         tagMetadata: {
           scalars: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagToRuns: {tagA: ['run1', 'run2']},
           },
           histograms: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagToRuns: {tagB: ['run1', 'run2']},
           },
           images: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagRunSampledInfo: {
               tagC: {
                 run1: {maxSamplesPerStep: 1},
@@ -1478,14 +1489,17 @@ describe('metrics reducers', () => {
         tagMetadata: {
           scalars: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagToRuns: {tagA: ['run1', 'run2']},
           },
           histograms: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagToRuns: {tagB: ['run1', 'run2']},
           },
           images: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagRunSampledInfo: {tagC: {run1: {maxSamplesPerStep: 1}}},
           },
         },
@@ -3164,6 +3178,7 @@ describe('metrics reducers', () => {
           ...buildTagMetadata(),
           [PluginType.SCALARS]: {
             tagDescriptions: {},
+            tagRunDescriptions: {},
             tagToRuns: {accuracy: ['run1']},
           },
         },
