@@ -38,60 +38,11 @@ _SINGLE_RUN_PLUGINS = frozenset(
 _SAMPLED_PLUGINS = frozenset([image_metadata.PLUGIN_NAME])
 
 
-def _get_tag_description_info(mapping):
-    """Gets maps from tags to descriptions, and descriptions to runs.
-
-    Args:
-        mapping: a nested map `d` such that `d[run][tag]` is a time series
-          produced by DataProvider's `list_*` methods.
-
-    Returns:
-        A tuple containing
-            tag_to_descriptions: A map from tag strings to a set of description
-                strings.
-            description_to_runs: A map from description strings to a set of run
-                strings.
-    """
-    tag_to_descriptions = collections.defaultdict(set)
-    description_to_runs = collections.defaultdict(set)
-    for run, tag_to_content in mapping.items():
-        for tag, metadatum in tag_to_content.items():
-            description = metadatum.description
-            if len(description):
-                tag_to_descriptions[tag].add(description)
-                description_to_runs[description].add(run)
-
-    return tag_to_descriptions, description_to_runs
-
-
-def _build_combined_description(descriptions, description_to_runs):
-    """Creates a single description from a set of descriptions.
-
-    Descriptions may be composites when a single tag has different descriptions
-    across multiple runs.
-
-    Args:
-        descriptions: A list of description strings.
-        description_to_runs: A map from description strings to a set of run
-            strings.
-
-    Returns:
-        The combined description string.
-    """
-    prefixed_descriptions = []
-    for description in descriptions:
-        runs = sorted(description_to_runs[description])
-        run_or_runs = "runs" if len(runs) > 1 else "run"
-        run_header = "## For " + run_or_runs + ": " + ", ".join(runs)
-        description_html = run_header + "\n" + description
-        prefixed_descriptions.append(description_html)
-
-    header = "# Multiple descriptions\n"
-    return header + "\n".join(prefixed_descriptions)
-
-
 def _get_tag_to_description(mapping):
-    """Returns a map of tags to descriptions.
+    """Returns a 1:1 map of tags to descriptions from event metadata.
+
+    When multiple runs provide different descriptions for the same tag,
+    the description from the alphabetically first run is used.
 
     Args:
         mapping: a nested map `d` such that `d[run][tag]` is a time series
@@ -100,26 +51,18 @@ def _get_tag_to_description(mapping):
     Returns:
         A map from tag strings to description HTML strings. E.g.
         {
-            "loss": "<h1>Multiple descriptions</h1><h2>For runs: test, train
-            </h2><p>...</p>",
-            "loss2": "<p>The lossy details</p>",
+            "loss": "<p>The lossy details</p>",
         }
     """
-    tag_to_descriptions, description_to_runs = _get_tag_description_info(
-        mapping
-    )
-
     result = {}
-    for tag in tag_to_descriptions:
-        descriptions = sorted(tag_to_descriptions[tag])
-        if len(descriptions) == 1:
-            description = descriptions[0]
-        else:
-            description = _build_combined_description(
-                descriptions, description_to_runs
-            )
-        result[tag] = plugin_util.markdown_to_safe_html(description)
-
+    for run in sorted(mapping):
+        for tag, metadatum in mapping[run].items():
+            if tag in result:
+                continue
+            if metadatum.description:
+                result[tag] = plugin_util.markdown_to_safe_html(
+                    metadatum.description
+                )
     return result
 
 
@@ -148,12 +91,13 @@ def _get_available_tags(mapping):
 def _merge_profile_tag_descriptions(
     tag_descriptions, available_tags, profile_descriptions
 ):
-    """Fills in tag descriptions from profile defaults when missing."""
+    """Merges profile descriptions into tag descriptions.
+
+    Profile descriptions take precedence over event-metadata descriptions.
+    """
     if not profile_descriptions:
         return tag_descriptions
     for tag in available_tags:
-        if tag in tag_descriptions:
-            continue
         description = profile_descriptions.get(tag)
         if description:
             tag_descriptions[tag] = plugin_util.markdown_to_safe_html(

@@ -328,6 +328,35 @@ class MetricsPluginTest(tf.test.TestCase):
             response["images"]["tagDescriptions"],
         )
 
+    def test_tags_profile_descriptions_override_event_descriptions(self):
+        self._write_scalar("run1", "scalars/tagA", "Event description A")
+        self._write_histogram("run1", "histograms/tagA", "Event description A")
+        self._write_image("run1", "images/tagA", 1, "Event description A")
+        profile_writer.set_default_profile(
+            self._logdir,
+            metric_descriptions={
+                "scalars/tagA": "Profile description A",
+                "histograms/tagA": "Profile description A",
+                "images/tagA": "Profile description A",
+            },
+        )
+        self._multiplexer.Reload()
+
+        response = self._plugin._tags_impl(context.RequestContext(), "eid")
+
+        self.assertEqual(
+            {"scalars/tagA": "<p>Profile description A</p>"},
+            response["scalars"]["tagDescriptions"],
+        )
+        self.assertEqual(
+            {"histograms/tagA": "<p>Profile description A</p>"},
+            response["histograms"]["tagDescriptions"],
+        )
+        self.assertEqual(
+            {"images/tagA": "<p>Profile description A</p>"},
+            response["images"]["tagDescriptions"],
+        )
+
     def test_tags_conflicting_description(self):
         self._write_scalar("run1", "scalars/tagA", None)
         self._write_scalar("run2", "scalars/tagA", "tagA is hot")
@@ -341,19 +370,12 @@ class MetricsPluginTest(tf.test.TestCase):
 
         response = self._plugin._tags_impl(context.RequestContext(), "eid")
 
-        expected_composite_description = (
-            "<h1>Multiple descriptions</h1>\n"
-            "<h2>For runs: run3, run4</h2>\n"
-            "<p>tagA is cold</p>\n"
-            "<h2>For run: run2</h2>\n"
-            "<p>tagA is hot</p>"
-        )
         self.assertEqual(
-            {"scalars/tagA": expected_composite_description},
+            {"scalars/tagA": "<p>tagA is hot</p>"},
             response["scalars"]["tagDescriptions"],
         )
         self.assertEqual(
-            {"histograms/tagA": expected_composite_description},
+            {"histograms/tagA": "<p>tagA is hot</p>"},
             response["histograms"]["tagDescriptions"],
         )
 
@@ -388,19 +410,12 @@ class MetricsPluginTest(tf.test.TestCase):
 
         response = self._plugin._tags_impl(context.RequestContext(), "eid")
 
-        expected_composite_description = (
-            "<h1>Multiple descriptions</h1>\n"
-            "<h2>For runs: &lt;&amp;#run3&gt;, &lt;&amp;#run4&gt;</h2>\n"
-            "<p>&lt;&amp;# is cold&gt;</p>\n"
-            "<h2>For run: &lt;&amp;#run2&gt;</h2>\n"
-            "<p>&lt;&amp;# is hot&gt;</p>"
-        )
         self.assertEqual(
-            {"scalars/<&#tag>": expected_composite_description},
+            {"scalars/<&#tag>": "<p>&lt;&amp;# is hot&gt;</p>"},
             response["scalars"]["tagDescriptions"],
         )
         self.assertEqual(
-            {"histograms/<&#tag>": expected_composite_description},
+            {"histograms/<&#tag>": "<p>&lt;&amp;# is hot&gt;</p>"},
             response["histograms"]["tagDescriptions"],
         )
 
