@@ -29,6 +29,7 @@ from tensorbored.data import ingester
 from tensorbored.data.proto import data_provider_pb2
 from tensorbored.util import tb_logging
 
+
 logger = tb_logging.get_logger()
 
 # If this environment variable is non-empty, it will be used as the path to the

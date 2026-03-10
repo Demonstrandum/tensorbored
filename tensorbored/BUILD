@@ -473,14 +473,9 @@ py_library(name = "expect_absl_logging_installed")
 py_library(name = "expect_absl_testing_absltest_installed")
 
 # This is a dummy rule used as a packaging dependency in open-source.
-# We expect packaging to already be installed on the system, e.g., via
+# We expect packaging to already be installed on the system, e.g. via
 # `pip install packaging`.
 py_library(name = "expect_packaging_installed")
-
-# This is a dummy rule used as a pkg-resources dependency in open-source.
-# We expect pkg-resources to already be installed on the system, e.g., via
-# `pip install setuptools`.
-py_library(name = "expect_pkg_resources_installed")
 
 # This is a dummy rule used as a pandas dependency in open-source.
 # We expect pandas to already be installed on the system, e.g. via
