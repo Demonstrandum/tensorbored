@@ -16,9 +16,11 @@ limitations under the License.
 -->
 <div class="always-visible">
   <div class="heading" cdkDragHandle>
-    <span class="name"
+    <span
+      class="name"
       (mouseenter)="showDescriptionTooltip()"
-      (mouseleave)="hideDescriptionTooltip()">
+      (mouseleave)="hideDescriptionTooltip()"
+    >
       <tb-truncated-path
         class="tag"
         [matTooltip]="hasRunDescriptions ? '' : getTagTooltip(tag, tagDescription)"
@@ -26,9 +28,14 @@ limitations under the License.
         matTooltipShowDelay="0"
         value="{{ title }}"
       ></tb-truncated-path>
-      <div class="tag-description-popover" *ngIf="descriptionTooltipVisible && (tagDescription || hasRunDescriptions)">
+      <div
+        class="tag-description-popover"
+        *ngIf="descriptionTooltipVisible && (tagDescription || hasRunDescriptions)"
+      >
         <div class="popover-tag-name">{{ tag }}</div>
-        <div class="popover-description" *ngIf="tagDescription">{{ tagDescription }}</div>
+        <div class="popover-description" *ngIf="tagDescription">
+          {{ tagDescription }}
+        </div>
         <div class="popover-run-descriptions" *ngIf="hasRunDescriptions">
           <div class="popover-run-tabs">
             <button
@@ -36,7 +43,9 @@ limitations under the License.
               class="run-tab"
               [class.active]="selectedRunTab === entry.run"
               (click)="selectRunTab(entry.run); $event.stopPropagation()"
-            >{{ entry.run }}</button>
+            >
+              {{ entry.run }}
+            </button>
           </div>
           <div class="popover-run-content">{{ selectedRunDescription }}</div>
         </div>

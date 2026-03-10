@@ -15,19 +15,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <div class="heading" cdkDragHandle>
-  <div class="tag"
+  <div
+    class="tag"
     (mouseenter)="showDescriptionTooltip()"
     (mouseleave)="hideDescriptionTooltip()"
-    style="position: relative;">
+    style="position: relative"
+  >
     <tb-truncated-path
       [matTooltip]="hasRunDescriptions ? '' : getTagTooltip(tag, tagDescription)"
       matTooltipClass="tb-tag-tooltip"
       matTooltipShowDelay="0"
       [value]="title"
     ></tb-truncated-path>
-    <div class="tag-description-popover" *ngIf="descriptionTooltipVisible && (tagDescription || hasRunDescriptions)">
+    <div
+      class="tag-description-popover"
+      *ngIf="descriptionTooltipVisible && (tagDescription || hasRunDescriptions)"
+    >
       <div class="popover-tag-name">{{ tag }}</div>
-      <div class="popover-description" *ngIf="tagDescription">{{ tagDescription }}</div>
+      <div class="popover-description" *ngIf="tagDescription">
+        {{ tagDescription }}
+      </div>
       <div class="popover-run-descriptions" *ngIf="hasRunDescriptions">
         <div class="popover-run-tabs">
           <button
@@ -35,7 +42,9 @@ limitations under the License.
             class="run-tab"
             [class.active]="selectedRunTab === entry.run"
             (click)="selectRunTab(entry.run); $event.stopPropagation()"
-          >{{ entry.run }}</button>
+          >
+            {{ entry.run }}
+          </button>
         </div>
         <div class="popover-run-content">{{ selectedRunDescription }}</div>
       </div>

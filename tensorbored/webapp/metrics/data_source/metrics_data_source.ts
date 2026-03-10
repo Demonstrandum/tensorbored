@@ -128,23 +128,25 @@ function buildFrontendTagMetadata(
             );
         }
       }
+      const frontendRunDescs = buildFrontendRunDescriptions(
+        tagRunDescriptions,
+        experimentId
+      );
       tagMetadata[plugin] = {
         ...rest,
-        tagRunDescriptions: buildFrontendRunDescriptions(
-          tagRunDescriptions,
-          experimentId
-        ),
+        ...(frontendRunDescs ? {tagRunDescriptions: frontendRunDescs} : {}),
         tagRunSampledInfo: frontendTagRunSampledInfo,
       };
     } else {
       const {runTagInfo, tagRunDescriptions, ...rest} =
         backendTagMetadata[plugin];
+      const frontendRunDescs = buildFrontendRunDescriptions(
+        tagRunDescriptions,
+        experimentId
+      );
       tagMetadata[plugin] = {
         ...rest,
-        tagRunDescriptions: buildFrontendRunDescriptions(
-          tagRunDescriptions,
-          experimentId
-        ),
+        ...(frontendRunDescs ? {tagRunDescriptions: frontendRunDescs} : {}),
         runTagInfo: buildRunIdKeyedObject<RunToTags>(runTagInfo, experimentId),
       };
     }
@@ -180,10 +182,13 @@ function buildCombinedTagMetadata(results: TagMetadata[]): TagMetadata {
           ...tagMetadata[plugin].tagDescriptions,
           ...tagDescriptions,
         };
-        tagMetadata[plugin].tagRunDescriptions = mergeRunDescriptions(
+        const mergedSampled = mergeRunDescriptions(
           tagMetadata[plugin].tagRunDescriptions,
           tagRunDescriptions
         );
+        if (mergedSampled) {
+          tagMetadata[plugin].tagRunDescriptions = mergedSampled;
+        }
         const combinedTagRunSampledInfo = tagMetadata[plugin].tagRunSampledInfo;
         for (const tag of Object.keys(tagRunSampledInfo)) {
           combinedTagRunSampledInfo[tag] = combinedTagRunSampledInfo[tag] || {};
@@ -203,10 +208,13 @@ function buildCombinedTagMetadata(results: TagMetadata[]): TagMetadata {
           ...tagMetadata[plugin].tagDescriptions,
           ...tagDescriptions,
         };
-        tagMetadata[plugin].tagRunDescriptions = mergeRunDescriptions(
+        const mergedNonSampled = mergeRunDescriptions(
           tagMetadata[plugin].tagRunDescriptions,
           tagRunDescriptions
         );
+        if (mergedNonSampled) {
+          tagMetadata[plugin].tagRunDescriptions = mergedNonSampled;
+        }
         tagMetadata[plugin].runTagInfo = {
           ...tagMetadata[plugin].runTagInfo,
           ...runTagInfo,
@@ -252,7 +260,6 @@ export class TBMetricsDataSource implements MetricsDataSource {
         if (!isImagesSupported) {
           tagMetadata[PluginType.IMAGES] = {
             tagDescriptions: {},
-            tagRunDescriptions: undefined,
             tagRunSampledInfo: {},
           };
         }
@@ -327,10 +334,9 @@ export class TBMetricsDataSource implements MetricsDataSource {
     const body = new FormData();
     body.append('requests', JSON.stringify([backendRequest]));
     return this.http
-      .post<BackendTimeSeriesResponse[]>(
-        `/experiment/${experimentId}/${HTTP_PATH_PREFIX}/timeSeries`,
-        body
-      )
+      .post<
+        BackendTimeSeriesResponse[]
+      >(`/experiment/${experimentId}/${HTTP_PATH_PREFIX}/timeSeries`, body)
       .pipe(
         map((responses: BackendTimeSeriesResponse[]) => {
           return {response: responses[0], experimentId};

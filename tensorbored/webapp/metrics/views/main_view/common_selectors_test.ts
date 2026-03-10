@@ -243,19 +243,19 @@ describe('common selectors', () => {
           buildMetricsState({
             tagMetadata: {
               histograms: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {},
               },
               images: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagRunSampledInfo: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagRunSampledInfo: {},
               },
               scalars: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {
                   'tag-1': ['run1'],
                   'tag-2': ['run2', 'run3'],
                 },
@@ -295,19 +295,19 @@ describe('common selectors', () => {
           buildMetricsState({
             tagMetadata: {
               histograms: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {},
               },
               images: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagRunSampledInfo: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagRunSampledInfo: {},
               },
               scalars: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {
                   'tag-1': ['run1'],
                   'tag-2': ['run2', 'run3'],
                 },
@@ -367,19 +367,19 @@ describe('common selectors', () => {
             },
             tagMetadata: {
               histograms: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {},
               },
               images: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagRunSampledInfo: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagRunSampledInfo: {},
               },
               scalars: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {
                   'tag-1': ['run1'],
                   'tag-2': ['run2', 'run3'],
                 },
@@ -460,19 +460,19 @@ describe('common selectors', () => {
             },
             tagMetadata: {
               histograms: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {},
               },
               images: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagRunSampledInfo: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagRunSampledInfo: {},
               },
               scalars: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {
                   'tag-1': ['run1'],
                   'tag-2': ['run2', 'run3'],
                 },
@@ -555,19 +555,19 @@ describe('common selectors', () => {
             },
             tagMetadata: {
               histograms: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {},
               },
               images: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagRunSampledInfo: {},
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagRunSampledInfo: {},
               },
               scalars: {
-            tagDescriptions: {},
-            tagRunDescriptions: {},
-            tagToRuns: {
+                tagDescriptions: {},
+                tagRunDescriptions: {},
+                tagToRuns: {
                   'tag-1': ['run1'],
                   'tag-2': ['run2', 'run3'],
                 },

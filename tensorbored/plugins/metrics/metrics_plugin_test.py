@@ -442,10 +442,12 @@ class MetricsPluginTest(tf.test.TestCase):
             response["histograms"]["tagDescriptions"],
         )
         self.assertIn(
-            "tagRunDescriptions", response["scalars"],
+            "tagRunDescriptions",
+            response["scalars"],
         )
         self.assertIn(
-            "tagRunDescriptions", response["histograms"],
+            "tagRunDescriptions",
+            response["histograms"],
         )
 
     def test_time_series_scalar(self):
