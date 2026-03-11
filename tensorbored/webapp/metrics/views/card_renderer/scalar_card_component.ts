@@ -106,7 +106,7 @@ export class ScalarCardComponent<Downloader> {
   @Input() superimposedCards: SuperimposedCardMetadata[] = [];
   @Input() tag!: string;
   @Input() tagDescription: string | null = null;
-  @Input() tagRunDescriptions: {[run: string]: string} | null = null;
+  @Input() tagRunDescriptions: {[run: string]: string} = {};
   @Input() title!: string;
   @Input() tooltipSort!: TooltipSort;
   @Input() xAxisType!: XAxisType;
@@ -166,10 +166,7 @@ export class ScalarCardComponent<Downloader> {
   @ViewChild('dataTableContainer')
   dataTableContainer?: ElementRef;
 
-  constructor(
-    private readonly ref: ElementRef,
-    private dialog: MatDialog
-  ) {}
+  constructor(private readonly ref: ElementRef, private dialog: MatDialog) {}
 
   isViewBoxOverridden: boolean = false;
   additionalItemsCount = 0;
@@ -177,21 +174,17 @@ export class ScalarCardComponent<Downloader> {
   selectedRunTab: string | null = null;
 
   get hasRunDescriptions(): boolean {
-    return (
-      !!this.tagRunDescriptions &&
-      Object.keys(this.tagRunDescriptions).length > 0
-    );
+    return Object.keys(this.tagRunDescriptions).length > 0;
   }
 
   get runDescriptionEntries(): Array<{run: string; description: string}> {
-    if (!this.tagRunDescriptions) return [];
     return Object.keys(this.tagRunDescriptions)
       .sort()
-      .map((run) => ({run, description: this.tagRunDescriptions![run]}));
+      .map((run) => ({run, description: this.tagRunDescriptions[run]}));
   }
 
   get selectedRunDescription(): string {
-    if (!this.tagRunDescriptions || !this.selectedRunTab) return '';
+    if (!this.selectedRunTab) return '';
     return this.tagRunDescriptions[this.selectedRunTab] ?? '';
   }
 
@@ -433,7 +426,7 @@ export class ScalarCardComponent<Downloader> {
     // Otherwise the table should be toggled.
     return Boolean(
       this.dataTableContainer?.nativeElement.style.height ||
-      !this.cardState?.tableExpanded
+        !this.cardState?.tableExpanded
     );
   }
 

@@ -47,7 +47,7 @@ export class ImageCardComponent {
   @Input() title!: string;
   @Input() tag!: string;
   @Input() tagDescription: string | null = null;
-  @Input() tagRunDescriptions: {[run: string]: string} | null = null;
+  @Input() tagRunDescriptions: {[run: string]: string} = {};
   @Input() runId!: string;
   @Input() sample!: number;
   @Input() numSample!: number;
@@ -72,21 +72,17 @@ export class ImageCardComponent {
   selectedRunTab: string | null = null;
 
   get hasRunDescriptions(): boolean {
-    return (
-      !!this.tagRunDescriptions &&
-      Object.keys(this.tagRunDescriptions).length > 0
-    );
+    return Object.keys(this.tagRunDescriptions).length > 0;
   }
 
   get runDescriptionEntries(): Array<{run: string; description: string}> {
-    if (!this.tagRunDescriptions) return [];
     return Object.keys(this.tagRunDescriptions)
       .sort()
-      .map((run) => ({run, description: this.tagRunDescriptions![run]}));
+      .map((run) => ({run, description: this.tagRunDescriptions[run]}));
   }
 
   get selectedRunDescription(): string {
-    if (!this.tagRunDescriptions || !this.selectedRunTab) return '';
+    if (!this.selectedRunTab) return '';
     return this.tagRunDescriptions[this.selectedRunTab] ?? '';
   }
 

@@ -120,7 +120,7 @@ export class HistogramCardContainer implements CardRenderer, OnInit {
   title$?: Observable<string>;
   tag$?: Observable<string>;
   tagDescription$?: Observable<string>;
-  tagRunDescriptions$?: Observable<{[run: string]: string} | null>;
+  tagRunDescriptions$?: Observable<{[run: string]: string}>;
   runId$?: Observable<string>;
   data$?: Observable<HistogramDatum[]>;
   mode$;
@@ -245,6 +245,7 @@ export class HistogramCardContainer implements CardRenderer, OnInit {
       })
     );
 
+    const emptyRunDescs: {[run: string]: string} = {};
     this.tagRunDescriptions$ = combineLatest([
       cardMetadata$,
       this.store.select(getMetricsTagMetadata),
@@ -253,7 +254,7 @@ export class HistogramCardContainer implements CardRenderer, OnInit {
         const runDescs =
           tagMetadata[cardMetadata.plugin]?.tagRunDescriptions ?? {};
         const perTag = runDescs[cardMetadata.tag];
-        if (!perTag || Object.keys(perTag).length === 0) return null;
+        if (!perTag || Object.keys(perTag).length === 0) return emptyRunDescs;
         const plainText: {[run: string]: string} = {};
         for (const run of Object.keys(perTag)) {
           plainText[run] = htmlToText(perTag[run]);

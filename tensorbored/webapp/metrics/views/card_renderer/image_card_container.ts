@@ -143,7 +143,7 @@ export class ImageCardContainer implements CardRenderer, OnInit, OnDestroy {
   title$?: Observable<string>;
   tag$?: Observable<string>;
   tagDescription$?: Observable<string>;
-  tagRunDescriptions$?: Observable<{[run: string]: string} | null>;
+  tagRunDescriptions$?: Observable<{[run: string]: string}>;
   runId$?: Observable<string>;
   sample$?: Observable<number>;
   numSample$?: Observable<number>;
@@ -263,6 +263,7 @@ export class ImageCardContainer implements CardRenderer, OnInit, OnDestroy {
       })
     );
 
+    const emptyRunDescs: {[run: string]: string} = {};
     this.tagRunDescriptions$ = combineLatest([
       cardMetadata$,
       this.store.select(getMetricsTagMetadata),
@@ -271,7 +272,7 @@ export class ImageCardContainer implements CardRenderer, OnInit, OnDestroy {
         const runDescs =
           tagMetadata[cardMetadata.plugin]?.tagRunDescriptions ?? {};
         const perTag = runDescs[cardMetadata.tag];
-        if (!perTag || Object.keys(perTag).length === 0) return null;
+        if (!perTag || Object.keys(perTag).length === 0) return emptyRunDescs;
         const plainText: {[run: string]: string} = {};
         for (const run of Object.keys(perTag)) {
           plainText[run] = htmlToText(perTag[run]);

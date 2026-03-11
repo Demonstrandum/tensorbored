@@ -306,7 +306,7 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
   title$?: Observable<string>;
   tag$?: Observable<string>;
   tagDescription$?: Observable<string>;
-  tagRunDescriptions$?: Observable<{[run: string]: string} | null>;
+  tagRunDescriptions$?: Observable<{[run: string]: string}>;
   isPinned$?: Observable<boolean>;
   dataSeries$?: Observable<ScalarCardDataSeries[]>;
   chartMetadataMap$?: Observable<ScalarCardSeriesMetadataMap>;
@@ -611,8 +611,8 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
                   : displayName,
               visible: Boolean(
                 runSelectionMap &&
-                runSelectionMap.get(runId) &&
-                renderableRuns.has(runId)
+                  runSelectionMap.get(runId) &&
+                  renderableRuns.has(runId)
               ),
               color: colorMap[runId] ?? '#fff',
               aux: false,
@@ -684,6 +684,7 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
       startWith('')
     );
 
+    const emptyRunDescs: {[run: string]: string} = {};
     this.tagRunDescriptions$ = combineLatest([
       cardMetadata$,
       this.store.select(getMetricsTagMetadata),
@@ -692,14 +693,14 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
         const runDescs =
           tagMetadata[cardMetadata.plugin]?.tagRunDescriptions ?? {};
         const perTag = runDescs[cardMetadata.tag];
-        if (!perTag || Object.keys(perTag).length === 0) return null;
+        if (!perTag || Object.keys(perTag).length === 0) return emptyRunDescs;
         const plainText: {[run: string]: string} = {};
         for (const run of Object.keys(perTag)) {
           plainText[run] = htmlToText(perTag[run]);
         }
         return plainText;
       }),
-      startWith(null)
+      startWith(emptyRunDescs)
     );
 
     this.cardState$ = this.store.select(getCardStateMap).pipe(
@@ -740,9 +741,9 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
     ]).pipe(
       map(([experimentId, idToAlias, run]) => {
         const alias =
-          experimentId !== null ? (idToAlias[experimentId] ?? null) : null;
+          experimentId !== null ? idToAlias[experimentId] ?? null : null;
         return {
-          displayName: !run && !alias ? runId : (run?.name ?? '...'),
+          displayName: !run && !alias ? runId : run?.name ?? '...',
           alias: alias,
         };
       })
