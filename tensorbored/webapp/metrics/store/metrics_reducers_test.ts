@@ -111,6 +111,7 @@ describe('metrics reducers', () => {
       storeForm: {
         scalars: {
           tagDescriptions: {tagA: 'Describing tagA'},
+          tagRunDescriptions: {},
           tagToRuns: {
             tagA: ['train'],
             tagB: ['test', 'train'],
@@ -118,10 +119,12 @@ describe('metrics reducers', () => {
         },
         histograms: {
           tagDescriptions: {histogramTagA: 'Describing histogram tagA'},
+          tagRunDescriptions: {},
           tagToRuns: {histogramTagA: ['test', 'train']},
         },
         images: {
           tagDescriptions: {imageTagA: 'Describing image tagA'},
+          tagRunDescriptions: {},
           tagRunSampledInfo: {
             imageTagA: {
               test: {maxSamplesPerStep: 1},
