@@ -28,7 +28,6 @@ import {
   TimeProperty,
 } from '../../../widgets/histogram/histogram_types';
 import {TimeSelection, XAxisType} from '../../types';
-import {buildTagTooltip} from '../utils';
 import {TimeSelectionView} from './utils';
 
 @Component({
@@ -93,10 +92,6 @@ export class HistogramCardComponent {
 
   selectRunTab(run: string) {
     this.selectedRunTab = run;
-  }
-
-  getTagTooltip(tag: string, description: string | null): string {
-    return buildTagTooltip(tag, description ?? '');
   }
 
   timeProperty(xAxisType: XAxisType) {

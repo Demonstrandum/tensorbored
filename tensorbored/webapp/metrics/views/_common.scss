@@ -94,14 +94,16 @@ $metrics-min-card-height: 320px;
   @include tb-theme-foreground-prop(border-color, border);
 
   .popover-tag-name {
-    font-weight: 600;
+    font-weight: 400;
     margin-bottom: 4px;
     word-break: break-all;
+    @include tb-theme-foreground-prop(color, secondary-text);
   }
 
   .popover-description {
+    font-weight: 500;
     margin-bottom: 6px;
-    @include tb-theme-foreground-prop(color, secondary-text);
+    @include tb-theme-foreground-prop(color, text);
   }
 
   .popover-run-descriptions {

@@ -22,7 +22,7 @@ limitations under the License.
     style="position: relative"
   >
     <tb-truncated-path
-      [matTooltip]="hasRunDescriptions ? '' : getTagTooltip(tag, tagDescription)"
+      [matTooltip]="tagDescription ? '' : tag"
       matTooltipClass="tb-tag-tooltip"
       matTooltipShowDelay="0"
       [value]="title"

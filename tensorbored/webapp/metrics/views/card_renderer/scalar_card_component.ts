@@ -52,7 +52,6 @@ import {
   SuperimposedCardId,
   SuperimposedCardMetadata,
 } from '../../types';
-import {buildTagTooltip} from '../utils';
 import {
   MinMaxStep,
   ScalarCardDataSeries,
@@ -201,10 +200,6 @@ export class ScalarCardComponent<Downloader> {
 
   selectRunTab(run: string) {
     this.selectedRunTab = run;
-  }
-
-  getTagTooltip(tag: string, description: string | null): string {
-    return buildTagTooltip(tag, description ?? '');
   }
 
   private static nextScale(current: ScaleType): ScaleType {

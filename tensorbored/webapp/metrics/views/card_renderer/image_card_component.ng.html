@@ -24,7 +24,7 @@ limitations under the License.
     >
       <tb-truncated-path
         class="tag-path"
-        [matTooltip]="hasRunDescriptions ? '' : getTagTooltip(tag, tagDescription)"
+        [matTooltip]="tagDescription ? '' : tag"
         matTooltipClass="tb-tag-tooltip"
         matTooltipShowDelay="0"
         value="{{ title }}"

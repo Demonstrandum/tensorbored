@@ -23,7 +23,6 @@ import {
 } from '@angular/core';
 import {DataLoadState} from '../../../types/data';
 import {RunColorScale} from '../../../types/ui';
-import {buildTagTooltip} from '../utils';
 import {TimeSelectionView} from './utils';
 
 const TICK_WIDTH = 12; // In px
@@ -99,10 +98,6 @@ export class ImageCardComponent {
 
   selectRunTab(run: string) {
     this.selectedRunTab = run;
-  }
-
-  getTagTooltip(tag: string, description: string | null): string {
-    return buildTagTooltip(tag, description ?? '');
   }
 
   cssFilter() {
