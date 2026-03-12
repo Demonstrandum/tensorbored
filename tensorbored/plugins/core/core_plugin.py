@@ -279,7 +279,10 @@ class CorePlugin(base_plugin.TBPlugin):
 
     @wrappers.Request.application
     def _serve_runs(self, request):
-        """Serve a JSON array of run names, ordered by run started time.
+        """Serve a JSON array of run objects, ordered by run started time.
+
+        Each element is ``{"name": "<run>", "startTime": <epoch_seconds>}``.
+        ``startTime`` is ``null`` when no events have been recorded yet.
 
         Sort order is by started time (aka first event time) with empty
         times sorted last, and then ties are broken by sorting on the
@@ -294,8 +297,11 @@ class CorePlugin(base_plugin.TBPlugin):
                 run.run_name,
             ),
         )
-        run_names = [run.run_name for run in runs]
-        return http_util.Respond(request, run_names, "application/json")
+        result = [
+            {"name": run.run_name, "startTime": run.start_time}
+            for run in runs
+        ]
+        return http_util.Respond(request, result, "application/json")
 
     def _run_colors_path(self):
         """Returns a path to the run color overrides file, or None if unavailable.

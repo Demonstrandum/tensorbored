@@ -101,6 +101,11 @@ limitations under the License.
                     [title]="dataRow['experimentName']"
                   ></tb-experiment-alias>
                 </span>
+                <span
+                  *ngSwitchCase="'startTime'"
+                  class="start-time"
+                  [title]="formatStartTimeFull(dataRow['startTime'])"
+                >{{ formatStartTime(dataRow['startTime']) }}</span>
               </ng-container>
             </tb-data-table-content-cell>
           </ng-container>

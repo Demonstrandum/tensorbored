@@ -18,10 +18,15 @@ import {map} from 'rxjs/operators';
 import {TBHttpClient} from '../../webapp_data_source/tb_http_client';
 import {Run, RunsDataSource} from './runs_data_source_types';
 
-type BackendGetRunsResponse = string[];
+interface BackendRunEntry {
+  name: string;
+  startTime: number | null;
+}
 
-function runToRunId(run: string, experimentId: string) {
-  return `${experimentId}/${run}`;
+type BackendGetRunsResponse = BackendRunEntry[];
+
+function runToRunId(runName: string, experimentId: string) {
+  return `${experimentId}/${runName}`;
 }
 
 @Injectable()
@@ -32,13 +37,12 @@ export class TBRunsDataSource implements RunsDataSource {
     return this.http
       .get<BackendGetRunsResponse>(`/experiment/${experimentId}/data/runs`)
       .pipe(
-        map((runs) => {
-          return runs.map((run) => {
+        map((entries) => {
+          return entries.map((entry) => {
             return {
-              id: runToRunId(run, experimentId),
-              name: run,
-              // Use a dummy startTime for now, until there is backend support.
-              startTime: 0,
+              id: runToRunId(entry.name, experimentId),
+              name: entry.name,
+              startTime: entry.startTime ?? 0,
             };
           });
         })

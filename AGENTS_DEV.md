@@ -55,6 +55,7 @@ The key features added on top of TensorBoard are:
 | Default axis scales in profiles      | #32   | —                       |
 | Configurable symlog linear threshold | #34   | —                       |
 | Section expansion persistence        | #56   | —                       |
+| Runs sorted by start time            | —     | —                       |
 
 ---
 
@@ -493,6 +494,10 @@ The expanded/collapsed state of tag group sections on the time-series page is pe
 3. **localStorage**: When the user expands or collapses a section, the full state is persisted. On reload, it is restored before tag metadata loads, preventing the default "auto-expand first 2 groups" from overriding the user's choice.
 
 If no persisted state exists and no profile specifies `expandedTagGroups`, the default behavior (expand the first two tag groups) is preserved.
+
+### Runs Sorted by Start Time
+
+The `/data/runs` endpoint now returns objects with both `name` and `startTime` (epoch seconds, or `null` if no events recorded yet). The frontend runs table defaults to sorting by `startTime` ascending (oldest first), giving a natural "time added" ordering. A "Started" column is visible in the sidebar runs table, showing a short human-readable timestamp (time-only for today, month+day otherwise). Users can click any column header to change the sort order (ascending/descending) or sort by a different column (run name, experiment alias, hparams, etc.).
 
 ---
 

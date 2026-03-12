@@ -103,6 +103,12 @@ tb-data-table-header-cell.table-column-color {
   z-index: 2;
 }
 
+.start-time {
+  font-size: 12px;
+  white-space: nowrap;
+  @include tb-theme-foreground-prop(color, secondary-text);
+}
+
 .filter-row {
   display: flex;
   align-items: center;

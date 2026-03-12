@@ -20,7 +20,8 @@ export class RunsStore extends BaseStore {
   private _runs: string[] = [];
   load() {
     const url = getRouter().runs();
-    return this.requestManager.request(url).then((newRuns) => {
+    return this.requestManager.request(url).then((response: unknown) => {
+      const newRuns = extractRunNames(response);
       if (!_.isEqual(this._runs, newRuns)) {
         this._runs = newRuns;
         this.emitChange();
@@ -35,5 +36,11 @@ export class RunsStore extends BaseStore {
   getRuns(): string[] {
     return this._runs.slice();
   }
+}
+
+function extractRunNames(response: unknown): string[] {
+  if (!Array.isArray(response) || response.length === 0) return [];
+  if (typeof response[0] === 'string') return response as string[];
+  return (response as Array<{name: string}>).map((entry) => entry.name);
 }
 export const runsStore = new RunsStore();

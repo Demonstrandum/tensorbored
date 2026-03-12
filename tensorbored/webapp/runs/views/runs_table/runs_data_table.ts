@@ -155,6 +155,21 @@ export class RunsDataTable {
     this.onRegexFilterChange.emit(input.value);
   }
 
+  formatStartTime(epochSeconds: number | undefined): string {
+    if (!epochSeconds) return '';
+    const d = new Date(epochSeconds * 1000);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+      return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    }
+    return d.toLocaleDateString([], {month: 'short', day: 'numeric'});
+  }
+
+  formatStartTimeFull(epochSeconds: number | undefined): string {
+    if (!epochSeconds) return '';
+    return new Date(epochSeconds * 1000).toLocaleString();
+  }
+
   /**
    * Using the `trackBy` directive allows you to control when an element contained
    * by an `ngFor` is rerendered. In this case it is important that changes to
