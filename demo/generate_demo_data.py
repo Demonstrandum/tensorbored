@@ -36,6 +36,7 @@ import numpy as np
 
 from tensorbored.torch import SummaryWriter
 from tensorbored.plugins.core import profile_writer, color_sampler
+from tensorbored.summary import Writer as NativeWriter
 
 # ==============================================================================
 # Configuration
@@ -284,6 +285,7 @@ def setup_default_profile(logdir: Path, run_ids: list):
             "accuracy/eval": "Top-1 accuracy on the validation set.",
             "learning_rate": "Learning rate after warmup and cosine decay.",
             "gradients/global_norm": "Global L2 norm of all gradients.",
+            "diagnostics/convergence_rate": "Rate of convergence toward the loss minimum.",
         },
         smoothing=0.8,
         # Group runs by experiment type
@@ -536,6 +538,28 @@ def main():
                     f"    Step {step}/{TOTAL_STEPS}: "
                     f"loss={train_loss:.4f}, acc={train_acc:.4f}"
                 )
+
+        # Write a scalar with a per-run description via the native writer.
+        # This demonstrates the per-run description tab feature: each run
+        # describes the same metric differently based on its configuration.
+        run_desc = (
+            f"Convergence rate for **{config['optimizer']}** "
+            f"(lr={config['lr']}, batch={config['batch_size']}). "
+            f"Expected to converge around step {config['converge_step']}."
+        )
+        native = NativeWriter(str(LOGDIR / exp_name))
+        for step in range(0, TOTAL_STEPS + 1, LOG_EVERY * 10):
+            random.seed(seed + step + 3000)
+            rate = 1.0 / (1 + step * 0.005 / config["loss_scale"])
+            rate += random.gauss(0, 0.02)
+            native.add_scalar(
+                "diagnostics/convergence_rate",
+                max(0.01, rate),
+                step,
+                description=run_desc,
+            )
+        native.flush()
+        native.close()
 
         # Write sample training script to text plugin (first run only)
         if exp_name == "baseline":
