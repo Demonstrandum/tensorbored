@@ -297,10 +297,7 @@ class CorePlugin(base_plugin.TBPlugin):
                 run.run_name,
             ),
         )
-        result = [
-            {"name": run.run_name, "startTime": run.start_time}
-            for run in runs
-        ]
+        result = [{"name": r.run_name, "startTime": r.start_time} for r in runs]
         return http_util.Respond(request, result, "application/json")
 
     def _run_colors_path(self):
@@ -635,8 +632,7 @@ Port to serve TensorBoard on. Pass 0 to request an unused port selected
 by the operating system, or pass "default" to try to bind to the default
 port (%s) but search for a nearby free port if the default port is
 unavailable. (default: "default").\
-"""
-            % DEFAULT_PORT,
+""" % DEFAULT_PORT,
         )
 
         parser.add_argument(

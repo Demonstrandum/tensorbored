@@ -23,6 +23,7 @@ import {
   ColumnHeader,
   TableData,
   SortingInfo,
+  SortingOrder,
   ColumnHeaderType,
   FilterAddedEvent,
   DiscreteFilter,
@@ -31,6 +32,25 @@ import {
   AddColumnEvent,
 } from '../../../widgets/data_table/types';
 import {memoize} from '../../../util/memoize';
+
+interface SortPreset {
+  readonly label: string;
+  readonly info: SortingInfo;
+}
+
+const SORT_PRESETS: readonly SortPreset[] = [
+  {
+    label: 'Oldest first',
+    info: {name: 'startTime', order: SortingOrder.ASCENDING},
+  },
+  {
+    label: 'Newest first',
+    info: {name: 'startTime', order: SortingOrder.DESCENDING},
+  },
+  {label: 'Name A\u2013Z', info: {name: 'run', order: SortingOrder.ASCENDING}},
+  {label: 'Name Z\u2013A', info: {name: 'run', order: SortingOrder.DESCENDING}},
+];
+
 @Component({
   standalone: false,
   selector: 'runs-data-table',
@@ -51,6 +71,7 @@ export class RunsDataTable {
   @Input() columnFilters!: Map<string, DiscreteFilter | IntervalFilter>;
 
   ColumnHeaderType = ColumnHeaderType;
+  readonly sortPresets = SORT_PRESETS;
 
   @Output() sortDataBy = new EventEmitter<SortingInfo>();
   @Output() orderColumns = new EventEmitter<ReorderColumnEvent>();
@@ -148,6 +169,18 @@ export class RunsDataTable {
   handleSelectAll(event: MouseEvent) {
     event.preventDefault();
     this.onAllSelectionToggle.emit(this.data?.map((row) => row.id));
+  }
+
+  get activeSortPresetIndex(): number {
+    return SORT_PRESETS.findIndex(
+      (p) =>
+        p.info.name === this.sortingInfo.name &&
+        p.info.order === this.sortingInfo.order
+    );
+  }
+
+  onSortPresetChange(index: number) {
+    this.sortDataBy.emit(SORT_PRESETS[index].info);
   }
 
   onFilterKeyUp(event: KeyboardEvent) {

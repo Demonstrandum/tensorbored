@@ -22,6 +22,16 @@ limitations under the License.
     (keyup)="onFilterKeyUp($event)"
     placeholder="Filter runs (regex)"
   ></tb-filter-input>
+  <mat-select
+    class="sort-select"
+    [value]="activeSortPresetIndex"
+    (selectionChange)="onSortPresetChange($event.value)"
+    panelClass="sort-select-panel"
+  >
+    <mat-option *ngFor="let preset of sortPresets; let i = index" [value]="i">
+      {{ preset.label }}
+    </mat-option>
+  </mat-select>
 </div>
 <filterbar></filterbar>
 <div class="table-container">
@@ -105,7 +115,8 @@ limitations under the License.
                   *ngSwitchCase="'startTime'"
                   class="start-time"
                   [title]="formatStartTimeFull(dataRow['startTime'])"
-                >{{ formatStartTime(dataRow['startTime']) }}</span>
+                  >{{ formatStartTime(dataRow['startTime']) }}</span
+                >
               </ng-container>
             </tb-data-table-content-cell>
           </ng-container>
