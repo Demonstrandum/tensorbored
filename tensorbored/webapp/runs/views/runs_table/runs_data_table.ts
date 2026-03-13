@@ -32,6 +32,7 @@ import {
   AddColumnEvent,
 } from '../../../widgets/data_table/types';
 import {memoize} from '../../../util/memoize';
+import {SORT_SELECTED_FIRST} from './sorting_utils';
 
 interface SortPreset {
   readonly label: string;
@@ -47,8 +48,10 @@ const SORT_PRESETS: readonly SortPreset[] = [
     label: 'Newest first',
     info: {name: 'startTime', order: SortingOrder.DESCENDING},
   },
-  {label: 'Name A\u2013Z', info: {name: 'run', order: SortingOrder.ASCENDING}},
-  {label: 'Name Z\u2013A', info: {name: 'run', order: SortingOrder.DESCENDING}},
+  {
+    label: 'Selected first',
+    info: {name: SORT_SELECTED_FIRST, order: SortingOrder.DESCENDING},
+  },
 ];
 
 @Component({
