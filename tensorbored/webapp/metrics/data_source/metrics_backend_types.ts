@@ -25,16 +25,19 @@ import {
   RunToTags,
   ScalarStepDatum,
   TagToDescription,
+  TagToRunDescriptions,
   TagToRunSampledInfo,
 } from './types';
 
 export interface BackendNonSampledTagMetadata {
   runTagInfo: RunToTags;
   tagDescriptions: TagToDescription;
+  tagRunDescriptions?: TagToRunDescriptions;
 }
 
 export type BackendSampledTagMetadata = {
   tagDescriptions: TagToDescription;
+  tagRunDescriptions?: TagToRunDescriptions;
   tagRunSampledInfo: TagToRunSampledInfo;
 };
 

@@ -27,9 +27,14 @@ export type TagToDescription = {
   [tag: string]: string;
 };
 
+export type TagToRunDescriptions = {
+  [tag: string]: {[run: string]: string};
+};
+
 export interface NonSampledTagMetadata {
   runTagInfo: RunToTags;
   tagDescriptions: TagToDescription;
+  tagRunDescriptions?: TagToRunDescriptions;
 }
 
 export interface SampledTimeSeriesInfo {
@@ -46,6 +51,7 @@ export interface TagToRunSampledInfo {
 
 export type SampledTagMetadata = {
   tagDescriptions: TagToDescription;
+  tagRunDescriptions?: TagToRunDescriptions;
   tagRunSampledInfo: TagToRunSampledInfo;
 };
 

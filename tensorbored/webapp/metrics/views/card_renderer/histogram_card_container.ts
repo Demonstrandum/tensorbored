@@ -75,6 +75,7 @@ type HistogramCardMetadata = CardMetadata & {
       [title]="title$ | async"
       [tag]="tag$ | async"
       [tagDescription]="tagDescription$ | async"
+      [tagRunDescriptions]="tagRunDescriptions$ | async"
       [runId]="runId$ | async"
       [data]="data$ | async"
       [mode]="mode$ | async"
@@ -119,6 +120,7 @@ export class HistogramCardContainer implements CardRenderer, OnInit {
   title$?: Observable<string>;
   tag$?: Observable<string>;
   tagDescription$?: Observable<string>;
+  tagRunDescriptions$?: Observable<{[run: string]: string}>;
   runId$?: Observable<string>;
   data$?: Observable<HistogramDatum[]>;
   mode$;
@@ -240,6 +242,24 @@ export class HistogramCardContainer implements CardRenderer, OnInit {
         const descriptions =
           tagMetadata[cardMetadata.plugin]?.tagDescriptions ?? {};
         return htmlToText(descriptions[cardMetadata.tag] || '');
+      })
+    );
+
+    const emptyRunDescs: {[run: string]: string} = {};
+    this.tagRunDescriptions$ = combineLatest([
+      cardMetadata$,
+      this.store.select(getMetricsTagMetadata),
+    ]).pipe(
+      map(([cardMetadata, tagMetadata]) => {
+        const runDescs =
+          tagMetadata[cardMetadata.plugin]?.tagRunDescriptions ?? {};
+        const perTag = runDescs[cardMetadata.tag];
+        if (!perTag || Object.keys(perTag).length === 0) return emptyRunDescs;
+        const plainText: {[run: string]: string} = {};
+        for (const run of Object.keys(perTag)) {
+          plainText[run] = htmlToText(perTag[run]);
+        }
+        return plainText;
       })
     );
 

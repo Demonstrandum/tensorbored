@@ -190,6 +190,7 @@ function areSeriesEqual(
       [superimposedCards]="superimposedCards$ | async"
       [tag]="tag$ | async"
       [tagDescription]="tagDescription$ | async"
+      [tagRunDescriptions]="tagRunDescriptions$ | async"
       [title]="title$ | async"
       [cardState]="cardState$ | async"
       [tooltipSort]="tooltipSort$ | async"
@@ -305,6 +306,7 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
   title$?: Observable<string>;
   tag$?: Observable<string>;
   tagDescription$?: Observable<string>;
+  tagRunDescriptions$?: Observable<{[run: string]: string}>;
   isPinned$?: Observable<boolean>;
   dataSeries$?: Observable<ScalarCardDataSeries[]>;
   chartMetadataMap$?: Observable<ScalarCardSeriesMetadataMap>;
@@ -680,6 +682,25 @@ export class ScalarCardContainer implements CardRenderer, OnInit, OnDestroy {
         return htmlToText(descriptions[cardMetadata.tag] || '');
       }),
       startWith('')
+    );
+
+    const emptyRunDescs: {[run: string]: string} = {};
+    this.tagRunDescriptions$ = combineLatest([
+      cardMetadata$,
+      this.store.select(getMetricsTagMetadata),
+    ]).pipe(
+      map(([cardMetadata, tagMetadata]) => {
+        const runDescs =
+          tagMetadata[cardMetadata.plugin]?.tagRunDescriptions ?? {};
+        const perTag = runDescs[cardMetadata.tag];
+        if (!perTag || Object.keys(perTag).length === 0) return emptyRunDescs;
+        const plainText: {[run: string]: string} = {};
+        for (const run of Object.keys(perTag)) {
+          plainText[run] = htmlToText(perTag[run]);
+        }
+        return plainText;
+      }),
+      startWith(emptyRunDescs)
     );
 
     this.cardState$ = this.store.select(getCardStateMap).pipe(

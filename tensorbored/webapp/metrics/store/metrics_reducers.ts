@@ -298,14 +298,17 @@ const {initialState, reducers: namespaceContextedReducer} =
       tagMetadata: {
         scalars: {
           tagDescriptions: {},
+          tagRunDescriptions: {},
           tagToRuns: {},
         },
         histograms: {
           tagDescriptions: {},
+          tagRunDescriptions: {},
           tagToRuns: {},
         },
         images: {
           tagDescriptions: {},
+          tagRunDescriptions: {},
           tagRunSampledInfo: {},
         },
       },
@@ -544,14 +547,17 @@ const {initialState, reducers: namespaceContextedReducer} =
           tagMetadata: {
             scalars: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagToRuns: {},
             },
             histograms: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagToRuns: {},
             },
             images: {
               tagDescriptions: {},
+              tagRunDescriptions: {},
               tagRunSampledInfo: {},
             },
           },
@@ -764,10 +770,15 @@ const reducer = createReducer(
       state: MetricsState,
       {tagMetadata}: {tagMetadata: DataSourceTagMetadata}
     ): MetricsState => {
+      const imagesData = tagMetadata[PluginType.IMAGES];
       const nextTagMetadata: TagMetadata = {
         scalars: buildPluginTagData(tagMetadata, PluginType.SCALARS),
         histograms: buildPluginTagData(tagMetadata, PluginType.HISTOGRAMS),
-        images: tagMetadata[PluginType.IMAGES],
+        images: {
+          tagDescriptions: imagesData.tagDescriptions,
+          tagRunDescriptions: imagesData.tagRunDescriptions ?? {},
+          tagRunSampledInfo: imagesData.tagRunSampledInfo,
+        },
       };
 
       const newCardMetadataMap = {} as CardMetadataMap;
@@ -2165,6 +2176,7 @@ function buildPluginTagData(
 ): NonSampledPluginTagMetadata {
   return {
     tagDescriptions: tagMetadata[pluginType].tagDescriptions,
+    tagRunDescriptions: tagMetadata[pluginType].tagRunDescriptions ?? {},
     tagToRuns: buildTagToRuns(tagMetadata[pluginType].runTagInfo),
   };
 }

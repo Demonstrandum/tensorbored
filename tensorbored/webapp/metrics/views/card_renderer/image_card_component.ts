@@ -23,7 +23,6 @@ import {
 } from '@angular/core';
 import {DataLoadState} from '../../../types/data';
 import {RunColorScale} from '../../../types/ui';
-import {buildTagTooltip} from '../utils';
 import {TimeSelectionView} from './utils';
 
 const TICK_WIDTH = 12; // In px
@@ -47,6 +46,7 @@ export class ImageCardComponent {
   @Input() title!: string;
   @Input() tag!: string;
   @Input() tagDescription: string | null = null;
+  @Input() tagRunDescriptions: {[run: string]: string} = {};
   @Input() runId!: string;
   @Input() sample!: number;
   @Input() numSample!: number;
@@ -67,8 +67,37 @@ export class ImageCardComponent {
   @Output() stepIndexChange = new EventEmitter<number>();
   @Output() onPinClicked = new EventEmitter<boolean>();
 
-  getTagTooltip(tag: string, description: string | null): string {
-    return buildTagTooltip(tag, description ?? '');
+  descriptionTooltipVisible = false;
+  selectedRunTab: string | null = null;
+
+  get hasRunDescriptions(): boolean {
+    return Object.keys(this.tagRunDescriptions).length > 0;
+  }
+
+  get runDescriptionEntries(): Array<{run: string; description: string}> {
+    return Object.keys(this.tagRunDescriptions)
+      .sort()
+      .map((run) => ({run, description: this.tagRunDescriptions[run]}));
+  }
+
+  get selectedRunDescription(): string {
+    if (!this.selectedRunTab) return '';
+    return this.tagRunDescriptions[this.selectedRunTab] ?? '';
+  }
+
+  showDescriptionTooltip() {
+    this.descriptionTooltipVisible = true;
+    if (this.hasRunDescriptions && !this.selectedRunTab) {
+      this.selectedRunTab = this.runDescriptionEntries[0]?.run ?? null;
+    }
+  }
+
+  hideDescriptionTooltip() {
+    this.descriptionTooltipVisible = false;
+  }
+
+  selectRunTab(run: string) {
+    this.selectedRunTab = run;
   }
 
   cssFilter() {

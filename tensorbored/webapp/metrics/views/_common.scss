@@ -74,3 +74,68 @@ $metrics-min-card-height: 320px;
 :host ::ng-deep .tb-tag-tooltip {
   white-space: pre-line;
 }
+
+.tag-description-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 8px 10px;
+  max-width: 400px;
+  min-width: 200px;
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: auto;
+
+  @include tb-theme-background-prop(background-color, card);
+  @include tb-theme-foreground-prop(border-color, border);
+
+  .popover-tag-name {
+    font-weight: 400;
+    margin-bottom: 4px;
+    word-break: break-all;
+    @include tb-theme-foreground-prop(color, secondary-text);
+  }
+
+  .popover-description {
+    font-weight: 500;
+    margin-bottom: 6px;
+    @include tb-theme-foreground-prop(color, text);
+  }
+
+  .popover-run-descriptions {
+    padding-top: 6px;
+    @include tb-theme-foreground-prop(border-top, border, 1px solid);
+  }
+
+  .popover-run-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin-bottom: 4px;
+
+    .run-tab {
+      background: none;
+      border: 1px solid;
+      @include tb-theme-foreground-prop(border-color, border);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 11px;
+      cursor: pointer;
+      color: inherit;
+
+      &.active {
+        background: #1976d2;
+        color: #fff;
+        border-color: #1976d2;
+      }
+    }
+  }
+
+  .popover-run-content {
+    font-size: 12px;
+  }
+}

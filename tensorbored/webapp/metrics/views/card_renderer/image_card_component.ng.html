@@ -16,14 +16,41 @@ limitations under the License.
 -->
 <div class="heading" cdkDragHandle>
   <div class="line">
-    <span class="tag">
+    <span
+      class="tag"
+      (mouseenter)="showDescriptionTooltip()"
+      (mouseleave)="hideDescriptionTooltip()"
+      style="position: relative"
+    >
       <tb-truncated-path
         class="tag-path"
-        [matTooltip]="getTagTooltip(tag, tagDescription)"
+        [matTooltip]="tagDescription ? '' : tag"
         matTooltipClass="tb-tag-tooltip"
         matTooltipShowDelay="0"
         value="{{ title }}"
       ></tb-truncated-path>
+      <div
+        class="tag-description-popover"
+        *ngIf="descriptionTooltipVisible && (tagDescription || hasRunDescriptions)"
+      >
+        <div class="popover-tag-name">{{ tag }}</div>
+        <div class="popover-description" *ngIf="tagDescription">
+          {{ tagDescription }}
+        </div>
+        <div class="popover-run-descriptions" *ngIf="hasRunDescriptions">
+          <div class="popover-run-tabs">
+            <button
+              *ngFor="let entry of runDescriptionEntries"
+              class="run-tab"
+              [class.active]="selectedRunTab === entry.run"
+              (click)="selectRunTab(entry.run); $event.stopPropagation()"
+            >
+              {{ entry.run }}
+            </button>
+          </div>
+          <div class="popover-run-content">{{ selectedRunDescription }}</div>
+        </div>
+      </div>
       <vis-linked-time-selection-warning
         [isClipped]="linkedTimeSelection && linkedTimeSelection.clipped"
         [isClosestStepHighlighted]="isClosestStepHighlighted"
