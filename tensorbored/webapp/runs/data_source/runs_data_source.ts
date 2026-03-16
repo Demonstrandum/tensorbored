@@ -42,7 +42,7 @@ export class TBRunsDataSource implements RunsDataSource {
             return {
               id: runToRunId(entry.name, experimentId),
               name: entry.name,
-              startTime: entry.startTime ?? 0,
+              startTime: entry.startTime ?? Infinity,
             };
           });
         })

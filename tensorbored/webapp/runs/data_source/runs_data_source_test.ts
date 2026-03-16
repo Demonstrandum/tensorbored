@@ -51,7 +51,7 @@ describe('TBRunsDataSource test', () => {
       ]);
     }));
 
-    it('treats null startTime as 0', fakeAsync(() => {
+    it('treats null startTime as Infinity', fakeAsync(() => {
       const results = jasmine.createSpy();
       dataSource.fetchRuns('exp1').subscribe(results);
 
@@ -61,7 +61,7 @@ describe('TBRunsDataSource test', () => {
       flush();
 
       expect(results).toHaveBeenCalledWith([
-        {id: 'exp1/baz', name: 'baz', startTime: 0},
+        {id: 'exp1/baz', name: 'baz', startTime: Infinity},
       ]);
     }));
   });
