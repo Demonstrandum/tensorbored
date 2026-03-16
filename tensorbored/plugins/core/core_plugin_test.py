@@ -314,7 +314,9 @@ class CorePluginTest(tf.test.TestCase):
         """Test the format of the /data/runs endpoint."""
         self._add_run("run1")
         run_json = self._get_json(self.server, "/data/runs")
-        self.assertEqual(run_json, ["run1"])
+        self.assertLen(run_json, 1)
+        self.assertEqual(run_json[0]["name"], "run1")
+        self.assertIn("startTime", run_json[0])
 
     def testRunsAppendOnly(self):
         """Test that new runs appear after old ones in /data/runs."""
@@ -326,6 +328,9 @@ class CorePluginTest(tf.test.TestCase):
             "mysterious": None,
             "enigmatic": None,
         }
+
+        def _names(run_json):
+            return [entry["name"] for entry in run_json]
 
         def FirstEventTimestamp_stub(run_name):
             matches = [
@@ -349,29 +354,28 @@ class CorePluginTest(tf.test.TestCase):
 
             # Add one run: it should come last.
             self._add_run("avocado")
-            self.assertEqual(
-                self._get_json(self.server, "/data/runs"),
-                ["run1", "avocado"],
-            )
+            result = self._get_json(self.server, "/data/runs")
+            self.assertEqual(_names(result), ["run1", "avocado"])
+            self.assertEqual(result[0]["startTime"], 1234.0)
+            self.assertEqual(result[1]["startTime"], 2345.0)
 
             # Add another run: it should come last, too.
             self._add_run("zebra")
-            self.assertEqual(
-                self._get_json(self.server, "/data/runs"),
-                ["run1", "avocado", "zebra"],
-            )
+            result = self._get_json(self.server, "/data/runs")
+            self.assertEqual(_names(result), ["run1", "avocado", "zebra"])
 
             # And maybe there's a run for which we somehow have no timestamp.
             self._add_run("mysterious")
+            result = self._get_json(self.server, "/data/runs")
             self.assertEqual(
-                self._get_json(self.server, "/data/runs"),
-                ["run1", "avocado", "zebra", "mysterious"],
+                _names(result), ["run1", "avocado", "zebra", "mysterious"]
             )
+            self.assertIsNone(result[3]["startTime"])
 
             # Add another timestamped run: it should come before the timestamp-less one.
             self._add_run("ox")
             self.assertEqual(
-                self._get_json(self.server, "/data/runs"),
+                _names(self._get_json(self.server, "/data/runs")),
                 ["run1", "avocado", "zebra", "ox", "mysterious"],
             )
 
@@ -379,7 +383,7 @@ class CorePluginTest(tf.test.TestCase):
             # it should come after all timestamped runs but first among timestamp-less.
             self._add_run("enigmatic")
             self.assertEqual(
-                self._get_json(self.server, "/data/runs"),
+                _names(self._get_json(self.server, "/data/runs")),
                 ["run1", "avocado", "zebra", "ox", "enigmatic", "mysterious"],
             )
 

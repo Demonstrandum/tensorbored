@@ -23,6 +23,7 @@ import {
   ColumnHeader,
   TableData,
   SortingInfo,
+  SortingOrder,
   ColumnHeaderType,
   FilterAddedEvent,
   DiscreteFilter,
@@ -31,6 +32,28 @@ import {
   AddColumnEvent,
 } from '../../../widgets/data_table/types';
 import {memoize} from '../../../util/memoize';
+import {SORT_SELECTED_FIRST} from './sorting_utils';
+
+interface SortPreset {
+  readonly label: string;
+  readonly info: SortingInfo;
+}
+
+const SORT_PRESETS: readonly SortPreset[] = [
+  {
+    label: 'Oldest first',
+    info: {name: 'startTime', order: SortingOrder.ASCENDING},
+  },
+  {
+    label: 'Newest first',
+    info: {name: 'startTime', order: SortingOrder.DESCENDING},
+  },
+  {
+    label: 'Selected first',
+    info: {name: SORT_SELECTED_FIRST, order: SortingOrder.DESCENDING},
+  },
+];
+
 @Component({
   standalone: false,
   selector: 'runs-data-table',
@@ -51,6 +74,7 @@ export class RunsDataTable {
   @Input() columnFilters!: Map<string, DiscreteFilter | IntervalFilter>;
 
   ColumnHeaderType = ColumnHeaderType;
+  readonly sortPresets = SORT_PRESETS;
 
   @Output() sortDataBy = new EventEmitter<SortingInfo>();
   @Output() orderColumns = new EventEmitter<ReorderColumnEvent>();
@@ -150,9 +174,36 @@ export class RunsDataTable {
     this.onAllSelectionToggle.emit(this.data?.map((row) => row.id));
   }
 
+  get activeSortPresetIndex(): number {
+    return SORT_PRESETS.findIndex(
+      (p) =>
+        p.info.name === this.sortingInfo.name &&
+        p.info.order === this.sortingInfo.order
+    );
+  }
+
+  onSortPresetChange(index: number) {
+    this.sortDataBy.emit(SORT_PRESETS[index].info);
+  }
+
   onFilterKeyUp(event: KeyboardEvent) {
     const input = event.target! as HTMLInputElement;
     this.onRegexFilterChange.emit(input.value);
+  }
+
+  formatStartTime(epochSeconds: number | undefined): string {
+    if (!epochSeconds) return '';
+    const d = new Date(epochSeconds * 1000);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+      return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    }
+    return d.toLocaleDateString([], {month: 'short', day: 'numeric'});
+  }
+
+  formatStartTimeFull(epochSeconds: number | undefined): string {
+    if (!epochSeconds) return '';
+    return new Date(epochSeconds * 1000).toLocaleString();
   }
 
   /**

@@ -39,13 +39,29 @@ describe('TBRunsDataSource test', () => {
       const results = jasmine.createSpy();
       dataSource.fetchRuns('exp1').subscribe(results);
 
-      httpMock.expectOne('/experiment/exp1/data/runs').flush(['foo', 'bar']);
-      // Flush the promise in the microtask.
+      httpMock.expectOne('/experiment/exp1/data/runs').flush([
+        {name: 'foo', startTime: 1000.5},
+        {name: 'bar', startTime: 2000.0},
+      ]);
       flush();
 
       expect(results).toHaveBeenCalledWith([
-        {id: 'exp1/foo', name: 'foo', startTime: 0},
-        {id: 'exp1/bar', name: 'bar', startTime: 0},
+        {id: 'exp1/foo', name: 'foo', startTime: 1000.5},
+        {id: 'exp1/bar', name: 'bar', startTime: 2000.0},
+      ]);
+    }));
+
+    it('treats null startTime as 0', fakeAsync(() => {
+      const results = jasmine.createSpy();
+      dataSource.fetchRuns('exp1').subscribe(results);
+
+      httpMock
+        .expectOne('/experiment/exp1/data/runs')
+        .flush([{name: 'baz', startTime: null}]);
+      flush();
+
+      expect(results).toHaveBeenCalledWith([
+        {id: 'exp1/baz', name: 'baz', startTime: 0},
       ]);
     }));
   });

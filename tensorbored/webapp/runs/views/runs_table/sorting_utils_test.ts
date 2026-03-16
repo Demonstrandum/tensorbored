@@ -13,7 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import {SortingOrder} from '../../../widgets/data_table/types';
-import {parseNumericPrefix, sortTableDataItems} from './sorting_utils';
+import {
+  parseNumericPrefix,
+  sortTableDataItems,
+  SORT_SELECTED_FIRST,
+} from './sorting_utils';
 
 describe('sorting utils', () => {
   describe('parseNumericPrefix', () => {
@@ -226,6 +230,28 @@ describe('sorting utils', () => {
           id: 'row 3 id',
           name: '2bbb',
         },
+      ]);
+    });
+
+    it('sorts selected runs first with startTime tiebreaker', () => {
+      expect(
+        sortTableDataItems(
+          [
+            {id: 'a', selected: false, startTime: 100},
+            {id: 'b', selected: true, startTime: 300},
+            {id: 'c', selected: true, startTime: 200},
+            {id: 'd', selected: false, startTime: 50},
+          ],
+          {
+            order: SortingOrder.DESCENDING,
+            name: SORT_SELECTED_FIRST,
+          }
+        )
+      ).toEqual([
+        {id: 'c', selected: true, startTime: 200},
+        {id: 'b', selected: true, startTime: 300},
+        {id: 'd', selected: false, startTime: 50},
+        {id: 'a', selected: false, startTime: 100},
       ]);
     });
 

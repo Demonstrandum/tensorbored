@@ -176,6 +176,7 @@ export class RunsTableContainer implements OnInit, OnDestroy {
             ...Object.fromEntries(runTableItem.hparams.entries()),
             id: runTableItem.run.id,
             run: runTableItem.run.name,
+            startTime: runTableItem.run.startTime,
             experimentName: runTableItem.experimentName,
             experimentAlias: runTableItem.experimentAlias,
             selected: runTableItem.selected,

@@ -53,10 +53,19 @@ export function parseNumericPrefix(value: string | number) {
   return;
 }
 
+/**
+ * Well-known composite sort key: selected runs first, then by startTime.
+ */
+export const SORT_SELECTED_FIRST = '_selectedFirst';
+
 export function sortTableDataItems(
   items: TableData[],
   sort: SortingInfo
 ): TableData[] {
+  if (sort.name === SORT_SELECTED_FIRST) {
+    return sortSelectedFirst(items);
+  }
+
   const sortedItems = [...items];
 
   sortedItems.sort((a, b) => {
@@ -128,4 +137,17 @@ export function sortTableDataItems(
 
     return a < b === (sort.order === SortingOrder.ASCENDING) ? -1 : 1;
   }
+}
+
+function sortSelectedFirst(items: TableData[]): TableData[] {
+  const sorted = [...items];
+  sorted.sort((a, b) => {
+    const aSel = a['selected'] ? 1 : 0;
+    const bSel = b['selected'] ? 1 : 0;
+    if (aSel !== bSel) return bSel - aSel;
+    const aTime = (a['startTime'] as number) || 0;
+    const bTime = (b['startTime'] as number) || 0;
+    return aTime - bTime;
+  });
+  return sorted;
 }
