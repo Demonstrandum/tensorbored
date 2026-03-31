@@ -57,6 +57,8 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
           class="card-wrapper"
           [class.full-width]="(cardsAtFullWidth$ | async)?.has(card.id)"
           [class.full-height]="cardsAtFullHeight.has(card.id)"
+          [cardEdgeResize]="'superimposed:' + card.id"
+          (fullWidthRequested)="onFullWidthChanged(card.id, $event)"
         >
           <superimposed-card
             [superimposedCardId]="card.id"

@@ -34,6 +34,56 @@ $_background: map-get($tb-theme, background);
 .card-space {
   display: flex;
   flex-direction: column;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  &:hover::after {
+    opacity: 0.3;
+  }
+
+  &[data-resize-edge='bottom']::after,
+  &[data-resize-edge='right']::after,
+  &[data-resize-edge='corner']::after {
+    opacity: 0.8;
+  }
+
+  &[data-resize-edge='bottom']::after {
+    width: 100%;
+    height: 3px;
+    right: 0;
+    bottom: 0;
+    background: currentColor;
+    border-radius: 2px;
+  }
+
+  &[data-resize-edge='right']::after {
+    width: 3px;
+    height: 100%;
+    right: 0;
+    bottom: 0;
+    background: currentColor;
+    border-radius: 2px;
+  }
+
+  &[data-resize-edge='corner']::after {
+    width: 12px;
+    height: 12px;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 50%, currentColor 50%);
+    border-radius: 0 0 4px 0;
+  }
 }
 
 .card-space.full-width {

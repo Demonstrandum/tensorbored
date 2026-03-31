@@ -166,6 +166,7 @@ tf_ng_module(
         "//tensorbored/webapp/types:ui",
         "//tensorbored/webapp/util:string",
         "//tensorbored/webapp/util:types",
+        "//tensorbored/webapp/widgets:edge_resize",
         "//tensorbored/webapp/widgets/filter_input",
         "@npm//@angular/common",
         "@npm//@angular/core",

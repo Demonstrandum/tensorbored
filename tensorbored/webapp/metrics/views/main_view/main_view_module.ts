@@ -25,6 +25,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {FilterInputModule} from '../../../widgets/filter_input/filter_input_module';
 import {CardRendererModule} from '../card_renderer/card_renderer_module';
+import {EdgeResizeModule} from '../../../widgets/edge_resize_module';
 import {RightPaneModule} from '../right_pane/right_pane_module';
 import {ScalarColumnEditorModule} from '../right_pane/scalar_column_editor/scalar_column_editor_module';
 import {CardGridComponent} from './card_grid_component';
@@ -73,6 +74,7 @@ import {SuperimposedCardsViewContainer} from './superimposed_cards_view_containe
     CommonModule,
     CustomizationModule,
     DragDropModule,
+    EdgeResizeModule,
     FilterInputModule,
     MatAutocompleteModule,
     MatButtonModule,
