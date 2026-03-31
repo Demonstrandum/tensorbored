@@ -91,6 +91,15 @@ $_background: map-get($tb-theme, background);
   grid-column-end: -1;
 }
 
+.card-space.edge-resizing-width {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  transition: none;
+
+  @include tb-dark-theme {
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
+  }
+}
+
 .card-space.full-height {
   min-height: $metrics-min-card-height * 1.5;
 
