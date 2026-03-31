@@ -232,4 +232,8 @@ export class CardGridComponent {
       this.cardsAtFullHeight.delete(cardId);
     }
   }
+
+  onColumnSpanChanged(cardId: CardId, _span: number) {
+    this.cardsAtFullWidth.delete(cardId);
+  }
 }

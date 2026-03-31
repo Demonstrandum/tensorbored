@@ -27,45 +27,74 @@ const enum ResizeEdge {
   NONE = 0,
   RIGHT = 1,
   BOTTOM = 2,
-  CORNER = 3, // RIGHT | BOTTOM
+  CORNER = 3,
 }
 
 const EDGE_ZONE_PX = 8;
 const MIN_HEIGHT_PX = 200;
-const FULL_WIDTH_DRAG_THRESHOLD_PX = 50;
 const STORAGE_KEY = '_tb_card_sizes.v1';
 
-function loadSizes(): Record<string, number> {
+interface CardSize {
+  height?: number;
+  colSpan?: number;
+}
+
+function loadSizes(): Record<string, CardSize> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+    return raw ? (JSON.parse(raw) as Record<string, CardSize>) : {};
   } catch {
     return {};
   }
 }
 
-function persistHeight(key: string, height: number) {
+function persistSize(key: string, size: CardSize) {
   const sizes = loadSizes();
-  sizes[key] = Math.round(height);
+  const existing = sizes[key] ?? {};
+  if (size.height !== undefined) existing.height = Math.round(size.height);
+  if (size.colSpan !== undefined) existing.colSpan = size.colSpan;
+  sizes[key] = existing;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sizes));
 }
 
-function removeHeight(key: string) {
+function clearSize(key: string, field: 'height' | 'colSpan') {
   const sizes = loadSizes();
-  delete sizes[key];
+  const existing = sizes[key];
+  if (!existing) return;
+  delete existing[field];
+  if (!existing.height && !existing.colSpan) {
+    delete sizes[key];
+  }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sizes));
+}
+
+function getGridColumnCount(gridEl: HTMLElement): number {
+  const cols = getComputedStyle(gridEl).gridTemplateColumns;
+  return cols.split(' ').filter((s) => s.length > 0).length;
+}
+
+function getGridColumnWidth(gridEl: HTMLElement): number {
+  const cols = getComputedStyle(gridEl).gridTemplateColumns;
+  const parts = cols.split(' ').filter((s) => s.length > 0);
+  if (parts.length === 0) return 0;
+  return parseFloat(parts[0]);
+}
+
+function getGridGap(gridEl: HTMLElement): number {
+  return parseFloat(getComputedStyle(gridEl).columnGap) || 0;
 }
 
 /**
- * Adds edge and corner resize handles to a card wrapper element.
+ * Adds edge and corner resize handles to a card element in a CSS grid.
  *
- * Bottom edge:  drag to resize height.
- * Right edge:   drag > threshold emits fullWidthRequested.
- * Corner:       both.
- * Double-click on bottom edge resets height; on right edge toggles full-width.
+ * Bottom edge: drag to resize height.
+ * Right edge:  drag to span more or fewer grid columns.
+ * Corner:      both.
+ * Double-click bottom edge resets height; right edge resets column span.
  *
- * Usage:  <div [cardEdgeResize]="uniqueKey"
- *              (fullWidthRequested)="onFullWidth($event)">
+ * Usage:
+ *   <div [cardEdgeResize]="uniqueKey"
+ *        (columnSpanChanged)="onSpanChanged(cardId, $event)">
  */
 @Directive({
   standalone: false,
@@ -73,13 +102,17 @@ function removeHeight(key: string) {
 })
 export class CardEdgeResizeDirective implements OnInit, OnDestroy {
   @Input('cardEdgeResize') persistKey = '';
-  @Output() fullWidthRequested = new EventEmitter<boolean>();
+  @Output() columnSpanChanged = new EventEmitter<number>();
 
   private readonly el: HTMLElement;
   private activeEdge = ResizeEdge.NONE;
-  private startX = 0;
   private startY = 0;
   private startHeight = 0;
+  private startColSpan = 1;
+  private startRight = 0;
+  private gridColWidth = 0;
+  private gridGap = 0;
+  private gridTotalCols = 1;
   private dragging = false;
 
   private readonly onHover: (e: MouseEvent) => void;
@@ -89,10 +122,7 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
   private readonly onLeave: () => void;
   private readonly onDblClick: (e: MouseEvent) => void;
 
-  constructor(
-    ref: ElementRef<HTMLElement>,
-    private readonly zone: NgZone
-  ) {
+  constructor(ref: ElementRef<HTMLElement>, private readonly zone: NgZone) {
     this.el = ref.nativeElement;
     this.onHover = this.handleHover.bind(this);
     this.onDown = this.handleDown.bind(this);
@@ -105,8 +135,11 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
   ngOnInit() {
     if (this.persistKey) {
       const saved = loadSizes()[this.persistKey];
-      if (saved) {
-        this.el.style.height = `${saved}px`;
+      if (saved?.height) {
+        this.el.style.height = `${saved.height}px`;
+      }
+      if (saved?.colSpan && saved.colSpan > 1) {
+        this.el.style.gridColumn = `span ${saved.colSpan}`;
       }
     }
     this.zone.runOutsideAngular(() => {
@@ -128,10 +161,8 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
 
   private edgeAt(e: MouseEvent): ResizeEdge {
     const r = this.el.getBoundingClientRect();
-    const nearR =
-      r.right - e.clientX <= EDGE_ZONE_PX && e.clientX >= r.left;
-    const nearB =
-      r.bottom - e.clientY <= EDGE_ZONE_PX && e.clientY >= r.top;
+    const nearR = r.right - e.clientX <= EDGE_ZONE_PX && e.clientX >= r.left;
+    const nearB = r.bottom - e.clientY <= EDGE_ZONE_PX && e.clientY >= r.top;
     if (nearR && nearB) return ResizeEdge.CORNER;
     if (nearB) return ResizeEdge.BOTTOM;
     if (nearR) return ResizeEdge.RIGHT;
@@ -150,6 +181,42 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
     if (edge === ResizeEdge.BOTTOM) return 'bottom';
     if (edge === ResizeEdge.RIGHT) return 'right';
     return '';
+  }
+
+  private applyColSpan(span: number) {
+    if (span >= this.gridTotalCols) {
+      this.el.style.gridColumn = '1 / -1';
+    } else if (span <= 1) {
+      this.el.style.gridColumn = '';
+    } else {
+      this.el.style.gridColumn = `span ${span}`;
+    }
+  }
+
+  private getCurrentColSpan(): number {
+    const gc = this.el.style.gridColumn;
+    if (!gc) return 1;
+    if (gc.includes('-1')) {
+      const grid = this.el.parentElement;
+      return grid ? getGridColumnCount(grid) : 1;
+    }
+    const m = gc.match(/span\s+(\d+)/);
+    return m ? parseInt(m[1], 10) : 1;
+  }
+
+  private snapshotGrid() {
+    const grid = this.el.parentElement;
+    if (!grid) return;
+    this.gridTotalCols = getGridColumnCount(grid);
+    this.gridColWidth = getGridColumnWidth(grid);
+    this.gridGap = getGridGap(grid);
+  }
+
+  private spanForWidth(desiredWidth: number): number {
+    if (this.gridColWidth <= 0) return 1;
+    const cellPlusGap = this.gridColWidth + this.gridGap;
+    const raw = (desiredWidth + this.gridGap) / cellPlusGap;
+    return Math.max(1, Math.min(this.gridTotalCols, Math.round(raw)));
   }
 
   private handleHover(e: MouseEvent) {
@@ -172,9 +239,11 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
     e.stopPropagation();
     this.dragging = true;
     this.activeEdge = edge;
-    this.startX = e.clientX;
     this.startY = e.clientY;
     this.startHeight = this.el.getBoundingClientRect().height;
+    this.startRight = this.el.getBoundingClientRect().right;
+    this.startColSpan = this.getCurrentColSpan();
+    this.snapshotGrid();
     document.body.style.cursor = this.cursorFor(edge);
     document.body.style.userSelect = 'none';
     document.addEventListener('mousemove', this.onDocMove);
@@ -189,6 +258,15 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
         this.startHeight + e.clientY - this.startY
       );
       this.el.style.height = `${h}px`;
+    }
+    if (this.activeEdge & ResizeEdge.RIGHT) {
+      const dx = e.clientX - this.startRight;
+      const startWidth =
+        this.startColSpan * this.gridColWidth +
+        (this.startColSpan - 1) * this.gridGap;
+      const desiredWidth = startWidth + dx;
+      const span = this.spanForWidth(desiredWidth);
+      this.applyColSpan(span);
     }
   }
 
@@ -208,16 +286,19 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
         this.startHeight + e.clientY - this.startY
       );
       this.el.style.height = `${h}px`;
-      if (this.persistKey) persistHeight(this.persistKey, h);
+      if (this.persistKey) persistSize(this.persistKey, {height: h});
     }
 
     if (this.activeEdge & ResizeEdge.RIGHT) {
-      const dx = e.clientX - this.startX;
-      if (dx > FULL_WIDTH_DRAG_THRESHOLD_PX) {
-        this.zone.run(() => this.fullWidthRequested.emit(true));
-      } else if (dx < -FULL_WIDTH_DRAG_THRESHOLD_PX) {
-        this.zone.run(() => this.fullWidthRequested.emit(false));
-      }
+      const dx = e.clientX - this.startRight;
+      const startWidth =
+        this.startColSpan * this.gridColWidth +
+        (this.startColSpan - 1) * this.gridGap;
+      const desiredWidth = startWidth + dx;
+      const span = this.spanForWidth(desiredWidth);
+      this.applyColSpan(span);
+      if (this.persistKey) persistSize(this.persistKey, {colSpan: span});
+      this.zone.run(() => this.columnSpanChanged.emit(span));
     }
 
     this.activeEdge = ResizeEdge.NONE;
@@ -228,14 +309,12 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
     if (edge === ResizeEdge.NONE) return;
     if (edge & ResizeEdge.BOTTOM) {
       this.el.style.height = '';
-      if (this.persistKey) removeHeight(this.persistKey);
+      if (this.persistKey) clearSize(this.persistKey, 'height');
     }
     if (edge & ResizeEdge.RIGHT) {
-      this.zone.run(() =>
-        this.fullWidthRequested.emit(
-          !this.el.classList.contains('full-width')
-        )
-      );
+      this.applyColSpan(1);
+      if (this.persistKey) clearSize(this.persistKey, 'colSpan');
+      this.zone.run(() => this.columnSpanChanged.emit(1));
     }
   }
 }

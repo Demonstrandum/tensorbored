@@ -39,7 +39,7 @@ limitations under the License.
           'full-height': cardsAtFullHeight.has(item.cardId) || cardStateMap[item.cardId]?.tableExpanded
         }"
       [cardEdgeResize]="'card:' + item.cardId"
-      (fullWidthRequested)="onFullWidthChanged(item.cardId, $event)"
+      (columnSpanChanged)="onColumnSpanChanged(item.cardId, $event)"
       cdkDrag
       [cdkDragDisabled]="!allowPinnedReorder"
       [cdkDragStartDelay]="dragStartDelayMs"
