@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 import {
   Directive,
+  DoCheck,
   ElementRef,
   EventEmitter,
   Input,
@@ -98,7 +99,7 @@ function getGridGap(gridEl: HTMLElement): number {
   standalone: false,
   selector: '[cardEdgeResize]',
 })
-export class CardEdgeResizeDirective implements OnInit, OnDestroy {
+export class CardEdgeResizeDirective implements OnInit, OnDestroy, DoCheck {
   @Input('cardEdgeResize') persistKey = '';
   @Output() columnSpanChanged = new EventEmitter<number>();
 
@@ -108,7 +109,6 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
   private startY = 0;
   private startHeight = 0;
   private startWidth = 0;
-  private startColSpan = 1;
   private gridColWidth = 0;
   private gridGap = 0;
   private gridTotalCols = 1;
@@ -138,7 +138,8 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
         this.el.style.height = `${saved.height}px`;
       }
       if (saved?.colSpan && saved.colSpan > 1) {
-        this.el.style.gridColumn = `span ${saved.colSpan}`;
+        this.snapshotGrid();
+        this.applyColSpan(saved.colSpan);
       }
     }
     this.zone.runOutsideAngular(() => {
@@ -147,6 +148,13 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
       this.el.addEventListener('mouseleave', this.onLeave);
       this.el.addEventListener('dblclick', this.onDblClick);
     });
+  }
+
+  ngDoCheck() {
+    if (this.dragging) return;
+    if (this.el.classList.contains('full-width') && this.el.style.gridColumn) {
+      this.el.style.gridColumn = '';
+    }
   }
 
   ngOnDestroy() {
@@ -251,7 +259,6 @@ export class CardEdgeResizeDirective implements OnInit, OnDestroy {
     const rect = this.el.getBoundingClientRect();
     this.startHeight = rect.height;
     this.startWidth = rect.width;
-    this.startColSpan = this.getCurrentColSpan();
     this.snapshotGrid();
 
     if (edge & ResizeEdge.RIGHT) {
