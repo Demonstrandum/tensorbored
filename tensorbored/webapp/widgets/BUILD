@@ -18,6 +18,17 @@ tf_ng_module(
 )
 
 tf_ng_module(
+    name = "edge_resize",
+    srcs = [
+        "edge_resize_directive.ts",
+        "edge_resize_module.ts",
+    ],
+    deps = [
+        "@npm//@angular/core",
+    ],
+)
+
+tf_ng_module(
     name = "resize_detector",
     srcs = [
         "resize_detector_directive.ts",

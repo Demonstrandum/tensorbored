@@ -111,10 +111,7 @@ limitations under the License.
     </div>
   </div>
 
-  <div
-    class="chart-container"
-    [persistResize]="'superimposed-chart:' + superimposedCardId"
-  >
+  <div class="chart-container">
     <mat-spinner
       diameter="18"
       *ngIf="loadState === DataLoadState.LOADING"

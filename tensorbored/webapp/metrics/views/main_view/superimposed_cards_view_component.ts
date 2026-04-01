@@ -57,6 +57,8 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
           class="card-wrapper"
           [class.full-width]="(cardsAtFullWidth$ | async)?.has(card.id)"
           [class.full-height]="cardsAtFullHeight.has(card.id)"
+          [cardEdgeResize]="'superimposed:' + card.id"
+          (columnSpanChanged)="onColumnSpanChanged(card.id, $event)"
         >
           <superimposed-card
             [superimposedCardId]="card.id"
@@ -118,5 +120,10 @@ export class SuperimposedCardsViewComponent implements OnChanges {
     } else {
       this.cardsAtFullHeight.delete(cardId);
     }
+  }
+
+  onColumnSpanChanged(_cardId: string, _span: number) {
+    // Width is handled directly by the directive's inline grid-column style.
+    // No store dispatch needed — the span is persisted in localStorage by the directive.
   }
 }

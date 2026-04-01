@@ -192,11 +192,7 @@ limitations under the License.
       </mat-menu>
     </span>
   </div>
-  <div
-    #chartContainer
-    class="chart-container"
-    [persistResize]="'scalar-chart:' + tag"
-  >
+  <div #chartContainer class="chart-container">
     <mat-spinner
       diameter="18"
       *ngIf="loadState === DataLoadState.LOADING"
