@@ -74,7 +74,7 @@ describe('settings test', () => {
       ],
     }).compileComponents();
     store = TestBed.inject<Store>(Store) as MockStore;
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
     overlayContainer = TestBed.inject(OverlayContainer);
   });
 

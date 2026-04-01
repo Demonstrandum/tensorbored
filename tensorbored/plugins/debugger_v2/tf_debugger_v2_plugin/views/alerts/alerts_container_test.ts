@@ -63,7 +63,7 @@ describe('Alerts Container', () => {
       ],
     }).compileComponents();
     store = TestBed.inject<Store<State>>(Store) as MockStore<State>;
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
   });
 
   it('renders number of alerts and breakdown: no alerts', () => {

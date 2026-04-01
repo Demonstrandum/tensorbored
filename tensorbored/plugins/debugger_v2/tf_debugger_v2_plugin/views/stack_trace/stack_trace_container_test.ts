@@ -55,7 +55,7 @@ describe('Stack Trace container', () => {
       ],
     }).compileComponents();
     store = TestBed.inject<Store<State>>(Store) as MockStore<State>;
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
   });
 
   afterEach(() => {

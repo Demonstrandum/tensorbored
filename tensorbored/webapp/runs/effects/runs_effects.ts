@@ -840,7 +840,7 @@ export class RunsEffects {
       take(1),
       mergeMap((loadState) => {
         if (loadState.state === DataLoadState.FAILED) {
-          return throwError(new Error('Pending request failed'));
+          return throwError(() => new Error('Pending request failed'));
         }
         return of(loadState);
       }),

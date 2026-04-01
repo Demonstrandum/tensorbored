@@ -28,7 +28,7 @@ describe('hash storage test', () => {
       declarations: [HashStorageContainer, HashStorageComponent],
     }).compileComponents();
     store = TestBed.inject<Store<State>>(Store) as MockStore<State>;
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
 
     setStringSpy = jasmine.createSpy();
     getStringSpy = jasmine.createSpy();

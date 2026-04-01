@@ -72,7 +72,7 @@ describe('reloader_component', () => {
     }).compileComponents();
     store = TestBed.inject<Store>(Store) as MockStore;
     fakeDocument = TestBed.inject(DOCUMENT);
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
   });
 
   it('dispatches reload action every reload period', fakeAsync(() => {

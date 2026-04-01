@@ -56,7 +56,7 @@ describe('feature_flag_modal_trigger_container', () => {
 
     store = TestBed.inject<Store<State>>(Store) as MockStore<State>;
 
-    spyOn(store, 'dispatch').and.stub();
+    (spyOn(store, 'dispatch') as jasmine.Spy).and.stub();
 
     // Fake out window.location.reload so it doesn't do anything.
     TEST_ONLY.util.reloadWindow = () => {};
