@@ -15,8 +15,10 @@ limitations under the License.
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   Input,
   OnChanges,
+  Output,
   SimpleChanges,
 } from '@angular/core';
 import {Store} from '@ngrx/store';
@@ -35,7 +37,12 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
   selector: 'superimposed-cards-view-component',
   template: `
     <ng-container *ngIf="superimposedCards.length > 0">
-      <div class="group-toolbar">
+      <button
+        class="group-toolbar"
+        i18n-aria-label="A button that allows user to expand the superimposed section."
+        aria-label="Expand superimposed section"
+        (click)="expansionToggled.emit()"
+      >
         <div class="left-items">
           <mat-icon svgIcon="group_work_24px"></mat-icon>
           <span class="group-text">
@@ -47,8 +54,18 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
             >
           </span>
         </div>
-      </div>
+        <span class="expand-group-icon">
+          <mat-icon
+            *ngIf="isExpanded; else expandMore"
+            svgIcon="expand_less_24px"
+          ></mat-icon>
+          <ng-template #expandMore>
+            <mat-icon svgIcon="expand_more_24px"></mat-icon>
+          </ng-template>
+        </span>
+      </button>
       <div
+        *ngIf="isExpanded"
         class="superimposed-cards-grid"
         [style.grid-template-columns]="gridTemplateColumn"
       >
@@ -76,6 +93,8 @@ export class SuperimposedCardsViewComponent implements OnChanges {
   @Input() cardObserver!: CardObserver;
   @Input() superimposedCards: SuperimposedCardMetadata[] = [];
   @Input() cardMinWidth: number | null = null;
+  @Input() isExpanded: boolean = true;
+  @Output() expansionToggled = new EventEmitter<void>();
 
   gridTemplateColumn = '';
 
