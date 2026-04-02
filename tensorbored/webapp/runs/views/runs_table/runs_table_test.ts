@@ -126,7 +126,7 @@ describe('runs_table', () => {
       tolkien: {aliasText: 'The Lord of the Rings', aliasNumber: 2},
     });
     store.overrideSelector(getActiveRoute, buildExperimentRouteFromId('123'));
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
   });
 
   describe('runs data table integration', () => {

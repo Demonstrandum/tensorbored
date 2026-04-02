@@ -185,7 +185,7 @@ describe('Graph Executions Container', () => {
     fixture.autoDetectChanges();
     tick();
 
-    const dispatchSpy = spyOn(store, 'dispatch');
+    const dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
     const tensorNames = fixture.debugElement.queryAll(By.css('.tensor-name'));
     expect(tensorNames.length).toBe(2);
     tensorNames[0].nativeElement.click();

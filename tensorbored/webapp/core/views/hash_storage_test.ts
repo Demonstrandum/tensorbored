@@ -54,7 +54,7 @@ describe('hash storage test', () => {
       declarations: [HashStorageContainer, HashStorageComponent],
     }).compileComponents();
     store = TestBed.inject<Store<State>>(Store) as MockStore<State>;
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
 
     const deepLinker = TestBed.inject(DeepLinkerInterface);
     setPluginIdSpy = spyOn(deepLinker, 'setPluginId');

@@ -153,7 +153,7 @@ describe('header test', () => {
   });
 
   it('fires an action when a tab is clicked', async () => {
-    const dispatch = spyOn(store, 'dispatch');
+    const dispatch = spyOn(store, 'dispatch') as jasmine.Spy;
     const fixture = TestBed.createComponent(HeaderComponent);
     fixture.detectChanges();
 
@@ -168,7 +168,7 @@ describe('header test', () => {
 
   describe('reload', () => {
     it('dispatches manual reload when clicking on the reload button', () => {
-      const dispatch = spyOn(store, 'dispatch');
+      const dispatch = spyOn(store, 'dispatch') as jasmine.Spy;
       const fixture = TestBed.createComponent(HeaderComponent);
       fixture.detectChanges();
 

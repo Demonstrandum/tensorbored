@@ -70,7 +70,7 @@ describe('Source Files Container', () => {
       providers: [provideMockTbStore(), DebuggerContainer],
     }).compileComponents();
     store = TestBed.inject<Store<AppState>>(Store) as MockStore<AppState>;
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
     store.overrideSelector(getDarkModeEnabled, false);
   });
 

@@ -70,7 +70,7 @@ describe('metrics right_pane', () => {
     }).compileComponents();
 
     store = TestBed.inject<Store<State>>(Store) as MockStore<State>;
-    dispatchSpy = spyOn(store, 'dispatch');
+    dispatchSpy = spyOn(store, 'dispatch') as jasmine.Spy;
     overlayContainer = TestBed.inject(OverlayContainer);
   });
 
