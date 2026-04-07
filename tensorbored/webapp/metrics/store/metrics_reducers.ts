@@ -1292,7 +1292,10 @@ const reducer = createReducer(
     return {...state, tagGroupExpanded, superimposedSectionExpanded};
   }),
   on(actions.metricsSuperimposedSectionExpansionChanged, (state) => {
-    return {...state, superimposedSectionExpanded: !state.superimposedSectionExpanded};
+    return {
+      ...state,
+      superimposedSectionExpanded: !state.superimposedSectionExpanded,
+    };
   }),
   on(
     actions.cardFullWidthStateLoaded,

@@ -39,7 +39,9 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
     <ng-container *ngIf="superimposedCards.length > 0">
       <button
         class="group-toolbar"
-        i18n-aria-label="A button that allows user to expand the superimposed section."
+        i18n-aria-label="
+          A button that allows user to expand the superimposed section.
+        "
         aria-label="Expand superimposed section"
         (click)="expansionToggled.emit()"
       >
