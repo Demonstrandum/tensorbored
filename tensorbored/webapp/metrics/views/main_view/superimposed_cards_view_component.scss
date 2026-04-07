@@ -21,11 +21,11 @@ limitations under the License.
 
 .group-toolbar {
   @include tb-theme-background-prop(background-color, background);
-  @include tb-theme-foreground-prop(border-bottom, border, 1px solid);
   @include tb-theme-foreground-prop(color, text);
   align-items: center;
   background-color: #fff;
   border: 0;
+  @include tb-theme-foreground-prop(border-bottom, border, 1px solid);
   cursor: pointer;
   display: flex;
   flex: none;
