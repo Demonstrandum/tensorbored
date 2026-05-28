@@ -302,22 +302,14 @@ def setup_default_profile(logdir: Path, run_ids: list):
             "loss/train": {"y": "log10"},
             "loss/eval": {"y": "log10"},
         },
-        # Expand nested groups to showcase hierarchical grouping
+        # Expand only top-level groups; sub-groups start collapsed
+        # so users can drill down and see the nested structure.
         expanded_tag_groups={
             "loss": True,
-            "loss/components": True,
             "accuracy": True,
             "gradients": True,
-            "gradients/per_layer": True,
-            "gradients/per_layer/encoder": True,
-            "gradients/per_layer/decoder": True,
             "weights": True,
-            "weights/encoder": True,
-            "weights/decoder": True,
             "diagnostics": True,
-            "diagnostics/performance": True,
-            "diagnostics/performance/throughput": True,
-            "diagnostics/performance/memory": True,
         },
     )
 

@@ -47,7 +47,7 @@ import {
   TooltipSort,
   URLDeserializedState,
 } from '../types';
-import {buildCardGroupTree, collectGroupPaths} from '../utils';
+import {buildCardGroupTree} from '../utils';
 import {ColumnHeaderType, DataTableMode} from '../../widgets/data_table/types';
 import {
   buildOrReturnStateWithPinnedCopy,
@@ -805,9 +805,6 @@ const reducer = createReducer(
         tagGroupExpanded = new Map(state.tagGroupExpanded);
         for (const node of tree.slice(0, 2)) {
           tagGroupExpanded.set(node.groupPath, true);
-          for (const descendantPath of collectGroupPaths(node.children)) {
-            tagGroupExpanded.set(descendantPath, true);
-          }
         }
       }
 

@@ -22,15 +22,13 @@ limitations under the License.
     border: 0;
     @include tb-theme-foreground-prop(border-top, border, 1px solid);
     @include tb-theme-foreground-prop(color, text);
-    background: transparent;
     top: -1px;
     display: flex;
     align-items: center;
     width: 100%;
     font: inherit;
 
-    .card-group:first-of-type &,
-    .card-group-node:first-of-type & {
+    .card-group-node:first-child & {
       border-top: 0;
     }
     &:hover {
