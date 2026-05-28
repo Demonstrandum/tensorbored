@@ -37,53 +37,35 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
   selector: 'superimposed-cards-view-component',
   template: `
     <ng-container *ngIf="superimposedCards.length > 0">
-      <button
-        class="group-toolbar"
-        i18n-aria-label="
-          A button that allows user to expand the superimposed section.
-        "
-        aria-label="Expand superimposed section"
-        (click)="expansionToggled.emit()"
-      >
-        <div class="left-items">
-          <mat-icon svgIcon="group_work_24px"></mat-icon>
-          <span class="group-text">
-            <span class="group-title" aria-role="heading" aria-level="3"
-              >Superimposed</span
+      <metrics-card-group-toolbar-component
+        [groupName]="'Superimposed'"
+        [displayName]="'Superimposed'"
+        [numberOfCards]="superimposedCards.length"
+        [isGroupExpanded]="isExpanded"
+        [depth]="0"
+        (groupExpansionToggled)="expansionToggled.emit()"
+      ></metrics-card-group-toolbar-component>
+      <div class="superimposed-content" [class.expanded]="isExpanded">
+        <div class="superimposed-content-inner">
+          <div
+            class="superimposed-cards-grid"
+            [style.grid-template-columns]="gridTemplateColumn"
+          >
+            <div
+              *ngFor="let card of superimposedCards; trackBy: trackByCard"
+              class="card-wrapper"
+              [class.full-width]="(cardsAtFullWidth$ | async)?.has(card.id)"
+              [class.full-height]="cardsAtFullHeight.has(card.id)"
+              [cardEdgeResize]="'superimposed:' + card.id"
+              (columnSpanChanged)="onColumnSpanChanged(card.id, $event)"
             >
-            <span *ngIf="superimposedCards.length > 1" class="group-card-count"
-              >{{ superimposedCards.length }} cards</span
-            >
-          </span>
-        </div>
-        <span class="expand-group-icon">
-          <mat-icon
-            *ngIf="isExpanded; else expandMore"
-            svgIcon="expand_less_24px"
-          ></mat-icon>
-          <ng-template #expandMore>
-            <mat-icon svgIcon="expand_more_24px"></mat-icon>
-          </ng-template>
-        </span>
-      </button>
-      <div
-        *ngIf="isExpanded"
-        class="superimposed-cards-grid"
-        [style.grid-template-columns]="gridTemplateColumn"
-      >
-        <div
-          *ngFor="let card of superimposedCards; trackBy: trackByCard"
-          class="card-wrapper"
-          [class.full-width]="(cardsAtFullWidth$ | async)?.has(card.id)"
-          [class.full-height]="cardsAtFullHeight.has(card.id)"
-          [cardEdgeResize]="'superimposed:' + card.id"
-          (columnSpanChanged)="onColumnSpanChanged(card.id, $event)"
-        >
-          <superimposed-card
-            [superimposedCardId]="card.id"
-            (fullWidthChanged)="onFullWidthChanged(card.id, $event)"
-            (fullHeightChanged)="onFullHeightChanged(card.id, $event)"
-          ></superimposed-card>
+              <superimposed-card
+                [superimposedCardId]="card.id"
+                (fullWidthChanged)="onFullWidthChanged(card.id, $event)"
+                (fullHeightChanged)="onFullHeightChanged(card.id, $event)"
+              ></superimposed-card>
+            </div>
+          </div>
         </div>
       </div>
     </ng-container>
