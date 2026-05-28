@@ -220,12 +220,10 @@ describe('metrics utils', () => {
       expect(tree[0].children[0].children.length).toBe(1);
       expect(tree[0].children[0].children[0].segmentName).toBe('c');
       expect(tree[0].children[0].children[0].children.length).toBe(1);
-      expect(tree[0].children[0].children[0].children[0].segmentName).toBe(
-        'd'
+      expect(tree[0].children[0].children[0].children[0].segmentName).toBe('d');
+      expect(tree[0].children[0].children[0].children[0].items[0].tag).toBe(
+        'a/b/c/d/metric'
       );
-      expect(
-        tree[0].children[0].children[0].children[0].items[0].tag
-      ).toBe('a/b/c/d/metric');
     });
 
     it('mixes leaves and nested children at the same level', () => {

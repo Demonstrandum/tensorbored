@@ -544,7 +544,9 @@ def main():
             tokens = 12000 + random.gauss(0, 500) + step * 2
             mem = 2048 + random.gauss(0, 50) + step * 0.5
             writer.add_scalar(
-                "diagnostics/performance/throughput/tokens_per_sec", tokens, step
+                "diagnostics/performance/throughput/tokens_per_sec",
+                tokens,
+                step,
             )
             writer.add_scalar(
                 "diagnostics/performance/memory/peak_mb", mem, step
