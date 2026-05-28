@@ -1,12 +1,14 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("//tensorbored/defs:defs.bzl", "tf_ng_module")
 
 package(default_visibility = ["//tensorbored:internal"])
 
 licenses(["notice"])
 
-tf_sass_binary(
+sass_binary(
     name = "truncated_path_styles",
     src = "truncated_path_component.scss",
+    include_paths = ["external/npm/node_modules"],
 )
 
 tf_ng_module(

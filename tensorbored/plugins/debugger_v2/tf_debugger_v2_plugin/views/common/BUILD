@@ -1,11 +1,11 @@
-load("//tensorbored/defs:defs.bzl", "tf_sass_library")
+load("@io_bazel_rules_sass//:defs.bzl", 'sass_library')
 
 package(default_visibility = ["//tensorbored:internal"])
 
 licenses(["notice"])
 
-tf_sass_library(
+sass_library(
     name = "style_lib",
     srcs = ["_lib.scss"],
-    deps = ["//tensorbored/webapp:angular_material_sass_deps"],
+    deps = ["//tensorbored/webapp/angular_components:material_sass"],
 )

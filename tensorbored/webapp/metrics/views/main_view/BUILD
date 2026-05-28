@@ -1,75 +1,84 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary", "tf_ts_library")
+load("//tensorbored/defs:defs.bzl", 'tf_ng_module', 'tf_ts_library')
+load("@io_bazel_rules_sass//:defs.bzl", 'sass_binary')
 
 package(default_visibility = ["//tensorbored:internal"])
 
-tf_sass_binary(
+sass_binary(
     name = "main_view_styles",
     src = "main_view_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "filter_input_component_styles",
     src = "filter_input_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "filtered_view_component_styles",
     src = "filtered_view_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "pinned_view_component_styles",
     src = "pinned_view_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "card_grid_component_styles",
     src = "card_grid_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "card_groups_component_styles",
     src = "card_groups_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "card_group_toolbar_component_styles",
     src = "card_group_toolbar_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "superimposed_cards_view_component_styles",
     src = "superimposed_cards_view_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",

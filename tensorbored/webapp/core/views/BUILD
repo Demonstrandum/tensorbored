@@ -1,10 +1,12 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary", "tf_ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
 
 package(default_visibility = ["//tensorbored:internal"])
 
-tf_sass_binary(
+sass_binary(
     name = "layout_styles",
     src = "layout_container.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = ["//tensorbored/webapp/theme"],
 )
 
