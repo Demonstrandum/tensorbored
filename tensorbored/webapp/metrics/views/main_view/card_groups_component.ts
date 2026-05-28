@@ -13,39 +13,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
-import {PluginType} from '../../data_source';
 import {CardObserver} from '../card_renderer/card_lazy_loader';
-import {CardGroup} from '../metrics_view_types';
+import {CardGroupNode} from '../metrics_view_types';
 
 @Component({
   standalone: false,
   selector: 'metrics-card-groups-component',
   template: `
-    <div
-      *ngFor="let group of cardGroups; trackBy: trackByGroup"
-      class="card-group"
-    >
-      <metrics-card-group-toolbar
-        [numberOfCards]="group.items.length"
-        [groupName]="group.groupName"
-      ></metrics-card-group-toolbar>
-      <metrics-card-grid
-        [cardIdsWithMetadata]="group.items"
-        [cardObserver]="cardObserver"
-        [groupName]="group.groupName"
-      ></metrics-card-grid>
-    </div>
+    <metrics-card-group-node
+      *ngFor="let node of cardGroupNodes; trackBy: trackByNode"
+      [node]="node"
+      [depth]="0"
+      [cardObserver]="cardObserver"
+    ></metrics-card-group-node>
   `,
   styleUrls: [`card_groups_component.css`],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CardGroupsComponent {
-  readonly PluginType = PluginType;
-
-  @Input() cardGroups!: CardGroup[];
+  @Input() cardGroupNodes!: CardGroupNode[];
   @Input() cardObserver!: CardObserver;
 
-  trackByGroup(index: number, cardGroup: CardGroup) {
-    return cardGroup.groupName;
+  trackByNode(_index: number, node: CardGroupNode) {
+    return node.groupPath;
   }
 }

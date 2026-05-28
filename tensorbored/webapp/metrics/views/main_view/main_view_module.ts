@@ -30,6 +30,7 @@ import {RightPaneModule} from '../right_pane/right_pane_module';
 import {ScalarColumnEditorModule} from '../right_pane/scalar_column_editor/scalar_column_editor_module';
 import {CardGridComponent} from './card_grid_component';
 import {CardGridContainer} from './card_grid_container';
+import {CardGroupNodeComponent} from './card_group_node_component';
 import {CardGroupsComponent} from './card_groups_component';
 import {CardGroupsContainer} from './card_groups_container';
 import {CardGroupToolBarComponent} from './card_group_toolbar_component';
@@ -51,6 +52,7 @@ import {SuperimposedCardsViewContainer} from './superimposed_cards_view_containe
   declarations: [
     CardGridComponent,
     CardGridContainer,
+    CardGroupNodeComponent,
     CardGroupsComponent,
     CardGroupsContainer,
     CardGroupToolBarComponent,

@@ -47,7 +47,7 @@ import {
   TooltipSort,
   URLDeserializedState,
 } from '../types';
-import {groupCardIdWithMetdata} from '../utils';
+import {buildCardGroupTree, collectGroupPaths} from '../utils';
 import {ColumnHeaderType, DataTableMode} from '../../widgets/data_table/types';
 import {
   buildOrReturnStateWithPinnedCopy,
@@ -800,11 +800,14 @@ const reducer = createReducer(
             return {...newCardMetadataMap[cardId], cardId};
           })
           .filter(Boolean);
-        const cardGroups = groupCardIdWithMetdata(cardListWithMetadata);
+        const tree = buildCardGroupTree(cardListWithMetadata);
 
         tagGroupExpanded = new Map(state.tagGroupExpanded);
-        for (const group of cardGroups.slice(0, 2)) {
-          tagGroupExpanded.set(group.groupName, true);
+        for (const node of tree.slice(0, 2)) {
+          tagGroupExpanded.set(node.groupPath, true);
+          for (const descendantPath of collectGroupPaths(node.children)) {
+            tagGroupExpanded.set(descendantPath, true);
+          }
         }
       }
 

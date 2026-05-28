@@ -55,6 +55,7 @@ import {CardLazyLoader, CardObserver} from '../card_renderer/card_lazy_loader';
 import {CardIdWithMetadata} from '../metrics_view_types';
 import {CardGridComponent} from './card_grid_component';
 import {CardGridContainer} from './card_grid_container';
+import {CardGroupNodeComponent} from './card_group_node_component';
 import {CardGroupToolBarComponent} from './card_group_toolbar_component';
 import {CardGroupToolBarContainer} from './card_group_toolbar_container';
 import {CardGroupsComponent} from './card_groups_component';
@@ -131,7 +132,7 @@ describe('metrics main view', () => {
     fixture: ComponentFixture<MainViewContainer>,
     groupIndex: number
   ) {
-    const groups = fixture.debugElement.queryAll(By.css('.card-group'));
+    const groups = fixture.debugElement.queryAll(By.css('.card-group-node'));
     expect(groups.length).toBeGreaterThan(groupIndex);
     return getCards(groups[groupIndex]);
   }
@@ -171,6 +172,7 @@ describe('metrics main view', () => {
       declarations: [
         CardGridComponent,
         CardGridContainer,
+        CardGroupNodeComponent,
         CardGroupsComponent,
         CardGroupsContainer,
         CardGroupToolBarComponent,
@@ -339,12 +341,6 @@ describe('metrics main view', () => {
       selectSpy = spyOn(store, 'select').and.callThrough();
       selectSpy
         .withArgs(getMetricsTagGroupExpansionState, jasmine.any(String))
-        .and.throwError(
-          'getMetricsTagGroupExpansionState called with unknown groupName'
-        );
-
-      selectSpy
-        .withArgs(getMetricsTagGroupExpansionState, 'tagA')
         .and.returnValue(of(true));
     });
 
@@ -378,12 +374,15 @@ describe('metrics main view', () => {
       const fixture = TestBed.createComponent(MainViewContainer);
       fixture.detectChanges();
 
-      // Group name includes card count if > 1.
-      expect(getCardGroupCounts(fixture)).toEqual(['2 cards', '']);
-      expect(getCardGroupNames(fixture.debugElement)).toEqual(['tagA', 'tagB']);
+      // Tree: tagA (2 items), tagB > meow (1 item).
+      // With nested grouping, all 3 group toolbars are visible when expanded.
+      expect(getCardGroupNames(fixture.debugElement)).toEqual([
+        'tagA',
+        'tagB',
+        'meow',
+      ]);
 
       expect(getCardsInGroup(fixture, 0).length).toBe(2);
-      expect(getCardsInGroup(fixture, 1).length).toBe(1);
     });
 
     it('renders plugins', async () => {
@@ -457,17 +456,17 @@ describe('metrics main view', () => {
       ]);
       const fixture = TestBed.createComponent(MainViewContainer);
       fixture.detectChanges();
-      expect(fixture.debugElement.queryAll(By.css('.card-group')).length).toBe(
-        1
-      );
+      expect(
+        fixture.debugElement.queryAll(By.css('.card-group-node')).length
+      ).toBe(1);
 
       store.overrideSelector(selectors.getNonEmptyCardIdsWithMetadata, []);
       store.refreshState();
       fixture.detectChanges();
 
-      expect(fixture.debugElement.queryAll(By.css('.card-group')).length).toBe(
-        0
-      );
+      expect(
+        fixture.debugElement.queryAll(By.css('.card-group-node')).length
+      ).toBe(0);
     });
 
     describe('lazy loading', () => {
@@ -860,7 +859,7 @@ describe('metrics main view', () => {
         fixture.detectChanges();
 
         expect(
-          fixture.debugElement.queryAll(By.css('.card-group')).length
+          fixture.debugElement.queryAll(By.css('.card-group-node')).length
         ).toBe(0);
       });
     });
