@@ -54,17 +54,13 @@ limitations under the License.
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition:
-    grid-template-rows 150ms ease-out,
-    opacity 120ms ease-out;
+  transition: grid-template-rows 150ms ease-out, opacity 120ms ease-out;
 }
 
 .pinned-content.expanded {
   grid-template-rows: 1fr;
   opacity: 1;
-  transition:
-    grid-template-rows 150ms ease-in,
-    opacity 120ms 30ms ease-in;
+  transition: grid-template-rows 150ms ease-in, opacity 120ms 30ms ease-in;
 }
 
 .pinned-content-inner {
