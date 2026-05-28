@@ -37,38 +37,17 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
   selector: 'superimposed-cards-view-component',
   template: `
     <ng-container *ngIf="superimposedCards.length > 0">
-      <button
-        class="group-toolbar"
-        i18n-aria-label="
-          A button that allows user to expand the superimposed section.
-        "
-        aria-label="Expand superimposed section"
-        (click)="expansionToggled.emit()"
-      >
-        <div class="left-items">
-          <mat-icon svgIcon="group_work_24px"></mat-icon>
-          <span class="group-text">
-            <span class="group-title" aria-role="heading" aria-level="3"
-              >Superimposed</span
-            >
-            <span *ngIf="superimposedCards.length > 1" class="group-card-count"
-              >{{ superimposedCards.length }} cards</span
-            >
-          </span>
-        </div>
-        <span class="expand-group-icon">
-          <mat-icon
-            *ngIf="isExpanded; else expandMore"
-            svgIcon="expand_less_24px"
-          ></mat-icon>
-          <ng-template #expandMore>
-            <mat-icon svgIcon="expand_more_24px"></mat-icon>
-          </ng-template>
-        </span>
-      </button>
+      <metrics-card-group-toolbar-component
+        [groupName]="'Superimposed'"
+        [displayName]="'Superimposed'"
+        [numberOfCards]="superimposedCards.length"
+        [isGroupExpanded]="isExpanded"
+        [depth]="0"
+        (groupExpansionToggled)="expansionToggled.emit()"
+      ></metrics-card-group-toolbar-component>
       <div
         *ngIf="isExpanded"
-        class="superimposed-cards-grid"
+        class="superimposed-cards-grid section-content"
         [style.grid-template-columns]="gridTemplateColumn"
       >
         <div

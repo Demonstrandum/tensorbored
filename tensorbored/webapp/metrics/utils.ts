@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import {DeepReadonly} from '../util/types';
-import {CardGroup, CardIdWithMetadata} from './types';
+import {CardGroup, CardGroupNode, CardIdWithMetadata} from './types';
 
 export function groupCardIdWithMetdata(
   cards: DeepReadonly<CardIdWithMetadata[]>
@@ -31,26 +31,7 @@ export function groupCardIdWithMetdata(
       tagPrefix.set(groupName, {groupName, items: []});
     }
 
-    // Create a mutable copy of the card to satisfy TypeScript's exactOptionalPropertyTypes
-    const mutableCard: CardIdWithMetadata = {
-      plugin: card.plugin,
-      tag: card.tag,
-      runId: card.runId,
-      cardId: card.cardId,
-    };
-    if (card.tags !== undefined) {
-      mutableCard.tags = [...card.tags];
-    }
-    if (card.title !== undefined) {
-      mutableCard.title = card.title;
-    }
-    if (card.sample !== undefined) {
-      mutableCard.sample = card.sample;
-    }
-    if (card.numSample !== undefined) {
-      mutableCard.numSample = card.numSample;
-    }
-    tagPrefix.get(groupName)!.items.push(mutableCard);
+    tagPrefix.get(groupName)!.items.push(makeMutableCard(card));
   }
 
   return [...tagPrefix.values()];
@@ -58,6 +39,108 @@ export function groupCardIdWithMetdata(
 
 function getTagGroupName(tag: string): string {
   return tag.split('/', 1)[0];
+}
+
+/**
+ * Returns the path segments that define a card's position in the group tree.
+ * For "train/loss/pixels" → ["train", "loss"] (all but the last segment).
+ * For single-segment tags like "learning_rate" → ["learning_rate"].
+ */
+function getGroupPath(tag: string): string[] {
+  const segments = tag.split('/');
+  if (segments.length <= 1) {
+    return segments;
+  }
+  return segments.slice(0, -1);
+}
+
+function makeMutableCard(
+  card: DeepReadonly<CardIdWithMetadata>
+): CardIdWithMetadata {
+  const mutableCard: CardIdWithMetadata = {
+    plugin: card.plugin,
+    tag: card.tag,
+    runId: card.runId,
+    cardId: card.cardId,
+  };
+  if (card.tags !== undefined) {
+    mutableCard.tags = [...card.tags];
+  }
+  if (card.title !== undefined) {
+    mutableCard.title = card.title;
+  }
+  if (card.sample !== undefined) {
+    mutableCard.sample = card.sample;
+  }
+  if (card.numSample !== undefined) {
+    mutableCard.numSample = card.numSample;
+  }
+  return mutableCard;
+}
+
+function computeTotalCards(node: CardGroupNode): number {
+  let total = node.items.length;
+  for (const child of node.children) {
+    total += computeTotalCards(child);
+  }
+  node.totalCards = total;
+  return total;
+}
+
+export function buildCardGroupTree(
+  cards: DeepReadonly<CardIdWithMetadata[]>
+): CardGroupNode[] {
+  const sortedCards = cards.slice().sort((cardA, cardB) => {
+    return compareTagNames(cardA.tag, cardB.tag);
+  });
+
+  const rootChildren: CardGroupNode[] = [];
+
+  for (const card of sortedCards) {
+    const path = getGroupPath(card.tag);
+
+    let siblings = rootChildren;
+    for (let i = 0; i < path.length; i++) {
+      const segment = path[i];
+      const fullPath = path.slice(0, i + 1).join('/');
+
+      let node = siblings.find((c) => c.groupPath === fullPath);
+      if (!node) {
+        node = {
+          segmentName: segment,
+          groupPath: fullPath,
+          items: [],
+          children: [],
+          totalCards: 0,
+        };
+        siblings.push(node);
+      }
+
+      if (i === path.length - 1) {
+        node.items.push(makeMutableCard(card));
+      }
+      siblings = node.children;
+    }
+  }
+
+  for (const child of rootChildren) {
+    computeTotalCards(child);
+  }
+
+  return rootChildren;
+}
+
+/**
+ * Collects all groupPath values from a tree of CardGroupNodes (for
+ * initializing expansion state).
+ */
+export function collectGroupPaths(nodes: CardGroupNode[]): string[] {
+  const paths: string[] = [];
+  for (const node of nodes) {
+    paths.push(node.groupPath);
+    paths.push(...collectGroupPaths(node.children));
+  }
+  return paths;
 }
 
 let htmlToTextScratch: HTMLDivElement | null = null;

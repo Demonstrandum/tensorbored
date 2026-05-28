@@ -26,31 +26,31 @@ import {
   template: `
     <button
       class="group-toolbar"
+      [style.padding-left.px]="depth * 20"
       i18n-aria-label="A button that allows user to expand a tag group."
       aria-label="Expand group"
       (click)="groupExpansionToggled.emit()"
     >
+      <span class="expand-group-icon">
+        <mat-icon
+          [svgIcon]="
+            isGroupExpanded ? 'expand_more_24px' : 'chevron_right_24px'
+          "
+        ></mat-icon>
+      </span>
       <span class="group-title-wrapper">
         <span
           class="group-title"
           aria-role="heading"
-          aria-level="3"
+          [attr.aria-level]="3 + depth"
           title="{{ groupName }}"
-          >{{ groupName }}</span
+          >{{ displayName || groupName }}</span
         >
         <span *ngIf="numberOfCards > 1" class="group-card-count"
           >{{ numberOfCards | number }} cards</span
         >
       </span>
-      <span class="expand-group-icon">
-        <mat-icon
-          *ngIf="isGroupExpanded; else expandMore"
-          svgIcon="expand_less_24px"
-        ></mat-icon>
-        <ng-template #expandMore>
-          <mat-icon svgIcon="expand_more_24px"></mat-icon>
-        </ng-template>
-      </span>
+      <ng-content></ng-content>
     </button>
   `,
   styleUrls: [`card_group_toolbar_component.css`],
@@ -58,8 +58,10 @@ import {
 })
 export class CardGroupToolBarComponent {
   @Input() groupName!: string | null;
+  @Input() displayName: string | null = null;
   @Input() numberOfCards!: number;
   @Input() isGroupExpanded!: boolean;
+  @Input() depth: number = 0;
 
   @Output() groupExpansionToggled = new EventEmitter<void>();
 }

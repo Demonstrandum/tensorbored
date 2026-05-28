@@ -76,6 +76,16 @@ sass_binary(
 )
 
 sass_binary(
+    name = "card_group_node_component_styles",
+    src = "card_group_node_component.scss",
+    include_paths = ["external/npm/node_modules"],
+    deps = [
+        "//tensorbored/webapp/metrics/views:metrics_common_styles",
+        "//tensorbored/webapp/theme",
+    ],
+)
+
+sass_binary(
     name = "superimposed_cards_view_component_styles",
     src = "superimposed_cards_view_component.scss",
     include_paths = ["external/npm/node_modules"],
@@ -115,6 +125,7 @@ tf_ng_module(
     srcs = [
         "card_grid_component.ts",
         "card_grid_container.ts",
+        "card_group_node_component.ts",
         "card_group_toolbar_component.ts",
         "card_group_toolbar_container.ts",
         "card_groups_component.ts",
@@ -138,6 +149,7 @@ tf_ng_module(
         "filter_input_component.ng.html",
         "main_view_component.ng.html",
         ":card_grid_component_styles",
+        ":card_group_node_component_styles",
         ":card_group_toolbar_component_styles",
         ":card_groups_component_styles",
         ":filter_input_component_styles",

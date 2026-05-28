@@ -281,11 +281,15 @@ def setup_default_profile(logdir: Path, run_ids: list):
         metric_descriptions={
             "loss/train": "Training loss used for optimization.",
             "loss/eval": "Evaluation loss on the validation split.",
+            "loss/components/classification": "Classification (cross-entropy) component of the training loss.",
+            "loss/components/regularization": "L2 regularization component of the training loss.",
             "accuracy/train": "Top-1 accuracy on the training set.",
             "accuracy/eval": "Top-1 accuracy on the validation set.",
             "learning_rate": "Learning rate after warmup and cosine decay.",
             "gradients/global_norm": "Global L2 norm of all gradients.",
             "diagnostics/convergence_rate": "Rate of convergence toward the loss minimum.",
+            "diagnostics/performance/throughput/tokens_per_sec": "Training throughput in tokens processed per second.",
+            "diagnostics/performance/memory/peak_mb": "Peak GPU memory usage in megabytes.",
         },
         smoothing=0.8,
         # Group runs by experiment type
@@ -297,6 +301,15 @@ def setup_default_profile(logdir: Path, run_ids: list):
         tag_axis_scales={
             "loss/train": {"y": "log10"},
             "loss/eval": {"y": "log10"},
+        },
+        # Expand only top-level groups; sub-groups start collapsed
+        # so users can drill down and see the nested structure.
+        expanded_tag_groups={
+            "loss": True,
+            "accuracy": True,
+            "gradients": True,
+            "weights": True,
+            "diagnostics": True,
         },
     )
 
@@ -511,14 +524,47 @@ def main():
                 "gradients/global_norm", max(0.01, grad_norm), step
             )
 
-            # Histograms (less frequent)
-            if step % 50 == 0:
-                for layer in ["conv1", "conv2", "fc1", "fc2"]:
-                    weights = generate_weight_histogram(step, layer, seed)
-                    writer.add_histogram(f"weights/{layer}", weights, step)
+            # Loss components (deeper nesting for loss breakdown)
+            random.seed(seed + step + 4000)
+            cls_loss = train_loss * (0.7 + random.gauss(0, 0.05))
+            reg_loss = train_loss * (0.3 + random.gauss(0, 0.02))
+            writer.add_scalar("loss/components/classification", cls_loss, step)
+            writer.add_scalar("loss/components/regularization", reg_loss, step)
 
+            # Performance diagnostics (4-level nesting)
+            random.seed(seed + step + 5000)
+            tokens = 12000 + random.gauss(0, 500) + step * 2
+            mem = 2048 + random.gauss(0, 50) + step * 0.5
+            writer.add_scalar(
+                "diagnostics/performance/throughput/tokens_per_sec",
+                tokens,
+                step,
+            )
+            writer.add_scalar(
+                "diagnostics/performance/memory/peak_mb", mem, step
+            )
+
+            # Histograms (less frequent), nested by architecture block
+            if step % 50 == 0:
+                for layer in ["conv1", "conv2"]:
+                    weights = generate_weight_histogram(step, layer, seed)
+                    writer.add_histogram(
+                        f"weights/encoder/{layer}", weights, step
+                    )
                     grads = generate_gradient_histogram(step, layer, seed)
-                    writer.add_histogram(f"gradients/{layer}", grads, step)
+                    writer.add_histogram(
+                        f"gradients/per_layer/encoder/{layer}", grads, step
+                    )
+
+                for layer in ["fc1", "fc2"]:
+                    weights = generate_weight_histogram(step, layer, seed)
+                    writer.add_histogram(
+                        f"weights/decoder/{layer}", weights, step
+                    )
+                    grads = generate_gradient_histogram(step, layer, seed)
+                    writer.add_histogram(
+                        f"gradients/per_layer/decoder/{layer}", grads, step
+                    )
 
             # Images (less frequent)
             if step % 100 == 0:

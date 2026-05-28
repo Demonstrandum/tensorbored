@@ -18,9 +18,9 @@ import {Observable} from 'rxjs';
 import {combineLatestWith, map} from 'rxjs/operators';
 import {State} from '../../../app_state';
 import {getMetricsFilteredPluginTypes} from '../../store';
-import {groupCardIdWithMetdata} from '../../utils';
+import {buildCardGroupTree} from '../../utils';
 import {CardObserver} from '../card_renderer/card_lazy_loader';
-import {CardGroup} from '../metrics_view_types';
+import {CardGroupNode} from '../metrics_view_types';
 import {getSortedRenderableCardIdsWithMetadata} from './common_selectors';
 
 @Component({
@@ -28,7 +28,7 @@ import {getSortedRenderableCardIdsWithMetadata} from './common_selectors';
   selector: 'metrics-card-groups',
   template: `
     <metrics-card-groups-component
-      [cardGroups]="cardGroups$ | async"
+      [cardGroupNodes]="cardGroupNodes$ | async"
       [cardObserver]="cardObserver"
     ></metrics-card-groups-component>
   `,
@@ -38,7 +38,7 @@ export class CardGroupsContainer {
   @Input() cardObserver!: CardObserver;
 
   constructor(private readonly store: Store<State>) {
-    this.cardGroups$ = this.store
+    this.cardGroupNodes$ = this.store
       .select(getSortedRenderableCardIdsWithMetadata)
       .pipe(
         combineLatestWith(this.store.select(getMetricsFilteredPluginTypes)),
@@ -48,9 +48,9 @@ export class CardGroupsContainer {
             return filteredPlugins.has(card.plugin);
           });
         }),
-        map((cardList) => groupCardIdWithMetdata(cardList))
+        map((cardList) => buildCardGroupTree(cardList))
       );
   }
 
-  readonly cardGroups$: Observable<CardGroup[]>;
+  readonly cardGroupNodes$: Observable<CardGroupNode[]>;
 }

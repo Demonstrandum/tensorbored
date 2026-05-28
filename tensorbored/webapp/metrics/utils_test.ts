@@ -14,12 +14,14 @@ limitations under the License.
 ==============================================================================*/
 import {PluginType} from './data_source';
 import {
+  buildCardGroupTree,
   buildTagTooltip,
+  collectGroupPaths,
   compareTagNames,
   groupCardIdWithMetdata,
   htmlToText,
 } from './utils';
-import {CardIdWithMetadata} from './views/metrics_view_types';
+import {CardIdWithMetadata, CardGroupNode} from './views/metrics_view_types';
 
 function buildCardIdWithMetadata(
   override: Partial<CardIdWithMetadata>
@@ -112,6 +114,164 @@ describe('metrics utils', () => {
           ],
         },
       ]);
+    });
+  });
+
+  describe('buildCardGroupTree', () => {
+    it('builds flat groups for single-segment tags', () => {
+      const cards = [
+        buildCardIdWithMetadata({cardId: 'a', tag: 'loss'}),
+        buildCardIdWithMetadata({cardId: 'b', tag: 'accuracy'}),
+      ];
+
+      const tree = buildCardGroupTree(cards);
+
+      expect(tree).toEqual([
+        {
+          segmentName: 'accuracy',
+          groupPath: 'accuracy',
+          items: [buildCardIdWithMetadata({cardId: 'b', tag: 'accuracy'})],
+          children: [],
+          totalCards: 1,
+        },
+        {
+          segmentName: 'loss',
+          groupPath: 'loss',
+          items: [buildCardIdWithMetadata({cardId: 'a', tag: 'loss'})],
+          children: [],
+          totalCards: 1,
+        },
+      ]);
+    });
+
+    it('groups by first slash segment', () => {
+      const cards = [
+        buildCardIdWithMetadata({cardId: 'a', tag: 'train/loss'}),
+        buildCardIdWithMetadata({cardId: 'b', tag: 'train/accuracy'}),
+        buildCardIdWithMetadata({cardId: 'c', tag: 'eval/loss'}),
+      ];
+
+      const tree = buildCardGroupTree(cards);
+
+      expect(tree.length).toBe(2);
+      expect(tree[0].segmentName).toBe('eval');
+      expect(tree[0].items.length).toBe(1);
+      expect(tree[0].items[0].tag).toBe('eval/loss');
+      expect(tree[1].segmentName).toBe('train');
+      expect(tree[1].items.length).toBe(2);
+    });
+
+    it('creates nested groups for multi-slash tags', () => {
+      const cards = [
+        buildCardIdWithMetadata({cardId: 'a', tag: 'train/loss/pixels'}),
+        buildCardIdWithMetadata({cardId: 'b', tag: 'train/loss/text'}),
+        buildCardIdWithMetadata({cardId: 'c', tag: 'train/accuracy'}),
+      ];
+
+      const tree = buildCardGroupTree(cards);
+
+      expect(tree.length).toBe(1);
+      const trainNode = tree[0];
+      expect(trainNode.segmentName).toBe('train');
+      expect(trainNode.groupPath).toBe('train');
+      expect(trainNode.items.length).toBe(1);
+      expect(trainNode.items[0].tag).toBe('train/accuracy');
+      expect(trainNode.children.length).toBe(1);
+
+      const lossNode = trainNode.children[0];
+      expect(lossNode.segmentName).toBe('loss');
+      expect(lossNode.groupPath).toBe('train/loss');
+      expect(lossNode.items.length).toBe(2);
+      expect(lossNode.items[0].tag).toBe('train/loss/pixels');
+      expect(lossNode.items[1].tag).toBe('train/loss/text');
+      expect(lossNode.children.length).toBe(0);
+    });
+
+    it('computes totalCards across the subtree', () => {
+      const cards = [
+        buildCardIdWithMetadata({cardId: 'a', tag: 'train/loss/pixels'}),
+        buildCardIdWithMetadata({cardId: 'b', tag: 'train/loss/text'}),
+        buildCardIdWithMetadata({cardId: 'c', tag: 'train/accuracy'}),
+        buildCardIdWithMetadata({cardId: 'd', tag: 'eval/loss'}),
+      ];
+
+      const tree = buildCardGroupTree(cards);
+
+      const evalNode = tree[0];
+      expect(evalNode.segmentName).toBe('eval');
+      expect(evalNode.totalCards).toBe(1);
+
+      const trainNode = tree[1];
+      expect(trainNode.totalCards).toBe(3);
+      expect(trainNode.children[0].totalCards).toBe(2);
+    });
+
+    it('handles deeply nested tags', () => {
+      const cards = [
+        buildCardIdWithMetadata({cardId: 'a', tag: 'a/b/c/d/metric'}),
+      ];
+
+      const tree = buildCardGroupTree(cards);
+
+      expect(tree.length).toBe(1);
+      expect(tree[0].segmentName).toBe('a');
+      expect(tree[0].children.length).toBe(1);
+      expect(tree[0].children[0].segmentName).toBe('b');
+      expect(tree[0].children[0].children.length).toBe(1);
+      expect(tree[0].children[0].children[0].segmentName).toBe('c');
+      expect(tree[0].children[0].children[0].children.length).toBe(1);
+      expect(tree[0].children[0].children[0].children[0].segmentName).toBe('d');
+      expect(tree[0].children[0].children[0].children[0].items[0].tag).toBe(
+        'a/b/c/d/metric'
+      );
+    });
+
+    it('mixes leaves and nested children at the same level', () => {
+      const cards = [
+        buildCardIdWithMetadata({cardId: 'a', tag: 'train/loss'}),
+        buildCardIdWithMetadata({cardId: 'b', tag: 'train/loss/pixels'}),
+      ];
+
+      const tree = buildCardGroupTree(cards);
+
+      const trainNode = tree[0];
+      expect(trainNode.items.length).toBe(1);
+      expect(trainNode.items[0].tag).toBe('train/loss');
+      expect(trainNode.children.length).toBe(1);
+      expect(trainNode.children[0].segmentName).toBe('loss');
+      expect(trainNode.children[0].items[0].tag).toBe('train/loss/pixels');
+    });
+  });
+
+  describe('collectGroupPaths', () => {
+    it('collects all paths from a tree', () => {
+      const nodes: CardGroupNode[] = [
+        {
+          segmentName: 'train',
+          groupPath: 'train',
+          items: [],
+          children: [
+            {
+              segmentName: 'loss',
+              groupPath: 'train/loss',
+              items: [],
+              children: [],
+              totalCards: 2,
+            },
+          ],
+          totalCards: 3,
+        },
+        {
+          segmentName: 'eval',
+          groupPath: 'eval',
+          items: [],
+          children: [],
+          totalCards: 1,
+        },
+      ];
+
+      const paths = collectGroupPaths(nodes);
+      expect(paths).toEqual(['train', 'train/loss', 'eval']);
     });
   });
 

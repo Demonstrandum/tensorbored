@@ -12,19 +12,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-import {CardId, CardMetadata, CardGroupNode} from '../types';
+@import 'tensorbored/webapp/theme/tb_theme';
+@import '../common';
 
-export {CardGroupNode};
-
-export interface CardRenderer {
-  cardId: CardId;
+:host {
+  @include metrics-sub-view;
+  display: block;
 }
 
-export type CardIdWithMetadata = CardMetadata & {
-  cardId: CardId;
-};
+.node-content {
+  animation: section-fade-in 120ms ease-out;
+}
 
-export interface CardGroup {
-  groupName: string;
-  items: CardIdWithMetadata[];
+@keyframes section-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

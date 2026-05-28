@@ -87,6 +87,14 @@ export interface CardGroup {
   items: CardIdWithMetadata[];
 }
 
+export interface CardGroupNode {
+  segmentName: string;
+  groupPath: string;
+  items: CardIdWithMetadata[];
+  children: CardGroupNode[];
+  totalCards: number;
+}
+
 /**
  * The most minimal representation of a card that uniquely identifies it across
  * a browser session. This information may be persisted in storage, retrieved,

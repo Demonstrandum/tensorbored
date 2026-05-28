@@ -27,6 +27,8 @@ import {metricsTagGroupExpansionChanged} from '../../actions';
       [numberOfCards]="numberOfCards"
       [isGroupExpanded]="isGroupExpanded$ | async"
       [groupName]="groupName"
+      [displayName]="displayName || groupName"
+      [depth]="depth"
       (groupExpansionToggled)="onGroupExpansionToggled()"
     ></metrics-card-group-toolbar-component>
   `,
@@ -34,7 +36,9 @@ import {metricsTagGroupExpansionChanged} from '../../actions';
 })
 export class CardGroupToolBarContainer {
   @Input() groupName: string | null = null;
+  @Input() displayName: string | null = null;
   @Input() numberOfCards!: number;
+  @Input() depth: number = 0;
   isGroupExpanded$: Observable<boolean> = of(false);
 
   constructor(private readonly store: Store<State>) {}
