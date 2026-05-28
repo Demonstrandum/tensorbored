@@ -503,6 +503,7 @@ const {initialState, reducers: namespaceContextedReducer} =
       superimposedCardList: [],
       fullWidthSuperimposedCards: new Set<string>(),
       superimposedSectionExpanded: true,
+      pinnedSectionExpanded: true,
     },
     {
       isSettingsPaneOpen: true,
@@ -1281,20 +1282,35 @@ const reducer = createReducer(
     return {...state, tagGroupExpanded};
   }),
   on(actions.metricsTagGroupExpansionStateLoaded, (state, {expandedGroups}) => {
+    const reservedKeys = new Set(['__superimposed__', '__pinned__']);
     const superimposedEntry = expandedGroups.find(
       ([key]) => key === '__superimposed__'
     );
+    const pinnedEntry = expandedGroups.find(([key]) => key === '__pinned__');
     const tagGroupExpanded = new Map<string, boolean>(
-      expandedGroups.filter(([key]) => key !== '__superimposed__')
+      expandedGroups.filter(([key]) => !reservedKeys.has(key))
     );
     const superimposedSectionExpanded =
       superimposedEntry !== undefined ? superimposedEntry[1] : true;
-    return {...state, tagGroupExpanded, superimposedSectionExpanded};
+    const pinnedSectionExpanded =
+      pinnedEntry !== undefined ? pinnedEntry[1] : true;
+    return {
+      ...state,
+      tagGroupExpanded,
+      superimposedSectionExpanded,
+      pinnedSectionExpanded,
+    };
   }),
   on(actions.metricsSuperimposedSectionExpansionChanged, (state) => {
     return {
       ...state,
       superimposedSectionExpanded: !state.superimposedSectionExpanded,
+    };
+  }),
+  on(actions.metricsPinnedSectionExpansionChanged, (state) => {
+    return {
+      ...state,
+      pinnedSectionExpanded: !state.pinnedSectionExpanded,
     };
   }),
   on(

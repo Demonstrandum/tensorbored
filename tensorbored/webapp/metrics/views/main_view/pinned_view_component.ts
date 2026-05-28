@@ -26,28 +26,17 @@ import {CardIdWithMetadata} from '../metrics_view_types';
   standalone: false,
   selector: 'metrics-pinned-view-component',
   template: `
-    <div class="group-toolbar">
-      <div class="left-items">
-        <mat-icon svgIcon="keep_24px"></mat-icon>
-        <span class="group-text">
-          <span class="group-title" aria-role="heading" aria-level="3"
-            >Pinned</span
-          >
-          <span *ngIf="cardIdsWithMetadata.length > 1" class="group-card-count"
-            >{{ cardIdsWithMetadata.length }} cards</span
-          >
-          <span *ngIf="lastPinnedCardTime">
-            <span
-              *ngFor="let id of [lastPinnedCardTime]"
-              [attr.data-id]="id"
-              class="new-card-pinned"
-              >New card pinned</span
-            >
-          </span>
-        </span>
-      </div>
+    <div class="pinned-toolbar-row">
+      <metrics-card-group-toolbar-component
+        [groupName]="'Pinned'"
+        [displayName]="'Pinned'"
+        [numberOfCards]="cardIdsWithMetadata.length"
+        [isGroupExpanded]="isExpanded"
+        [depth]="0"
+        (groupExpansionToggled)="expansionToggled.emit()"
+      ></metrics-card-group-toolbar-component>
       <div
-        class="right-items"
+        class="pinned-actions"
         *ngIf="cardIdsWithMetadata.length > 0 && globalPinsEnabled"
       >
         <button
@@ -59,16 +48,30 @@ import {CardIdWithMetadata} from '../metrics_view_types';
         </button>
       </div>
     </div>
-    <metrics-card-grid
-      *ngIf="cardIdsWithMetadata.length; else emptyPinnedView"
-      [cardIdsWithMetadata]="cardIdsWithMetadata"
-      [cardObserver]="cardObserver"
-      [allowPinnedReorder]="true"
-      (cardOrderChanged)="onCardOrderChanged.emit($event)"
-    ></metrics-card-grid>
-    <ng-template #emptyPinnedView>
-      <div class="empty-message">Pin cards for a quick view and comparison</div>
-    </ng-template>
+    <span *ngIf="lastPinnedCardTime" class="new-card-pinned-wrapper">
+      <span
+        *ngFor="let id of [lastPinnedCardTime]"
+        [attr.data-id]="id"
+        class="new-card-pinned"
+        >New card pinned</span
+      >
+    </span>
+    <div class="pinned-content" [class.expanded]="isExpanded">
+      <div class="pinned-content-inner">
+        <metrics-card-grid
+          *ngIf="cardIdsWithMetadata.length; else emptyPinnedView"
+          [cardIdsWithMetadata]="cardIdsWithMetadata"
+          [cardObserver]="cardObserver"
+          [allowPinnedReorder]="true"
+          (cardOrderChanged)="onCardOrderChanged.emit($event)"
+        ></metrics-card-grid>
+        <ng-template #emptyPinnedView>
+          <div class="empty-message">
+            Pin cards for a quick view and comparison
+          </div>
+        </ng-template>
+      </div>
+    </div>
   `,
   styleUrls: ['pinned_view_component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,7 +81,9 @@ export class PinnedViewComponent {
   @Input() cardIdsWithMetadata!: CardIdWithMetadata[];
   @Input() lastPinnedCardTime!: number;
   @Input() globalPinsEnabled: boolean = false;
+  @Input() isExpanded: boolean = true;
   @Output() onClearAllPinsClicked = new EventEmitter<void>();
+  @Output() expansionToggled = new EventEmitter<void>();
   @Output() onCardOrderChanged = new EventEmitter<{
     previousIndex: number;
     currentIndex: number;

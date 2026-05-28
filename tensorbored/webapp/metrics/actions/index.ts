@@ -210,6 +210,10 @@ export const metricsSuperimposedSectionExpansionChanged = createAction(
   '[Metrics] Superimposed Section Expansion Changed'
 );
 
+export const metricsPinnedSectionExpansionChanged = createAction(
+  '[Metrics] Pinned Section Expansion Changed'
+);
+
 export const cardFullWidthStateLoaded = createAction(
   '[Metrics] Card Full Width State Loaded From Storage',
   props<{fullWidthCardIds: string[]; fullWidthSuperimposedCardIds: string[]}>()

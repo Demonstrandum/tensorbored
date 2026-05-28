@@ -109,6 +109,7 @@ import {
   getSuperimposedCardsWithMetadata,
   getMetricsTagGroupExpansionMap,
   getMetricsSuperimposedSectionExpanded,
+  getMetricsPinnedSectionExpanded,
   getCardStateMap,
   getFullWidthSuperimposedCards,
 } from '../store';
@@ -877,18 +878,21 @@ export class MetricsEffects implements OnInitEffects {
       ofType(
         actions.metricsTagGroupExpansionChanged,
         actions.metricsTagMetadataLoaded,
-        actions.metricsSuperimposedSectionExpansionChanged
+        actions.metricsSuperimposedSectionExpansionChanged,
+        actions.metricsPinnedSectionExpansionChanged
       ),
       debounceTime(200),
       withLatestFrom(
         this.store.select(getMetricsTagGroupExpansionMap),
-        this.store.select(getMetricsSuperimposedSectionExpanded)
+        this.store.select(getMetricsSuperimposedSectionExpanded),
+        this.store.select(getMetricsPinnedSectionExpanded)
       ),
-      tap(([, expansionMap, superimposedExpanded]) => {
+      tap(([, expansionMap, superimposedExpanded, pinnedExpanded]) => {
         const entries: Array<[string, boolean]> = Array.from(
           expansionMap.entries()
         );
         entries.push(['__superimposed__', superimposedExpanded]);
+        entries.push(['__pinned__', pinnedExpanded]);
         window.localStorage.setItem(
           TAG_GROUP_EXPANSION_STORAGE_KEY,
           JSON.stringify({version: 1, groups: entries})

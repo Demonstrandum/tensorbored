@@ -22,8 +22,13 @@ import {DeepReadonly} from '../../../util/types';
 import {
   metricsClearAllPinnedCards,
   metricsPinnedCardsReordered,
+  metricsPinnedSectionExpansionChanged,
 } from '../../actions';
-import {getLastPinnedCardTime, getPinnedCardsWithMetadata} from '../../store';
+import {
+  getLastPinnedCardTime,
+  getMetricsPinnedSectionExpanded,
+  getPinnedCardsWithMetadata,
+} from '../../store';
 import {CardObserver} from '../card_renderer/card_lazy_loader';
 import {CardIdWithMetadata} from '../metrics_view_types';
 
@@ -36,7 +41,9 @@ import {CardIdWithMetadata} from '../metrics_view_types';
       [lastPinnedCardTime]="lastPinnedCardTime$ | async"
       [cardObserver]="cardObserver"
       [globalPinsEnabled]="globalPinsEnabled$ | async"
+      [isExpanded]="isExpanded$ | async"
       (onClearAllPinsClicked)="onClearAllPinsClicked()"
+      (expansionToggled)="onExpansionToggled()"
       (onCardOrderChanged)="onCardOrderChanged($event)"
     ></metrics-pinned-view-component>
   `,
@@ -45,26 +52,28 @@ import {CardIdWithMetadata} from '../metrics_view_types';
 export class PinnedViewContainer {
   @Input() cardObserver!: CardObserver;
 
+  readonly cardIdsWithMetadata$: Observable<DeepReadonly<CardIdWithMetadata[]>>;
+  readonly lastPinnedCardTime$;
+  readonly globalPinsEnabled$;
+  readonly isExpanded$: Observable<boolean>;
+
   constructor(private readonly store: Store<State>) {
     this.cardIdsWithMetadata$ = this.store
       .select(getPinnedCardsWithMetadata)
       .pipe(startWith([]));
-    this.lastPinnedCardTime$ = this.store.select(getLastPinnedCardTime).pipe(
-      // Ignore the first value on component load, only reacting to new
-      // pins after page load.
-      skip(1)
-    );
+    this.lastPinnedCardTime$ = this.store
+      .select(getLastPinnedCardTime)
+      .pipe(skip(1));
     this.globalPinsEnabled$ = this.store.select(getEnableGlobalPins);
+    this.isExpanded$ = this.store.select(getMetricsPinnedSectionExpanded);
   }
-
-  readonly cardIdsWithMetadata$: Observable<DeepReadonly<CardIdWithMetadata[]>>;
-
-  readonly lastPinnedCardTime$;
-
-  readonly globalPinsEnabled$;
 
   onClearAllPinsClicked() {
     this.store.dispatch(metricsClearAllPinnedCards());
+  }
+
+  onExpansionToggled() {
+    this.store.dispatch(metricsPinnedSectionExpansionChanged());
   }
 
   onCardOrderChanged(event: {previousIndex: number; currentIndex: number}) {

@@ -162,6 +162,7 @@ function buildBlankState(): MetricsState {
     superimposedCardList: [],
     fullWidthSuperimposedCards: new Set<string>(),
     superimposedSectionExpanded: true,
+    pinnedSectionExpanded: true,
   };
 }
 

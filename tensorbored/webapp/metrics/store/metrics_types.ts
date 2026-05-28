@@ -249,6 +249,13 @@ export interface MetricsNamespacedState {
    * using the reserved key '__superimposed__'.
    */
   superimposedSectionExpanded: boolean;
+
+  /**
+   * Whether the Pinned section header is expanded (cards visible).
+   * Defaults to true. Persisted in the same localStorage key as tagGroupExpanded,
+   * using the reserved key '__pinned__'.
+   */
+  pinnedSectionExpanded: boolean;
 }
 
 export interface MetricsSettings {

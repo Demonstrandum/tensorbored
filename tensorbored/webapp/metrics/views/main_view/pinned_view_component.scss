@@ -22,22 +22,20 @@ limitations under the License.
   @include metrics-sub-view;
 }
 
-mat-icon {
-  @include tb-theme-foreground-prop(color, secondary-text);
-  flex: none;
-  margin-right: 5px;
-}
-
-.group-toolbar {
-  justify-content: space-between;
-}
-
-.left-items {
+.pinned-toolbar-row {
   display: flex;
   align-items: center;
+
+  metrics-card-group-toolbar-component {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
-.right-items {
+.pinned-actions {
+  flex-shrink: 0;
+  padding-right: 16px;
+
   button {
     $_height: 25px;
     font-size: 12px;
@@ -47,18 +45,30 @@ mat-icon {
   }
 }
 
-.group-text {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
+.new-card-pinned-wrapper {
+  display: block;
+  padding: 4px 16px 0;
 }
 
-.group-title {
-  @include metrics-card-group-title;
+.pinned-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 150ms ease-out,
+    opacity 120ms ease-out;
 }
 
-.group-card-count {
-  @include metrics-card-group-count-text;
+.pinned-content.expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 150ms ease-in,
+    opacity 120ms 30ms ease-in;
+}
+
+.pinned-content-inner {
+  overflow: hidden;
 }
 
 .empty-message {

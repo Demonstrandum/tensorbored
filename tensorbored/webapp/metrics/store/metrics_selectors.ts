@@ -478,6 +478,11 @@ export const getMetricsSuperimposedSectionExpanded = createSelector(
   (state: MetricsState): boolean => state.superimposedSectionExpanded
 );
 
+export const getMetricsPinnedSectionExpanded = createSelector(
+  selectMetricsState,
+  (state: MetricsState): boolean => state.pinnedSectionExpanded
+);
+
 export const getMetricsLinkedTimeEnabled = createSelector(
   selectMetricsState,
   (state: MetricsState): boolean => {
