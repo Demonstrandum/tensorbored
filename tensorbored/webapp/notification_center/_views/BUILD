@@ -1,5 +1,5 @@
-load("//tensorbored/defs:defs.bzl", 'tf_ng_module', 'tf_ts_library')
-load("@io_bazel_rules_sass//:defs.bzl", 'sass_binary')
+load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 
 package(default_visibility = ["//tensorbored/webapp/notification_center:__subpackages__"])
 
