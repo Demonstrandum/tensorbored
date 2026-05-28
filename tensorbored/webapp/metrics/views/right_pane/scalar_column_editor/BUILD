@@ -1,12 +1,14 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary", "tf_ts_library")
+load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 
 package(default_visibility = ["//tensorbored:internal"])
 
-tf_sass_binary(
+sass_binary(
     name = "scalar_column_editor_styles",
     src = "scalar_column_editor_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/theme",
     ],
 )

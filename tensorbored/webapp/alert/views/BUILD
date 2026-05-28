@@ -1,10 +1,12 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary", "tf_ts_library")
+load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 
 package(default_visibility = ["//tensorbored:internal"])
 
-tf_sass_binary(
+sass_binary(
     name = "alert_display_snackbar_styles",
     src = "alert_display_snackbar_container.scss",
+    include_paths = ["external/npm/node_modules"],
 )
 
 tf_ng_module(

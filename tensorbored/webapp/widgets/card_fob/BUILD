@@ -1,19 +1,22 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary", "tf_ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
 
 package(default_visibility = ["//tensorbored:internal"])
 
-tf_sass_binary(
+sass_binary(
     name = "card_fob_styles",
     src = "card_fob_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "card_fob_controller_styles",
     src = "card_fob_controller_component.scss",
+    include_paths = ["external/npm/node_modules"],
 )
 
 tf_ng_module(

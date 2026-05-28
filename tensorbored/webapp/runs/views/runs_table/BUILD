@@ -1,35 +1,40 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary", "tf_ts_library")
+load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 
 package(default_visibility = ["//tensorbored:internal"])
 
 licenses(["notice"])
 
-tf_sass_binary(
+sass_binary(
     name = "runs_group_menu_button_styles",
     src = "runs_group_menu_button_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "regex_edit_dialog_styles",
     src = "regex_edit_dialog_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = ["//tensorbored/webapp/theme"],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "filterbar_styles",
     src = "filterbar_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = ["//tensorbored/webapp/theme"],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "runs_data_table_styles",
     src = "runs_data_table.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/theme",
     ],
 )

@@ -1,10 +1,12 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary", "tf_ts_library")
+load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 
 package(default_visibility = ["//tensorbored:internal"])
 
-tf_sass_binary(
+sass_binary(
     name = "card_view_styles",
     src = "card_view_container.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = ["//tensorbored/webapp/theme"],
 )
 
@@ -40,9 +42,10 @@ tf_ng_module(
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "data_download_dialog_styles",
     src = "data_download_dialog_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = ["//tensorbored/webapp/theme"],
 )
 
@@ -77,9 +80,10 @@ tf_ng_module(
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "histogram_card_styles",
     src = "histogram_card_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
@@ -127,11 +131,12 @@ tf_ng_module(
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "image_card_styles",
     src = "image_card_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
     ],
@@ -176,9 +181,10 @@ tf_ng_module(
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "run_name_styles",
     src = "run_name_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = ["//tensorbored/webapp/theme"],
 )
 
@@ -205,11 +211,12 @@ tf_ng_module(
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "vis_linked_time_selection_warning_styles",
     src = "vis_linked_time_selection_warning_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/theme",
     ],
 )
@@ -256,24 +263,27 @@ tf_ts_library(
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "scalar_card_styles",
     src = "scalar_card_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "scalar_card_fob_controller_styles",
     src = "scalar_card_fob_controller.scss",
+    include_paths = ["external/npm/node_modules"],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "scalar_card_data_table_styles",
     src = "scalar_card_data_table.scss",
+    include_paths = ["external/npm/node_modules"],
 )
 
 tf_ng_module(
@@ -366,9 +376,10 @@ tf_ng_module(
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "scalar_card_line_chart_styles",
     src = "scalar_card_line_chart_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = ["//tensorbored/webapp/theme"],
 )
 
@@ -410,9 +421,10 @@ tf_ng_module(
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "superimposed_card_styles",
     src = "superimposed_card_component.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
         "//tensorbored/webapp/metrics/views:metrics_common_styles",
         "//tensorbored/webapp/theme",

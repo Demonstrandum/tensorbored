@@ -1,19 +1,22 @@
-load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_sass_binary", "tf_ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("//tensorbored/defs:defs.bzl", "tf_ng_module", "tf_ts_library")
 
 package(default_visibility = ["//tensorbored:internal"])
 
-tf_sass_binary(
+sass_binary(
     name = "line_chart_axis_view_styles",
     src = "line_chart_axis_view.scss",
+    include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp:angular_material_sass_deps",
+        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/theme",
     ],
 )
 
-tf_sass_binary(
+sass_binary(
     name = "line_chart_interactive_view_styles",
     src = "line_chart_interactive_view.scss",
+    include_paths = ["external/npm/node_modules"],
 )
 
 tf_ng_module(
