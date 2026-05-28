@@ -105,6 +105,9 @@ function createNScalarCards(size: number, tag: string = 'tagA') {
 }
 
 const EXPAND_BUTTON = By.css('[aria-label="Expand group"]');
+const TAG_GROUP_EXPAND_BUTTON = By.css(
+  'metrics-card-groups [aria-label="Expand group"]'
+);
 const PAGINATION_INPUT = By.css('.pagination-input');
 
 describe('metrics main view', () => {
@@ -139,6 +142,10 @@ describe('metrics main view', () => {
 
   function getCards(debugElement: DebugElement) {
     return debugElement.queryAll(By.css('card-view'));
+  }
+
+  function getVisibleCards(debugElement: DebugElement) {
+    return debugElement.queryAll(By.css('.node-content.expanded card-view'));
   }
 
   function getCardContents(debugElements: DebugElement[]): string[] {
@@ -976,7 +983,7 @@ describe('metrics main view', () => {
       );
     });
 
-    it('renders 0 cards in a collapsed group', () => {
+    it('renders 0 visible cards in a collapsed group', () => {
       selectSpy
         .withArgs(getMetricsTagGroupExpansionState, 'tagA')
         .and.returnValue(of(false));
@@ -988,8 +995,10 @@ describe('metrics main view', () => {
       const fixture = TestBed.createComponent(MainViewContainer);
       fixture.detectChanges();
 
-      expect(fixture.debugElement.query(EXPAND_BUTTON)).not.toBeNull();
-      expect(getCardContents(getCards(fixture.debugElement))).toEqual([]);
+      expect(
+        fixture.debugElement.query(TAG_GROUP_EXPAND_BUTTON)
+      ).not.toBeNull();
+      expect(getVisibleCards(fixture.debugElement)).toEqual([]);
     });
 
     it('renders N = items.length cards when N < pageSize and expanded', () => {
@@ -1029,7 +1038,7 @@ describe('metrics main view', () => {
       expect(getCards(fixture.debugElement).length).toBe(5);
     });
 
-    it('does not render next or prev when collapsed', () => {
+    it('does not show next or prev when collapsed', () => {
       selectSpy
         .withArgs(getMetricsTagGroupExpansionState, 'tagA')
         .and.returnValue(of(false));
@@ -1041,8 +1050,10 @@ describe('metrics main view', () => {
       const fixture = TestBed.createComponent(MainViewContainer);
       fixture.detectChanges();
 
-      expect(fixture.debugElement.query(By.css('.prev'))).toBeNull();
-      expect(fixture.debugElement.query(By.css('.next'))).toBeNull();
+      const expanded = fixture.debugElement.query(
+        By.css('.node-content.expanded')
+      );
+      expect(expanded).toBeNull();
     });
 
     it('does not render next or prev when items.length <= pageSize and expanded', () => {
@@ -1075,17 +1086,17 @@ describe('metrics main view', () => {
       const fixture = TestBed.createComponent(MainViewContainer);
       fixture.detectChanges();
 
-      expect(getCards(fixture.debugElement).length).toBe(0);
+      expect(getVisibleCards(fixture.debugElement).length).toBe(0);
 
       getExpansionStateSubject.next(true);
       fixture.detectChanges();
 
-      expect(getCards(fixture.debugElement).length).toBe(5);
+      expect(getVisibleCards(fixture.debugElement).length).toBe(5);
 
       getExpansionStateSubject.next(false);
       fixture.detectChanges();
 
-      expect(getCards(fixture.debugElement).length).toBe(0);
+      expect(getVisibleCards(fixture.debugElement).length).toBe(0);
     });
 
     it(
@@ -1103,7 +1114,9 @@ describe('metrics main view', () => {
         const fixture = TestBed.createComponent(MainViewContainer);
         fixture.detectChanges();
 
-        fixture.debugElement.query(EXPAND_BUTTON).nativeElement.click();
+        fixture.debugElement
+          .query(TAG_GROUP_EXPAND_BUTTON)
+          .nativeElement.click();
         expect(dispatchedActions).toEqual([
           actions.metricsTagGroupExpansionChanged({tagGroup: 'tagA'}),
         ]);
