@@ -206,6 +206,10 @@ export const metricsTagGroupExpansionStateLoaded = createAction(
   props<{expandedGroups: Array<[string, boolean]>}>()
 );
 
+export const metricsSuperimposedSectionExpansionChanged = createAction(
+  '[Metrics] Superimposed Section Expansion Changed'
+);
+
 export const cardFullWidthStateLoaded = createAction(
   '[Metrics] Card Full Width State Loaded From Storage',
   props<{fullWidthCardIds: string[]; fullWidthSuperimposedCardIds: string[]}>()

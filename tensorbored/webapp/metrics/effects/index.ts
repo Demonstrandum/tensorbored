@@ -108,6 +108,7 @@ import {
   getTagSymlogLinearThresholds,
   getSuperimposedCardsWithMetadata,
   getMetricsTagGroupExpansionMap,
+  getMetricsSuperimposedSectionExpanded,
   getCardStateMap,
   getFullWidthSuperimposedCards,
 } from '../store';
@@ -875,22 +876,23 @@ export class MetricsEffects implements OnInitEffects {
     this.persistTagGroupExpansion$ = this.actions$.pipe(
       ofType(
         actions.metricsTagGroupExpansionChanged,
-        actions.metricsTagMetadataLoaded
+        actions.metricsTagMetadataLoaded,
+        actions.metricsSuperimposedSectionExpansionChanged
       ),
       debounceTime(200),
-      withLatestFrom(this.store.select(getMetricsTagGroupExpansionMap)),
-      tap(([, expansionMap]) => {
+      withLatestFrom(
+        this.store.select(getMetricsTagGroupExpansionMap),
+        this.store.select(getMetricsSuperimposedSectionExpanded)
+      ),
+      tap(([, expansionMap, superimposedExpanded]) => {
         const entries: Array<[string, boolean]> = Array.from(
           expansionMap.entries()
         );
-        if (entries.length > 0) {
-          window.localStorage.setItem(
-            TAG_GROUP_EXPANSION_STORAGE_KEY,
-            JSON.stringify({version: 1, groups: entries})
-          );
-        } else {
-          window.localStorage.removeItem(TAG_GROUP_EXPANSION_STORAGE_KEY);
-        }
+        entries.push(['__superimposed__', superimposedExpanded]);
+        window.localStorage.setItem(
+          TAG_GROUP_EXPANSION_STORAGE_KEY,
+          JSON.stringify({version: 1, groups: entries})
+        );
         window.dispatchEvent(new CustomEvent('tb-tag-group-expansion-changed'));
       })
     );

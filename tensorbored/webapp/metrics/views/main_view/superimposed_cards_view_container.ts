@@ -18,7 +18,11 @@ import {Observable} from 'rxjs';
 import {startWith} from 'rxjs/operators';
 import {State} from '../../../app_state';
 import {getMetricsCardMinWidth} from '../../../selectors';
-import {getSuperimposedCardsWithMetadata} from '../../store';
+import {
+  getSuperimposedCardsWithMetadata,
+  getMetricsSuperimposedSectionExpanded,
+} from '../../store';
+import {metricsSuperimposedSectionExpansionChanged} from '../../actions';
 import {SuperimposedCardMetadata} from '../../types';
 import {CardObserver} from '../card_renderer/card_lazy_loader';
 
@@ -30,6 +34,8 @@ import {CardObserver} from '../card_renderer/card_lazy_loader';
       [superimposedCards]="superimposedCards$ | async"
       [cardObserver]="cardObserver"
       [cardMinWidth]="cardMinWidth$ | async"
+      [isExpanded]="isExpanded$ | async"
+      (expansionToggled)="onExpansionToggled()"
     ></superimposed-cards-view-component>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,11 +45,17 @@ export class SuperimposedCardsViewContainer {
 
   readonly superimposedCards$: Observable<SuperimposedCardMetadata[]>;
   readonly cardMinWidth$: Observable<number | null>;
+  readonly isExpanded$: Observable<boolean>;
 
   constructor(private readonly store: Store<State>) {
     this.superimposedCards$ = this.store
       .select(getSuperimposedCardsWithMetadata)
       .pipe(startWith([]));
     this.cardMinWidth$ = this.store.select(getMetricsCardMinWidth);
+    this.isExpanded$ = this.store.select(getMetricsSuperimposedSectionExpanded);
+  }
+
+  onExpansionToggled() {
+    this.store.dispatch(metricsSuperimposedSectionExpansionChanged());
   }
 }

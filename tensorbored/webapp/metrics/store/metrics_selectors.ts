@@ -473,6 +473,11 @@ export const getMetricsTagGroupExpansionMap = createSelector(
   }
 );
 
+export const getMetricsSuperimposedSectionExpanded = createSelector(
+  selectMetricsState,
+  (state: MetricsState): boolean => state.superimposedSectionExpanded
+);
+
 export const getMetricsLinkedTimeEnabled = createSelector(
   selectMetricsState,
   (state: MetricsState): boolean => {

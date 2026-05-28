@@ -242,6 +242,13 @@ export interface MetricsNamespacedState {
    * Set of superimposed card IDs that are displayed at full width.
    */
   fullWidthSuperimposedCards: Set<SuperimposedCardId>;
+
+  /**
+   * Whether the Superimposed section header is expanded (cards visible).
+   * Defaults to true. Persisted in the same localStorage key as tagGroupExpanded,
+   * using the reserved key '__superimposed__'.
+   */
+  superimposedSectionExpanded: boolean;
 }
 
 export interface MetricsSettings {

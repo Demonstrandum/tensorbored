@@ -502,6 +502,7 @@ const {initialState, reducers: namespaceContextedReducer} =
       superimposedCardMetadataMap: {},
       superimposedCardList: [],
       fullWidthSuperimposedCards: new Set<string>(),
+      superimposedSectionExpanded: true,
     },
     {
       isSettingsPaneOpen: true,
@@ -1280,8 +1281,21 @@ const reducer = createReducer(
     return {...state, tagGroupExpanded};
   }),
   on(actions.metricsTagGroupExpansionStateLoaded, (state, {expandedGroups}) => {
-    const tagGroupExpanded = new Map<string, boolean>(expandedGroups);
-    return {...state, tagGroupExpanded};
+    const superimposedEntry = expandedGroups.find(
+      ([key]) => key === '__superimposed__'
+    );
+    const tagGroupExpanded = new Map<string, boolean>(
+      expandedGroups.filter(([key]) => key !== '__superimposed__')
+    );
+    const superimposedSectionExpanded =
+      superimposedEntry !== undefined ? superimposedEntry[1] : true;
+    return {...state, tagGroupExpanded, superimposedSectionExpanded};
+  }),
+  on(actions.metricsSuperimposedSectionExpansionChanged, (state) => {
+    return {
+      ...state,
+      superimposedSectionExpanded: !state.superimposedSectionExpanded,
+    };
   }),
   on(
     actions.cardFullWidthStateLoaded,

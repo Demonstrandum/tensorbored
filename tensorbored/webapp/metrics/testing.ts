@@ -161,6 +161,7 @@ function buildBlankState(): MetricsState {
     superimposedCardMetadataMap: {},
     superimposedCardList: [],
     fullWidthSuperimposedCards: new Set<string>(),
+    superimposedSectionExpanded: true,
   };
 }
 
