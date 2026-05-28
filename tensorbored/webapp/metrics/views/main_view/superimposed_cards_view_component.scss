@@ -20,21 +20,17 @@ limitations under the License.
   display: block;
 }
 
-.superimposed-content {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transition: grid-template-rows 150ms ease-out, opacity 120ms ease-out;
+.section-content {
+  animation: section-fade-in 120ms ease-out;
 }
 
-.superimposed-content.expanded {
-  grid-template-rows: 1fr;
-  opacity: 1;
-  transition: grid-template-rows 150ms ease-in, opacity 120ms 30ms ease-in;
-}
-
-.superimposed-content-inner {
-  overflow: hidden;
+@keyframes section-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .superimposed-cards-grid {

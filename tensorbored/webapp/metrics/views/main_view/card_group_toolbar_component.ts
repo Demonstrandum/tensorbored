@@ -33,12 +33,10 @@ import {
     >
       <span class="expand-group-icon">
         <mat-icon
-          *ngIf="isGroupExpanded; else expandMore"
-          svgIcon="expand_less_24px"
+          [svgIcon]="
+            isGroupExpanded ? 'expand_more_24px' : 'chevron_right_24px'
+          "
         ></mat-icon>
-        <ng-template #expandMore>
-          <mat-icon svgIcon="expand_more_24px"></mat-icon>
-        </ng-template>
       </span>
       <span class="group-title-wrapper">
         <span
@@ -52,6 +50,7 @@ import {
           >{{ numberOfCards | number }} cards</span
         >
       </span>
+      <ng-content></ng-content>
     </button>
   `,
   styleUrls: [`card_group_toolbar_component.css`],

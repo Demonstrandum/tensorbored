@@ -38,21 +38,19 @@ import {CardObserver} from '../card_renderer/card_lazy_loader';
         [displayName]="node.segmentName"
         [depth]="depth"
       ></metrics-card-group-toolbar>
-      <div class="node-content" [class.expanded]="isExpanded$ | async">
-        <div class="node-content-inner">
-          <metrics-card-grid
-            *ngIf="node.items.length > 0"
-            [cardIdsWithMetadata]="node.items"
-            [cardObserver]="cardObserver"
-            [groupName]="null"
-          ></metrics-card-grid>
-          <metrics-card-group-node
-            *ngFor="let child of node.children; trackBy: trackByNode"
-            [node]="child"
-            [depth]="depth + 1"
-            [cardObserver]="cardObserver"
-          ></metrics-card-group-node>
-        </div>
+      <div *ngIf="isExpanded$ | async" class="node-content">
+        <metrics-card-grid
+          *ngIf="node.items.length > 0"
+          [cardIdsWithMetadata]="node.items"
+          [cardObserver]="cardObserver"
+          [groupName]="null"
+        ></metrics-card-grid>
+        <metrics-card-group-node
+          *ngFor="let child of node.children; trackBy: trackByNode"
+          [node]="child"
+          [depth]="depth + 1"
+          [cardObserver]="cardObserver"
+        ></metrics-card-group-node>
       </div>
     </div>
   `,

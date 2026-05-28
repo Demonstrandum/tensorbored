@@ -45,27 +45,24 @@ const MAX_CARD_MIN_WIDTH_IN_PX = 735;
         [depth]="0"
         (groupExpansionToggled)="expansionToggled.emit()"
       ></metrics-card-group-toolbar-component>
-      <div class="superimposed-content" [class.expanded]="isExpanded">
-        <div class="superimposed-content-inner">
-          <div
-            class="superimposed-cards-grid"
-            [style.grid-template-columns]="gridTemplateColumn"
-          >
-            <div
-              *ngFor="let card of superimposedCards; trackBy: trackByCard"
-              class="card-wrapper"
-              [class.full-width]="(cardsAtFullWidth$ | async)?.has(card.id)"
-              [class.full-height]="cardsAtFullHeight.has(card.id)"
-              [cardEdgeResize]="'superimposed:' + card.id"
-              (columnSpanChanged)="onColumnSpanChanged(card.id, $event)"
-            >
-              <superimposed-card
-                [superimposedCardId]="card.id"
-                (fullWidthChanged)="onFullWidthChanged(card.id, $event)"
-                (fullHeightChanged)="onFullHeightChanged(card.id, $event)"
-              ></superimposed-card>
-            </div>
-          </div>
+      <div
+        *ngIf="isExpanded"
+        class="superimposed-cards-grid section-content"
+        [style.grid-template-columns]="gridTemplateColumn"
+      >
+        <div
+          *ngFor="let card of superimposedCards; trackBy: trackByCard"
+          class="card-wrapper"
+          [class.full-width]="(cardsAtFullWidth$ | async)?.has(card.id)"
+          [class.full-height]="cardsAtFullHeight.has(card.id)"
+          [cardEdgeResize]="'superimposed:' + card.id"
+          (columnSpanChanged)="onColumnSpanChanged(card.id, $event)"
+        >
+          <superimposed-card
+            [superimposedCardId]="card.id"
+            (fullWidthChanged)="onFullWidthChanged(card.id, $event)"
+            (fullHeightChanged)="onFullHeightChanged(card.id, $event)"
+          ></superimposed-card>
         </div>
       </div>
     </ng-container>

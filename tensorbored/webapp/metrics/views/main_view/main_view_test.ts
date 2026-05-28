@@ -144,8 +144,8 @@ describe('metrics main view', () => {
     return debugElement.queryAll(By.css('card-view'));
   }
 
-  function getVisibleCards(debugElement: DebugElement) {
-    return debugElement.queryAll(By.css('.node-content.expanded card-view'));
+  function getTagGroupCards(debugElement: DebugElement) {
+    return debugElement.queryAll(By.css('metrics-card-groups card-view'));
   }
 
   function getCardContents(debugElements: DebugElement[]): string[] {
@@ -983,7 +983,7 @@ describe('metrics main view', () => {
       );
     });
 
-    it('renders 0 visible cards in a collapsed group', () => {
+    it('renders 0 cards in a collapsed group', () => {
       selectSpy
         .withArgs(getMetricsTagGroupExpansionState, 'tagA')
         .and.returnValue(of(false));
@@ -998,7 +998,7 @@ describe('metrics main view', () => {
       expect(
         fixture.debugElement.query(TAG_GROUP_EXPAND_BUTTON)
       ).not.toBeNull();
-      expect(getVisibleCards(fixture.debugElement)).toEqual([]);
+      expect(getTagGroupCards(fixture.debugElement)).toEqual([]);
     });
 
     it('renders N = items.length cards when N < pageSize and expanded', () => {
@@ -1038,7 +1038,7 @@ describe('metrics main view', () => {
       expect(getCards(fixture.debugElement).length).toBe(5);
     });
 
-    it('does not show next or prev when collapsed', () => {
+    it('does not render next or prev when collapsed', () => {
       selectSpy
         .withArgs(getMetricsTagGroupExpansionState, 'tagA')
         .and.returnValue(of(false));
@@ -1050,10 +1050,12 @@ describe('metrics main view', () => {
       const fixture = TestBed.createComponent(MainViewContainer);
       fixture.detectChanges();
 
-      const expanded = fixture.debugElement.query(
-        By.css('.node-content.expanded')
-      );
-      expect(expanded).toBeNull();
+      expect(
+        fixture.debugElement.query(By.css('metrics-card-groups .prev'))
+      ).toBeNull();
+      expect(
+        fixture.debugElement.query(By.css('metrics-card-groups .next'))
+      ).toBeNull();
     });
 
     it('does not render next or prev when items.length <= pageSize and expanded', () => {
@@ -1086,17 +1088,17 @@ describe('metrics main view', () => {
       const fixture = TestBed.createComponent(MainViewContainer);
       fixture.detectChanges();
 
-      expect(getVisibleCards(fixture.debugElement).length).toBe(0);
+      expect(getTagGroupCards(fixture.debugElement).length).toBe(0);
 
       getExpansionStateSubject.next(true);
       fixture.detectChanges();
 
-      expect(getVisibleCards(fixture.debugElement).length).toBe(5);
+      expect(getTagGroupCards(fixture.debugElement).length).toBe(5);
 
       getExpansionStateSubject.next(false);
       fixture.detectChanges();
 
-      expect(getVisibleCards(fixture.debugElement).length).toBe(0);
+      expect(getTagGroupCards(fixture.debugElement).length).toBe(0);
     });
 
     it(

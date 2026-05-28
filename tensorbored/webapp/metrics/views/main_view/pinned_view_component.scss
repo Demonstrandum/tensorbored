@@ -22,19 +22,9 @@ limitations under the License.
   @include metrics-sub-view;
 }
 
-.pinned-toolbar-row {
-  display: flex;
-  align-items: center;
-
-  metrics-card-group-toolbar-component {
-    flex: 1;
-    min-width: 0;
-  }
-}
-
 .pinned-actions {
-  flex-shrink: 0;
-  padding-right: 16px;
+  margin-left: auto;
+  margin-right: 8px;
 
   button {
     $_height: 25px;
@@ -51,20 +41,16 @@ limitations under the License.
 }
 
 .pinned-content {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transition: grid-template-rows 150ms ease-out, opacity 120ms ease-out;
+  animation: section-fade-in 120ms ease-out;
 }
 
-.pinned-content.expanded {
-  grid-template-rows: 1fr;
-  opacity: 1;
-  transition: grid-template-rows 150ms ease-in, opacity 120ms 30ms ease-in;
-}
-
-.pinned-content-inner {
-  overflow: hidden;
+@keyframes section-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .empty-message {
