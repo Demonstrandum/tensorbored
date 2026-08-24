@@ -15,7 +15,7 @@ limitations under the License.
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
-import {skip, startWith} from 'rxjs/operators';
+import {map, skip, startWith} from 'rxjs/operators';
 import {State} from '../../../app_state';
 import {getEnableGlobalPins} from '../../../selectors';
 import {DeepReadonly} from '../../../util/types';
@@ -44,7 +44,10 @@ export class PinnedViewContainer {
   constructor(private readonly store: Store<State>) {
     this.cardIdsWithMetadata$ = this.store
       .select(getPinnedCardsWithMetadata)
-      .pipe(startWith([]));
+      .pipe(
+        map((cards) => cards as DeepReadonly<CardIdWithMetadata>[]),
+        startWith([] as DeepReadonly<CardIdWithMetadata>[])
+      );
     this.lastPinnedCardTime$ = this.store.select(getLastPinnedCardTime).pipe(
       // Ignore the first value on component load, only reacting to new
       // pins after page load.
@@ -53,7 +56,7 @@ export class PinnedViewContainer {
     this.globalPinsEnabled$ = this.store.select(getEnableGlobalPins);
   }
 
-  readonly cardIdsWithMetadata$: Observable<DeepReadonly<CardIdWithMetadata[]>>;
+  readonly cardIdsWithMetadata$: Observable<DeepReadonly<CardIdWithMetadata>[]>;
 
   readonly lastPinnedCardTime$;
 

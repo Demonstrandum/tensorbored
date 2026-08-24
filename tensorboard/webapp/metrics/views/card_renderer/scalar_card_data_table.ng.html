@@ -47,7 +47,7 @@ limitations under the License.
           <tb-data-table-content-cell
             *ngIf="header.enabled && (header.type !== ColumnHeaderType.SMOOTHED || smoothingEnabled)"
             [header]="header"
-            [datum]="dataRow[header.name]"
+            [datum]="$any(dataRow[header.name])"
           >
             <div
               *ngIf="header.type === ColumnHeaderType.COLOR"

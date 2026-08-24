@@ -80,7 +80,7 @@ export class SettingsViewComponent {
   @Output() stepSelectorToggled = new EventEmitter<void>();
   @Output() rangeSelectionToggled = new EventEmitter<void>();
   @Output() onSlideOutToggled = new EventEmitter<void>();
-  @Output() onEnableSavingPinsToggled = new EventEmitter<void>();
+  @Output() onEnableSavingPinsToggled = new EventEmitter<boolean>();
 
   @Input() isImageSupportEnabled!: boolean;
 

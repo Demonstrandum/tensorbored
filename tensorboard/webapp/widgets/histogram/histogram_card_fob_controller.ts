@@ -21,6 +21,7 @@ import {
   AxisDirection,
   CardFobGetStepFromPositionHelper,
   TimeSelection,
+  TimeSelectionWithAffordance,
 } from '../card_fob/card_fob_types';
 import {TemporalScale} from './histogram_component';
 
@@ -46,7 +47,8 @@ export class HistogramCardFobController {
   @Input() steps!: number[];
   @Input() timeSelection!: TimeSelection;
   @Input() temporalScale!: TemporalScale;
-  @Output() onTimeSelectionChanged = new EventEmitter<TimeSelection>();
+  @Output() onTimeSelectionChanged =
+    new EventEmitter<TimeSelectionWithAffordance>();
   @Output() onTimeSelectionToggled = new EventEmitter();
 
   readonly axisDirection = AxisDirection.VERTICAL;

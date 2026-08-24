@@ -53,6 +53,7 @@ import {
 import {
   MinMaxStep,
   ScalarCardDataSeries,
+  ScalarCardPoint,
   ScalarCardSeriesMetadata,
   ScalarCardSeriesMetadataMap,
 } from './scalar_card_types';
@@ -72,7 +73,8 @@ import {RunToHparamMap} from '../../../runs/types';
 type ScalarTooltipDatum = TooltipDatum<
   ScalarCardSeriesMetadata & {
     closest: boolean;
-  }
+  },
+  ScalarCardPoint
 >;
 
 @Component({
@@ -89,7 +91,7 @@ export class ScalarCardComponent<Downloader> {
 
   @Input() cardId!: string;
   @Input() chartMetadataMap!: ScalarCardSeriesMetadataMap;
-  @Input() cardState?: CardState;
+  @Input() cardState?: Partial<CardState>;
   @Input() DataDownloadComponent!: ComponentType<Downloader>;
   @Input() dataSeries!: ScalarCardDataSeries[];
   @Input() ignoreOutliers!: boolean;
@@ -154,7 +156,6 @@ export class ScalarCardComponent<Downloader> {
   constructor(private readonly ref: ElementRef, private dialog: MatDialog) {}
 
   yScaleType = ScaleType.LINEAR;
-  isViewBoxOverridden: boolean = false;
   additionalItemsCount = 0;
 
   toggleYScaleType() {
@@ -194,7 +195,7 @@ export class ScalarCardComponent<Downloader> {
   }
 
   getCursorAwareTooltipData(
-    tooltipData: TooltipDatum<ScalarCardSeriesMetadata>[],
+    tooltipData: TooltipDatum<ScalarCardSeriesMetadata, ScalarCardPoint>[],
     cursorLocationInDataCoord: {x: number; y: number},
     cursorLocation: {x: number; y: number}
   ): ScalarTooltipDatum[] {

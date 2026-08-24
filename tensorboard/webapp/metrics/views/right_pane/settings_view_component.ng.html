@@ -149,7 +149,7 @@ limitations under the License.
   <div class="control-row scalars-ignore-outliers">
     <mat-checkbox
       [checked]="ignoreOutliers"
-      (change)="ignoreOutliersChanged.emit($event.checked)"
+      (change)="ignoreOutliersChanged.emit()"
       >Ignore outliers in chart scaling</mat-checkbox
     >
   </div>
@@ -157,7 +157,7 @@ limitations under the License.
   <div class="control-row scalars-limit-tooltip-rows">
     <mat-checkbox
       [checked]="isTooltipRowsLimitEnabled"
-      (change)="isTooltipRowsLimitEnabledChanged.emit($event.checked)"
+      (change)="isTooltipRowsLimitEnabledChanged.emit()"
       >Limit tooltip rows to</mat-checkbox
     >
     <input
@@ -269,7 +269,7 @@ When enabled, a non-monotonic time series composed of N monotonic pieces will be
   <div class="control-row image-show-actual-size">
     <mat-checkbox
       [checked]="imageShowActualSize"
-      (change)="imageShowActualSizeChanged.emit($event.checked)"
+      (change)="imageShowActualSizeChanged.emit()"
       >Show actual image size</mat-checkbox
     >
   </div>

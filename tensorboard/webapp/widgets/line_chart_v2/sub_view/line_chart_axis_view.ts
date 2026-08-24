@@ -104,11 +104,11 @@ export class LineChartAxisComponent {
     return this.customFormatter ?? this.scale.defaultFormatter;
   }
 
-  trackByMinorTick(tick: MinorTick): number {
+  trackByMinorTick(index: number, tick: MinorTick): number {
     return tick.value;
   }
 
-  trackByMajorTick(tick: MajorTick): number {
+  trackByMajorTick(index: number, tick: MajorTick): number {
     return tick.start;
   }
 

@@ -63,7 +63,9 @@ limitations under the License.
           </mat-select>
         </ng-template>
         <ng-template #unsupportedBlock>
-          <td>Unsupported By UI {{formatFlagValue(flagStatus.value)}}</td>
+          <td>
+            Unsupported By UI {{formatFlagValue(flagStatus.defaultValue)}}
+          </td>
         </ng-template>
       </tr>
     </ng-container>

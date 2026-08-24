@@ -90,8 +90,6 @@ export class ScalarCardLineChartComponent {
 
   constructor(private readonly changeDetector: ChangeDetectorRef) {}
 
-  isViewBoxOverridden: boolean = false;
-
   resetDomain() {
     if (this.lineChart) {
       this.lineChart.viewBoxReset();

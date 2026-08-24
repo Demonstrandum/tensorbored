@@ -53,6 +53,7 @@ export class CardGridComponent {
   @Input() cardObserver!: CardObserver;
   @Input() showPaginationControls!: boolean;
   @Input() cardStateMap!: CardStateMap;
+  @Input() groupName: string | null = null;
 
   @Output() pageIndexChanged = new EventEmitter<number>();
 

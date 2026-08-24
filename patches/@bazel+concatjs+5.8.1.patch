@@ -81,6 +81,40 @@ index b01c999..86d61d4 100755
      module_mappings = get_module_mappings(ctx.label, ctx.attr, srcs = srcs)
  
      # To determine the path for auto-imports, TypeScript's language service
+diff --git a/node_modules/@bazel/concatjs/internal/tsc_wrapped/tsconfig.js b/node_modules/@bazel/concatjs/internal/tsc_wrapped/tsconfig.js
+index e049d15..9ebeec4 100755
+--- a/node_modules/@bazel/concatjs/internal/tsc_wrapped/tsconfig.js
++++ b/node_modules/@bazel/concatjs/internal/tsc_wrapped/tsconfig.js
+@@ -66,6 +66,13 @@ function parseTsconfig(tsconfigFile, host = ts.sys) {
+                     : existingBazelOpts.googmodule, devmodeTargetOverride: isUndefined(existingBazelOpts.devmodeTargetOverride)
+                     ? newBazelBazelOpts.devmodeTargetOverride
+                     : existingBazelOpts.devmodeTargetOverride });
++            // Same reasoning as the bazelOptions merge above, applied to the top-level
++            // "angularCompilerOptions" block. Without this the block in the root
++            // tsconfig.json is silently dropped, because only the generated per-target
++            // tsconfig is ever inspected. The nearer config wins, like "extends" does.
++            if (config.angularCompilerOptions) {
++                mergedConfig.angularCompilerOptions = Object.assign({}, config.angularCompilerOptions, existingConfig.angularCompilerOptions || {});
++            }
+         }
+         if (config.extends) {
+             let extendedConfigPath = resolveNormalizedPath(path.dirname(configFile), config.extends);
+@@ -145,6 +152,15 @@ function parseTsconfig(tsconfigFile, host = ts.sys) {
+         bazelOpts.nodeModulesPrefix =
+             resolveNormalizedPath(options.rootDir, bazelOpts.nodeModulesPrefix);
+     }
++    // NgTscPlugin is built from bazelOptions.angularCompilerOptions, so user options
++    // carried up the extends chain above must be folded in here or the Angular compiler
++    // never sees them. The guard matters: that object already existing is what marks a
++    // target as use_angular_plugin, so creating it here would load the Angular plugin
++    // for plain ts_library targets too. Bazel's own keys win, being build mechanics
++    // rather than user choice.
++    if (bazelOpts.angularCompilerOptions && config.angularCompilerOptions) {
++        bazelOpts.angularCompilerOptions = Object.assign({}, config.angularCompilerOptions, bazelOpts.angularCompilerOptions);
++    }
+     if (bazelOpts.angularCompilerOptions && bazelOpts.angularCompilerOptions.assets) {
+         bazelOpts.angularCompilerOptions.assets = bazelOpts.angularCompilerOptions.assets.map(f => resolveNormalizedPath(options.rootDir, f));
+     }
 diff --git a/node_modules/@bazel/concatjs/package.json b/node_modules/@bazel/concatjs/package.json
 index dbc7cee..1129289 100755
 --- a/node_modules/@bazel/concatjs/package.json

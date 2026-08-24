@@ -41,7 +41,7 @@ limitations under the License.
         cdkFocusInitial
         required
         [value]="selectedRunId || ''"
-        (change)="runSelected.emit($event.target.value)"
+        (change)="runSelected.emit($any($event.target).value)"
       >
         <option selected [value]="''">-</option>
         <!-- There is no guarantee that the run.name is unique but run.id is.-->

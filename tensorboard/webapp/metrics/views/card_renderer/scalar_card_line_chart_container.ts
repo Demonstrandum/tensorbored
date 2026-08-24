@@ -110,7 +110,7 @@ export class ScalarCardLineChartContainer
       ? of(this.xAxisType)
       : this.store.select(getMetricsXAxisType);
     this.xScaleType$ = this.xAxisType
-      ? ScaleType.LINEAR
+      ? of(ScaleType.LINEAR)
       : this.store.select(getMetricsXAxisType).pipe(
           map((xAxisType) => {
             switch (xAxisType) {
