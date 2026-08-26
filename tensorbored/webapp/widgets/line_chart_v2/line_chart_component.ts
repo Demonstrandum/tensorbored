@@ -103,7 +103,7 @@ export class LineChartComponent
 
   @Input()
   customChartOverlayTemplate?: TemplateRef<
-    TemplateContext & {formatter: Formatter}
+    TemplateContext & {interactionState: InteractionState}
   >;
 
   @Input()

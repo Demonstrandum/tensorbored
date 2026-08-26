@@ -24,10 +24,10 @@ permissions:
   pull-requests: write # For PR preview deployment comments
 
 env:
-  # Keep this Bazel version in sync with the `versions.check` directive
-  # in our WORKSPACE file.
-  BAZEL_VERSION: '6.5.0'
-  BAZEL_SHA256SUM: 'a40ac69263440761199fcb8da47ad4e3f328cbe79ffbf4ecc14e5ba252857307'
+  # Keep this Bazel version in sync with .bazelversion and MODULE.bazel's
+  # bazel_compatibility declaration. Bazel 8 is intentionally unsupported.
+  BAZEL_VERSION: '7.7.0'
+  BAZEL_SHA256SUM: 'fe7e799cbc9140f986b063e06800a3d4c790525075c877d00a7112669824acbf'
   BUILDTOOLS_VERSION: '3.0.0'
   BUILDIFIER_SHA256SUM: 'e92a6793c7134c5431c58fbc34700664f101e5c9b1c1fcd93b97978e8b7f88db'
   BUILDOZER_SHA256SUM: '3d58a0b6972e4535718cdd6c12778170ea7382de7c75bc3728f5719437ffb84d'
@@ -47,13 +47,15 @@ jobs:
       fail-fast: false
       matrix:
         tf_version_id: ['tf', 'notf']
-        python_version: ['3.9']
+        python_version: ['3.10']
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.python_version }}
           architecture: 'x64'
+      - name: 'Install host Python packaging tools'
+        run: python -m pip install -U pip setuptools wheel virtualenv
       - name: 'Set up Bazel'
         run: |
           ci/download_bazel.sh "${BAZEL_VERSION}" "${BAZEL_SHA256SUM}" ~/bazel
@@ -66,7 +68,7 @@ jobs:
           path: |
             ~/.cache/bazel
             ~/.cache/bazel-disk-cache
-          key: bazel-${{ matrix.tf_version_id }}-${{ matrix.python_version }}-${{ hashFiles('WORKSPACE', '.bazelversion', 'third_party/**') }}
+          key: bazel-${{ matrix.tf_version_id }}-${{ matrix.python_version }}-${{ hashFiles('WORKSPACE', 'MODULE.bazel', '.bazelversion', 'third_party/**') }}
           restore-keys: |
             bazel-${{ matrix.tf_version_id }}-${{ matrix.python_version }}-
             bazel-${{ matrix.tf_version_id }}-
@@ -75,6 +77,11 @@ jobs:
         run: |
           python -m pip install -U pip
           pip install "${TENSORFLOW_VERSION}"
+          # tf-nightly currently pulls in tb-nightly as a dependency. Bazel's
+          # source-tree tests must import TensorBoard from runfiles rather than
+          # from site-packages, otherwise tests that rely on local-only modules
+          # like `tensorbored.test` resolve against the installed wheel and fail.
+          pip uninstall -y tensorboard tb-nightly || true
         if: matrix.tf_version_id != 'notf'
       - name: 'Install Python dependencies'
         run: |
@@ -136,7 +143,7 @@ jobs:
         # file(s) to be unique per workflow run, so make sure that the name is unique for each
         # "matrix" combination for which this is executed.
         if: matrix.tf_version_id == 'tf'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tensorbored-wheel_py${{ matrix.python_version }}
           path: /tmp/tensorbored_pip_package/*
@@ -154,13 +161,13 @@ jobs:
             platform: 'ubuntu-22.04'
             rust_version: '1.65.0'
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.9'
       - name: 'Cache Cargo artifacts'
         if: matrix.mode == 'native'
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             tensorbored/data/server/target/
@@ -211,7 +218,7 @@ jobs:
             --out-dir /tmp/pip_package \
             ;
       - name: 'Upload'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tensorboard-data-server_${{ matrix.mode }}_${{ matrix.platform }}_${{ matrix.rust_version }}
           path: /tmp/pip_package/*
@@ -226,8 +233,8 @@ jobs:
         # changes, and we want to catch them all.
         python_version: ['3.9', '3.10', '3.11']
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.python_version }}
           architecture: 'x64'
@@ -244,8 +251,8 @@ jobs:
   lint-python-yaml-docs:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -277,9 +284,9 @@ jobs:
         rust_version: ['1.65.0']
         cargo_raze_version: ['0.16.1']
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: 'Cache Cargo artifacts'
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             tensorbored/data/server/target/
@@ -315,11 +322,11 @@ jobs:
   lint-frontend:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          # Angular v17 supports node.js versions: v18.13.0 and newer
-          node-version: 18
+          # Angular 21 supports Node.js 20.19+, 22.12+, or 24+.
+          node-version: 24
       - run: yarn install --ignore-engines
         # You can run `yarn fix-lint` to fix all Prettier complaints, although at this point this will try to fix too many things.
         # To fix only the files changed in this PR, see the command below.
@@ -347,7 +354,7 @@ jobs:
   lint-misc: # build, protos, etc.
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: 'Set up Buildifier'
         run: |
           ci/download_buildifier.sh "${BUILDTOOLS_VERSION}" "${BUILDIFIER_SHA256SUM}" ~/buildifier
@@ -397,7 +404,7 @@ jobs:
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
-          name: tensorbored-wheel_py3.9
+          name: tensorbored-wheel_py3.10
           path: wheel
 
       - name: Get wheel filename

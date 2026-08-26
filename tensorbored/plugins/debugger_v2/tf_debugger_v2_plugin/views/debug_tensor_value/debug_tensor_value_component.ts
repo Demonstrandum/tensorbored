@@ -281,7 +281,7 @@ export class DebugTensorHasInfOrNaNComponent {
     </debug-tensor-has-inf-or-nan>
     <debug-tensor-numeric-breakdown
       *ngIf="debugTensorValue.size !== undefined"
-      size="{{ debugTensorValue.size }}"
+      [size]="debugTensorValue.size"
       [numNegativeInfs]="debugTensorValue.numNegativeInfs"
       [numPositiveInfs]="debugTensorValue.numPositiveInfs"
       [numNaNs]="debugTensorValue.numNaNs"

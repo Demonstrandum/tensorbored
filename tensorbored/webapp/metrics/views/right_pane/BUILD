@@ -18,7 +18,6 @@ sass_binary(
     src = "saving_pins_checkbox_component.scss",
     include_paths = ["external/npm/node_modules"],
     deps = [
-        "//tensorbored/webapp/angular_components:material_sass",
         "//tensorbored/webapp/theme",
     ],
 )

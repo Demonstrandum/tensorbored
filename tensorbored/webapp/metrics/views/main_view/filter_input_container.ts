@@ -15,7 +15,7 @@ limitations under the License.
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
-import {combineLatestWith, filter, map} from 'rxjs/operators';
+import {combineLatestWith, filter, map, startWith} from 'rxjs/operators';
 import {State} from '../../../app_state';
 import {
   getMetricsTagFilter,
@@ -79,7 +79,8 @@ export class MetricsFilterInputContainer {
       filter(([, tagFilterRegex]) => tagFilterRegex !== null),
       map(([tags, tagFilterRegex]) => {
         return tags.filter((tag: string) => tagFilterRegex!.test(tag));
-      })
+      }),
+      startWith([] as string[])
     );
   }
 

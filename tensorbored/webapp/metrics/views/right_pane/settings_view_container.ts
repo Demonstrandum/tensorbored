@@ -35,9 +35,11 @@ import {
   metricsResetImageBrightness,
   metricsResetImageContrast,
   metricsScalarPartitionNonMonotonicXToggled,
+  metricsChangeTooltipRowsLimit,
   metricsSlideoutMenuToggled,
   metricsToggleIgnoreOutliers,
   metricsToggleImageShowActualSize,
+  metricsToggleLimitTooltipRows,
   rangeSelectionToggled,
   stepSelectorToggled,
 } from '../../actions';
@@ -57,6 +59,10 @@ import {
       (tooltipSortChanged)="onTooltipSortChanged($event)"
       [ignoreOutliers]="ignoreOutliers$ | async"
       (ignoreOutliersChanged)="onIgnoreOutliersChanged()"
+      [isTooltipRowsLimitEnabled]="isTooltipRowsLimitEnabled$ | async"
+      (isTooltipRowsLimitEnabledChanged)="onIsTooltipRowsLimitEnabledChanged()"
+      [tooltipRowsLimit]="tooltipRowsLimit$ | async"
+      (tooltipRowsLimitChanged)="onTooltipRowsLimitChanged($event)"
       [xAxisType]="xAxisType$ | async"
       (xAxisTypeChanged)="onXAxisTypeChanged($event)"
       [cardMinWidth]="cardMinWidth$ | async"
@@ -141,6 +147,12 @@ export class SettingsViewContainer {
     this.ignoreOutliers$ = this.store.select(
       selectors.getMetricsIgnoreOutliers
     );
+    this.isTooltipRowsLimitEnabled$ = this.store.select(
+      selectors.getMetricsIsTooltipRowsLimitEnabled
+    );
+    this.tooltipRowsLimit$ = this.store.select(
+      selectors.getMetricsTooltipRowsLimit
+    );
     this.xAxisType$ = this.store.select(selectors.getMetricsXAxisType);
     this.cardMinWidth$ = this.store.select(selectors.getMetricsCardMinWidth);
     this.histogramMode$ = this.store.select(selectors.getMetricsHistogramMode);
@@ -182,6 +194,8 @@ export class SettingsViewContainer {
 
   readonly tooltipSort$;
   readonly ignoreOutliers$;
+  readonly isTooltipRowsLimitEnabled$;
+  readonly tooltipRowsLimit$;
   readonly xAxisType$;
   readonly cardMinWidth$;
   readonly histogramMode$;
@@ -201,6 +215,14 @@ export class SettingsViewContainer {
 
   onIgnoreOutliersChanged() {
     this.store.dispatch(metricsToggleIgnoreOutliers());
+  }
+
+  onIsTooltipRowsLimitEnabledChanged() {
+    this.store.dispatch(metricsToggleLimitTooltipRows());
+  }
+
+  onTooltipRowsLimitChanged(tooltipRowsLimit: number) {
+    this.store.dispatch(metricsChangeTooltipRowsLimit({tooltipRowsLimit}));
   }
 
   onXAxisTypeChanged(xAxisType: XAxisType) {

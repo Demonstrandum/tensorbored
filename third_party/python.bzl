@@ -44,20 +44,6 @@ def tensorboard_python_workspace():
         build_file = str(Label("//third_party:markdown.BUILD")),
     )
 
-    # urllib3 is a transitive dependency from TF (or perhaps other
-    # dependencies), not directly used in TB code. We use a specific version to
-    # have a controlled environment, e.g. for CI.
-    http_archive(
-        name = "org_pythonhosted_urllib3",
-        urls = [
-            "http://mirror.tensorflow.org/files.pythonhosted.org/packages/e4/e8/6ff5e6bc22095cfc59b6ea711b687e2b7ed4bdb373f7eeec370a97d7392f/urllib3-1.26.20.tar.gz",
-            "https://files.pythonhosted.org/packages/e4/e8/6ff5e6bc22095cfc59b6ea711b687e2b7ed4bdb373f7eeec370a97d7392f/urllib3-1.26.20.tar.gz",
-        ],
-        sha256 = "be35dfb571d8e1baefbf909756fa6526d000fd4e",
-        strip_prefix = "urllib3-1.26.20/src",
-        build_file = str(Label("//third_party:urllib3.BUILD")),
-    )
-
     http_archive(
         name = "org_mozilla_bleach",
         urls = [
@@ -67,17 +53,6 @@ def tensorboard_python_workspace():
         strip_prefix = "bleach-6.2.0",
         sha256 = "123e894118b8a599fd80d3ec1a6d4cc7ce4e5882b1317a7e1ba69b56e95f991f",
         build_file = str(Label("//third_party:bleach.BUILD")),
-    )
-
-    http_archive(
-        name = "org_pocoo_werkzeug",
-        urls = [
-            "http://mirror.tensorflow.org/files.pythonhosted.org/packages/59/2d/b24bab64b409e22f026fee6705b035cb0698399a7b69449c49442b30af47/Werkzeug-0.15.4.tar.gz",
-            "https://files.pythonhosted.org/packages/59/2d/b24bab64b409e22f026fee6705b035cb0698399a7b69449c49442b30af47/Werkzeug-0.15.4.tar.gz",
-        ],
-        strip_prefix = "Werkzeug-0.15.4",
-        sha256 = "a0b915f0815982fb2a09161cb8f31708052d0951c3ba433ccc5e1aa276507ca6",
-        build_file = str(Label("//third_party:werkzeug.BUILD")),
     )
 
     http_archive(
@@ -101,4 +76,3 @@ def tensorboard_python_workspace():
             "//third_party:webencodings_license.patch",
         ],
     )
-

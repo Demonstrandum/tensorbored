@@ -7,7 +7,7 @@
     "importHelpers": true,
     "inlineSourceMap": true,
     "lib": ["dom", "es2021", "dom.iterable"],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "es2022",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -19,9 +19,22 @@
     // each library.
     // Instead we'll be explicit about declaring ambient type dependencies
     // using the ///<reference types=""/> syntax.
-    "types": []
+    "types": [],
+    "plugins": [
+      {
+        "name": "@bazel/tsetse",
+        // disabled: concatjs pins tsutils to 3.21.0, which predates TS 5.9 and
+        // is incompatible with these two rules. ban-promise-as-condition
+        // crashes the compiler, must-use-promises misfires on the one
+        // awaited call in alert_display_snackbar_container.ts.
+        "disabledRules": ["ban-promise-as-condition", "must-use-promises"]
+      }
+    ]
   },
   "angularCompilerOptions": {
-    "strictTemplates": true
+    "strictTemplates": true,
+    // TODO(@cdavalos): Set this back to true after these containers stop using AsyncPipe
+    // for inputs. AsyncPipe can return null, so Angular currently rejects these bindings.
+    "strictNullInputTypes": false
   }
 }

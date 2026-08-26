@@ -16,9 +16,7 @@ import {OverlayContainer} from '@angular/cdk/overlay';
 import {DebugElement, getDebugNode} from '@angular/core';
 
 export function getAutocompleteOptions(overlayContainer: OverlayContainer) {
-  const options = overlayContainer
-    .getContainerElement()
-    .querySelectorAll('mat-option');
+  const options = document.body.querySelectorAll('mat-option');
   return Array.from(options).map(
     (optionEl: Element): DebugElement => getDebugNode(optionEl) as DebugElement
   );

@@ -35,11 +35,7 @@ limitations under the License.
     </ng-template>
   </mat-tab>
 </mat-tab-group>
-<mat-form-field
-  floatLabel="never"
-  *ngIf="disabledPlugins.length > 0"
-  subscriptSizing="dynamic"
->
+<mat-form-field *ngIf="disabledPlugins.length > 0" subscriptSizing="dynamic">
   <mat-label>Inactive</mat-label>
   <mat-select
     [value]="selectedPlugin"

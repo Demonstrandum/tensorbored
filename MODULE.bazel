@@ -1,0 +1,171 @@
+module(
+    name = "tensorbored",
+    bazel_compatibility = [
+        ">=7.7.0",
+        "<8.0.0",
+    ],
+    repo_name = "org_tensorbored",
+)
+
+# Keep Bazel itself pinned in .bazelversion. This module graph is intentionally
+# constrained to dependencies that support Bazel 7.7.0.
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "rules_java", version = "8.6.1")
+bazel_dep(name = "rules_jvm_external", version = "6.7")
+bazel_dep(name = "rules_python", version = "1.0.0")
+
+# Resolve TensorBoard's Java dependencies through a module extension.
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "tensorboard_maven",
+    # Preserve the Flogger versions used by the existing Closure/Soy toolchain.
+    artifacts = [
+        "com.google.flogger:flogger:0.5.1",
+        "com.google.flogger:flogger-system-backend:0.5.1",
+        "com.google.flogger:google-extensions:0.5.1",
+    ],
+    lock_file = "//:maven_install.json",
+    repositories = ["https://repo1.maven.org/maven2"],
+)
+use_repo(maven, "tensorboard_maven")
+
+# Functional browser tests use rules_webtesting. Its module owns the Go,
+# Gazelle, and Python support repositories that the legacy WORKSPACE setup had
+# to initialize explicitly.
+bazel_dep(
+    name = "rules_webtesting",
+    version = "0.4.1",
+    repo_name = "io_bazel_rules_webtesting",
+)
+bazel_dep(name = "rules_web_testing_python", version = "0.4.1")
+archive_override(
+    module_name = "rules_web_testing_python",
+    integrity = "sha256-V08cCqBywYcZTWC+2n9b4V4Tml4AlgiadxCBjuw6T2I=",
+    patch_strip = 1,
+    patches = ["//patches:rules_web_testing_python_py310.patch"],
+    strip_prefix = "rules_webtesting-0.4.1/web_testing_python",
+    urls = [
+        "https://github.com/bazelbuild/rules_webtesting/releases/download/0.4.1/rules_webtesting-0.4.1.tar.gz",
+    ],
+)
+
+# Keep the browser repository snapshot used by TensorBoard's existing test
+# definitions. These repositories are imported explicitly because module
+# extension repositories are visible only when requested with use_repo.
+browser_repositories = use_extension(
+    "@io_bazel_rules_webtesting//web:extension.bzl",
+    "browser_repositories_extension",
+)
+browser_repositories.override_version(version = "0.3.4")
+use_repo(
+    browser_repositories,
+    "com_saucelabs_sauce_connect_linux_x64",
+    "com_saucelabs_sauce_connect_macos_x64",
+    "com_saucelabs_sauce_connect_windows_x64",
+    "org_chromium_chromedriver_linux_x64",
+    "org_chromium_chromedriver_macos_arm64",
+    "org_chromium_chromedriver_macos_x64",
+    "org_chromium_chromedriver_windows_x64",
+    "org_chromium_chromium_linux_x64",
+    "org_chromium_chromium_macos_arm64",
+    "org_chromium_chromium_macos_x64",
+    "org_chromium_chromium_windows_x64",
+    "org_mozilla_firefox_linux_x64",
+    "org_mozilla_firefox_macos_arm64",
+    "org_mozilla_firefox_macos_x64",
+    "org_mozilla_geckodriver_linux_x64",
+    "org_mozilla_geckodriver_macos_arm64",
+    "org_mozilla_geckodriver_macos_x64",
+)
+
+# Use a downloaded, checksummed Python runtime so Bazel actions do not depend
+# on whichever interpreter happens to be first on the host PATH. TensorBoard's
+# Bazel build and test jobs currently standardize on Python 3.10 on Linux.
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    # TensorBoard's Linux CI builds execute inside a root-owned container.
+    ignore_root_user_error = True,
+    is_default = True,
+    python_version = "3.10",
+)
+use_repo(python, "python_3_10")
+
+# Resolve packages imported by Bazel-built Python targets into checksummed
+# wheel repositories. Pip-package smoke tests continue to create an isolated
+# virtualenv because they validate the built wheel rather than Bazel targets.
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    extra_pip_args = ["--only-binary=:all:"],
+    hub_name = "tensorboard_pip_deps",
+    python_version = "3.10",
+    requirements_lock = "//tensorbored/pip_package:requirements_bazel_lock.txt",
+)
+use_repo(pip, "tensorboard_pip_deps")
+
+# Bleach and Webencodings are copied into the TensorBoard wheel, while the
+# pinned Markdown source preserves the behavior expected by those vendored
+# paths. Keep these TensorBoard-owned source repositories module-managed even
+# though they are not published as independent BCR modules.
+tensorboard_python = use_extension(
+    "//third_party:extensions.bzl",
+    "tensorboard_python_dependencies",
+)
+use_repo(
+    tensorboard_python,
+    "org_mozilla_bleach",
+    "org_pythonhosted_markdown",
+    "org_pythonhosted_webencodings",
+)
+
+single_version_override(
+    module_name = "rules_cc",
+    # 0.1.0 is yanked in the BCR because it removed cc_proto_library.
+    # TensorBoard patched that API back in WORKSPACE mode; 0.1.1 contains the
+    # upstream fix and is the smallest usable module version.
+    version = "0.1.1",
+)
+
+# Protobuf 31.1 is the Bazel module version for the protobuf 6.31.1 release
+# required by TensorFlow 2.21. Keep the historical apparent repository names
+# used throughout TensorBoard's BUILD files.
+bazel_dep(
+    name = "protobuf",
+    version = "31.1",
+    repo_name = "com_google_protobuf",
+)
+archive_override(
+    module_name = "protobuf",
+    integrity = "sha256-bgm7yVC6YMOnswKAIQzSha+NfY7V4KbtEBxyr/IujYg=",
+    patch_strip = 1,
+    patches = [
+        "//patches:protobuf_6_31_1_bzlmod.patch",
+        "//patches:protobuf_6_31_1_java_export.patch",
+    ],
+    strip_prefix = "protobuf-6.31.1",
+    urls = [
+        "https://storage.googleapis.com/mirror.tensorflow.org/github.com/protocolbuffers/protobuf/archive/refs/tags/v6.31.1.zip",
+        "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v6.31.1.zip",
+    ],
+)
+
+bazel_dep(
+    name = "grpc",
+    version = "1.74.0",
+    repo_name = "com_github_grpc_grpc",
+)
+
+# A transitive grpc-java 1.66 module imports repositories that gRPC 1.74 no
+# longer generates. grpc-java 1.69 moved those repositories to normal module
+# dependencies and is the smallest compatible graph correction.
+bazel_dep(
+    name = "grpc-java",
+    version = "1.69.0",
+    repo_name = "io_grpc_grpc_java",
+)
+
+# Angular's build tooling only consumes JsInfo/js_info from rules_js. This also
+# resolves the module-native rules_nodejs toolchain used by rules_js itself.
+# TensorBoard's legacy Yarn/concatjs integration still requires the separate
+# rules_nodejs 5.8.1 compatibility repository in WORKSPACE.bzlmod.
+bazel_dep(name = "aspect_rules_js", version = "2.1.0")

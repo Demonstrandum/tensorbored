@@ -51,6 +51,7 @@ import {CardIdWithMetadata} from '../metrics_view_types';
       [cardObserver]="cardObserver"
       [cardStateMap]="cardStateMap$ | async"
       [allowPinnedReorder]="allowPinnedReorder"
+      [groupName]="groupName"
       (pageIndexChanged)="onPageIndexChanged($event)"
       (cardOrderChanged)="onCardOrderChanged($event)"
     >

@@ -14,7 +14,6 @@ py_library(
         "event_file_writer.py",
         "record_writer.py",
     ],
-    srcs_version = "PY3",
     # This target depends directly on //tensorbored/compat and on the TF stub to
     # ensure it doesn't pick up a TF build dependency, which may happen when using
     # //tensorbored/compat:tensorflow when the code is synced internally.
@@ -34,7 +33,6 @@ py_test(
     size = "small",
     srcs = ["event_file_writer_test.py"],
     main = "event_file_writer_test.py",
-    srcs_version = "PY3",
     tags = ["support_notf"],
     deps = [
         ":writer",
@@ -47,7 +45,6 @@ py_test(
     size = "small",
     srcs = ["event_file_writer_s3_test.py"],
     main = "event_file_writer_s3_test.py",
-    srcs_version = "PY3",
     tags = [
         "manual",
         "notap",
@@ -55,6 +52,8 @@ py_test(
     ],
     deps = [
         ":writer",
+        "//tensorbored:expect_boto3_installed",
+        "//tensorbored:expect_moto_installed",
         "//tensorbored:test",
     ],
 )
@@ -64,7 +63,6 @@ py_test(
     size = "small",
     srcs = ["event_file_writer_fsspec_test.py"],
     main = "event_file_writer_fsspec_test.py",
-    srcs_version = "PY3",
     tags = ["support_notf"],
     deps = [
         ":writer",
@@ -78,7 +76,6 @@ py_test(
     size = "small",
     srcs = ["record_writer_test.py"],
     main = "record_writer_test.py",
-    srcs_version = "PY3",
     tags = ["support_notf"],
     deps = [
         ":writer",

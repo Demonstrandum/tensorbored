@@ -17,7 +17,6 @@ py_test(
     name = "proto_test",
     size = "small",
     srcs = ["proto_test.py"],
-    srcs_version = "PY3",
     tags = [
         "manual",
         "notap",
@@ -128,11 +127,6 @@ tb_proto_library(
 )
 
 tb_proto_library(
-    name = "graph_debug_info",
-    srcs = ["graph_debug_info.proto"],
-)
-
-tb_proto_library(
     name = "graph",
     srcs = ["graph.proto"],
     deps = [
@@ -141,6 +135,11 @@ tb_proto_library(
         ":node_def",
         ":versions",
     ],
+)
+
+tb_proto_library(
+    name = "graph_debug_info",
+    srcs = ["graph_debug_info.proto"],
 )
 
 tb_proto_library(
@@ -256,20 +255,20 @@ tb_proto_library(
 )
 
 tb_proto_library(
-    name = "tensor_description",
-    srcs = ["tensor_description.proto"],
+    name = "tensor",
+    srcs = ["tensor.proto"],
     deps = [
-        ":allocation_description",
+        ":resource_handle",
         ":tensor_shape",
         ":types",
     ],
 )
 
 tb_proto_library(
-    name = "tensor",
-    srcs = ["tensor.proto"],
+    name = "tensor_description",
+    srcs = ["tensor_description.proto"],
     deps = [
-        ":resource_handle",
+        ":allocation_description",
         ":tensor_shape",
         ":types",
     ],

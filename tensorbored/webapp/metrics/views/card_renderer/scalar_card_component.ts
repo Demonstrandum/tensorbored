@@ -55,6 +55,7 @@ import {
 import {
   MinMaxStep,
   ScalarCardDataSeries,
+  ScalarCardPoint,
   ScalarCardSeriesMetadata,
   ScalarCardSeriesMetadataMap,
 } from './scalar_card_types';
@@ -74,10 +75,9 @@ import {RunToHparamMap} from '../../../runs/types';
 type ScalarTooltipDatum = TooltipDatum<
   ScalarCardSeriesMetadata & {
     closest: boolean;
-  }
+  },
+  ScalarCardPoint
 >;
-
-const MAX_TOOLTIP_ITEMS = 5;
 
 @Component({
   standalone: false,
@@ -93,10 +93,12 @@ export class ScalarCardComponent<Downloader> {
 
   @Input() cardId!: string;
   @Input() chartMetadataMap!: ScalarCardSeriesMetadataMap;
-  @Input() cardState?: CardState;
+  @Input() cardState?: Partial<CardState>;
   @Input() DataDownloadComponent!: ComponentType<Downloader>;
   @Input() dataSeries!: ScalarCardDataSeries[];
   @Input() ignoreOutliers!: boolean;
+  @Input() isTooltipRowsLimitEnabled!: boolean;
+  @Input() tooltipRowsLimit!: number;
   @Input() isCardVisible!: boolean;
   @Input() isPinned!: boolean;
   @Input() loadState!: DataLoadState;
@@ -316,7 +318,7 @@ export class ScalarCardComponent<Downloader> {
   }
 
   getCursorAwareTooltipData(
-    tooltipData: TooltipDatum<ScalarCardSeriesMetadata>[],
+    tooltipData: TooltipDatum<ScalarCardSeriesMetadata, ScalarCardPoint>[],
     cursorLocationInDataCoord: {x: number; y: number},
     cursorLocation: {x: number; y: number}
   ): ScalarTooltipDatum[] {
@@ -380,11 +382,16 @@ export class ScalarCardComponent<Downloader> {
         break;
     }
 
+    if (!this.isTooltipRowsLimitEnabled) {
+      this.additionalItemsCount = 0;
+      return scalarTooltipData;
+    }
+
     this.additionalItemsCount = Math.max(
       0,
-      scalarTooltipData.length - MAX_TOOLTIP_ITEMS
+      scalarTooltipData.length - this.tooltipRowsLimit
     );
-    return scalarTooltipData.slice(0, MAX_TOOLTIP_ITEMS);
+    return scalarTooltipData.slice(0, this.tooltipRowsLimit);
   }
 
   openDataDownloadDialog(): void {

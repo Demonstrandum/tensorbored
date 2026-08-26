@@ -77,6 +77,12 @@ parse_args() {
   if [ -z "${RUNFILES+set}" ]; then
     RUNFILES="$(CDPATH="" cd -- "$0.runfiles" && pwd)"
   fi
+  if [ -d "${RUNFILES}/_main/tensorbored" ]; then
+    TENSORBOARD_RUNFILES="${RUNFILES}/_main"
+  else
+    # Compatibility with the legacy WORKSPACE runfiles layout.
+    TENSORBOARD_RUNFILES="${RUNFILES}/org_tensorbored"
+  fi
 }
 
 initialize_workdir() {
@@ -89,7 +95,7 @@ initialize_workdir() {
 # Extract '*.whl' files from runfiles and put them into "${wheels}".
 extract_wheels() {
   tar xzvf \
-      "${RUNFILES}/org_tensorbored/tensorbored/pip_package/pip_packages.tar.gz" \
+      "${TENSORBOARD_RUNFILES}/tensorbored/pip_package/pip_packages.tar.gz" \
       -C "${wheels}"
 }
 
@@ -193,5 +199,7 @@ test_tf_summary() {
   printf '%s\n' "${import_from}" "${import_attr}" "${import_as}" | python -
   printf '%s\n' "${import_from}" "${import_as}" "${import_attr}" | python -
 }
+
+printf >&2 'All smoke tests passed.'
 
 main "$@"

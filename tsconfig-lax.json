@@ -14,8 +14,16 @@
     "preserveConstEnums": false,
     "skipLibCheck": true,
     "sourceMap": false,
+    "strict": false,
     "strictNullChecks": true,
     "target": "es5",
     "useUnknownInCatchVariables": true,
+    // See tsconfig.json for why these are disabled.
+    "plugins": [
+      {
+        "name": "@bazel/tsetse",
+        "disabledRules": ["ban-promise-as-condition", "must-use-promises"]
+      }
+    ],
   }
 }

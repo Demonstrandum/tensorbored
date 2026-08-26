@@ -152,10 +152,9 @@ describe('metrics filter input', () => {
       expect(options.map((option) => option.nativeElement.textContent)).toEqual(
         tags.slice(0, 25)
       );
-      expect(
-        overlayContainer.getContainerElement().querySelector('.and-more')!
-          .textContent
-      ).toEqual('and 5 more tags matched');
+      expect(document.body.querySelector('.and-more')!.textContent).toEqual(
+        'and 5 more tags matched'
+      );
 
       store.overrideSelector(
         selectors.getNonEmptyCardIdsWithMetadata,
@@ -166,9 +165,7 @@ describe('metrics filter input', () => {
       expect(options.map((option) => option.nativeElement.textContent)).toEqual(
         tags.slice(0, 25)
       );
-      expect(
-        overlayContainer.getContainerElement().querySelector('.and-more')
-      ).toBeNull();
+      expect(document.body.querySelector('.and-more')).toBeNull();
     });
 
     it('renders empty when no tags match', () => {

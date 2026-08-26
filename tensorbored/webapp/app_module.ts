@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-import {NgModule} from '@angular/core';
+import {NgModule, provideZoneChangeDetection} from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {PluginApiHostModule} from '../components/experimental/plugin_util/plugin_api_host_module';
@@ -73,6 +73,7 @@ import {TensorBoardWrapperModule} from './tb_wrapper/tb_wrapper_module';
     StoreModule,
     OssPluginsModule,
   ],
+  providers: [provideZoneChangeDetection()],
   bootstrap: [AppContainer],
 })
 export class AppModule {}

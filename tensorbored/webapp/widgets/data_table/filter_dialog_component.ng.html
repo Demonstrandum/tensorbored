@@ -35,7 +35,7 @@ limitations under the License.
         class="discrete-value"
       >
         <mat-checkbox
-          [checked]="filter.filterValues.includes(value)"
+          [checked]="$any(filter.filterValues).includes(value)"
           (change)="discreteFilterChanged.emit(value)"
           ><span>{{ value }}</span></mat-checkbox
         >

@@ -98,7 +98,7 @@ limitations under the License.
         i18n-aria-label="A button that sets a group to the previous page."
         aria-label="Previous page"
         [disabled]="pageIndex === 0"
-        (click)="handlePageChange(pageIndex - 1, $event.target)"
+        (click)="handlePageChange(pageIndex - 1, $any($event.target))"
       >
         Previous
       </button>
@@ -125,7 +125,7 @@ limitations under the License.
           aria-label="Next page"
           class="next pagination-button"
           [disabled]="pageIndex + 1 >= numPages"
-          (click)="handlePageChange(pageIndex + 1, $event.target)"
+          (click)="handlePageChange(pageIndex + 1, $any($event.target))"
         >
           Next
         </button>

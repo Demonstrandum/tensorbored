@@ -44,6 +44,7 @@ import {
   SCALARS_SMOOTHING_MIN,
   SuperimposedCardId,
   SuperimposedCardMetadata,
+  TOOLTIP_ROWS_LIMIT_MIN,
   TooltipSort,
   URLDeserializedState,
 } from '../types';
@@ -687,6 +688,13 @@ const reducer = createReducer(
     if (typeof partialSettings.savingPinsEnabled === 'boolean') {
       metricsSettings.savingPinsEnabled = partialSettings.savingPinsEnabled;
     }
+    if (typeof partialSettings.isTooltipRowsLimitEnabled === 'boolean') {
+      metricsSettings.isTooltipRowsLimitEnabled =
+        partialSettings.isTooltipRowsLimitEnabled;
+    }
+    if (typeof partialSettings.tooltipRowsLimit === 'number') {
+      metricsSettings.tooltipRowsLimit = partialSettings.tooltipRowsLimit;
+    }
 
     const isSettingsPaneOpen =
       partialSettings.timeSeriesSettingsPaneOpened ?? state.isSettingsPaneOpen;
@@ -920,6 +928,28 @@ const reducer = createReducer(
       settingOverrides: {
         ...state.settingOverrides,
         scalarSmoothing: smoothing,
+      },
+    };
+  }),
+  on(actions.metricsToggleLimitTooltipRows, (state) => {
+    const nextIsTooltipRowsLimitEnabled = !(
+      state.settingOverrides.isTooltipRowsLimitEnabled ??
+      state.settings.isTooltipRowsLimitEnabled
+    );
+    return {
+      ...state,
+      settingOverrides: {
+        ...state.settingOverrides,
+        isTooltipRowsLimitEnabled: nextIsTooltipRowsLimitEnabled,
+      },
+    };
+  }),
+  on(actions.metricsChangeTooltipRowsLimit, (state, {tooltipRowsLimit}) => {
+    return {
+      ...state,
+      settingOverrides: {
+        ...state.settingOverrides,
+        tooltipRowsLimit: Math.max(tooltipRowsLimit, TOOLTIP_ROWS_LIMIT_MIN),
       },
     };
   }),

@@ -132,6 +132,17 @@ export const metricsChangeSymlogLinearThreshold = createAction(
   props<{symlogLinearThreshold: number}>()
 );
 
+// Toggle the "Limit tooltip rows" checkbox on or off. No payload, just change the current boolean
+export const metricsToggleLimitTooltipRows = createAction(
+  '[Metrics] Metrics Setting Toggle Limit Tooltip Rows'
+);
+
+// Set the numeric limit for how many rows to show in the tooltip when limiting is enabled
+export const metricsChangeTooltipRowsLimit = createAction(
+  '[Metrics] Metrics Setting Change Tooltip Rows Limit',
+  props<{tooltipRowsLimit: number}>()
+);
+
 export const metricsChangeImageBrightness = createAction(
   '[Metrics] Metrics Setting Change Image Brightness',
   props<{brightnessInMilli: number}>()

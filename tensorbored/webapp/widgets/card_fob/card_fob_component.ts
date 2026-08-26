@@ -58,7 +58,7 @@ export class CardFobComponent {
     if (event.key === ' ' || isNaN(Number(charcode))) event.preventDefault();
   }
 
-  stepTyped(event: InputEvent) {
+  stepTyped(event: Event) {
     event.preventDefault();
     const stepString = (event.target! as HTMLInputElement).innerText;
 

@@ -159,7 +159,7 @@ export class ContentWrappingInputComponent
     this.updateInputWidth();
   }
 
-  onInput(event: InputEvent) {
+  onInput(event: Event) {
     const prevValue = this.internalValue;
     this.internalValue = this.inputElRef.nativeElement.value;
     if (this.internalValue !== prevValue) {

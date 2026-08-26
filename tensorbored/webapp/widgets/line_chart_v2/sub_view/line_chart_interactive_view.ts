@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 import {
   CdkConnectedOverlay,
+  CdkOverlayOrigin,
   ConnectedPosition,
   Overlay,
   RepositionScrollStrategy,
@@ -128,7 +129,7 @@ export class LineChartInteractiveViewComponent
   domDim!: Dimension;
 
   @Input()
-  tooltipOriginEl!: ElementRef;
+  tooltipOriginEl!: CdkOverlayOrigin;
 
   @Input()
   tooltipTemplate?: TooltipTemplate;

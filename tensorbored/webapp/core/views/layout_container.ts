@@ -41,7 +41,7 @@ import {
       <mat-icon svgIcon="expand_more_24px"></mat-icon>
     </button>
     <nav
-      *ngIf="(width$ | async) > 0"
+      *ngIf="((width$ | async) ?? 0) > 0"
       class="sidebar"
       [style.width.%]="width$ | async"
       [style.minWidth.px]="MINIMUM_SIDEBAR_WIDTH_IN_PX"
@@ -70,7 +70,7 @@ import {
       </div>
     </nav>
     <div
-      *ngIf="(width$ | async) > 0"
+      *ngIf="((width$ | async) ?? 0) > 0"
       class="resizer"
       (mousedown)="resizeGrabbed()"
     ></div>

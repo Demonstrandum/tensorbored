@@ -19,6 +19,8 @@ APIs, as lazily loaded imports to help avoid circular dependency issues
 and defer the search and loading of the module until necessary.
 """
 
+import importlib
+
 import tensorbored.lazy as _lazy
 
 
@@ -38,7 +40,7 @@ def tf():
       ImportError: if a TF-like API is not available.
     """
     try:
-        from tensorbored.compat import notf  # noqa: F401
+        importlib.import_module("tensorbored.compat.notf")
     except ImportError:
         try:
             import tensorflow
@@ -46,9 +48,7 @@ def tf():
             return tensorflow
         except ImportError:
             pass
-    from tensorbored.compat import tensorflow_stub
-
-    return tensorflow_stub
+    return importlib.import_module("tensorbored.compat.tensorflow_stub")
 
 
 @_lazy.lazy_load("tensorbored.compat.tf2")

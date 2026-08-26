@@ -325,6 +325,14 @@ describe('line_chart_v2/lib/renderer test', () => {
     }
 
     beforeEach(() => {
+      // webgl context creation fails on macos arm64 headless so we probe first
+      // and call pending to skip gracefully instead of crashing the whole suite
+      const probe = document.createElement('canvas');
+      if (!probe.getContext('webgl') && !probe.getContext('webgl2')) {
+        pending('WebGL not available in this environment');
+        return;
+      }
+
       scene = new THREE.Scene();
       spyOn(TEST_ONLY.ThreeWrapper, 'createScene').and.returnValue(scene);
 

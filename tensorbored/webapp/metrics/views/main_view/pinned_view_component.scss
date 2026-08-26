@@ -13,17 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 @use '@angular/material' as mat;
-@use '@angular/material' as matm2;
-@use '@angular/material' as matm2var;
-@import 'tensorbored/webapp/theme/tb_theme';
-@import '../common';
+@use 'tensorbored/webapp/theme/tb_theme';
+@use '../common';
 
 :host {
-  @include metrics-sub-view;
+  @include common.metrics-sub-view;
 }
 
 mat-icon {
-  @include tb-theme-foreground-prop(color, secondary-text);
+  @include tb_theme.tb-theme-foreground-prop(color, secondary-text);
   flex: none;
   margin-right: 5px;
 }
@@ -54,20 +52,20 @@ mat-icon {
 }
 
 .group-title {
-  @include metrics-card-group-title;
+  @include common.metrics-card-group-title;
 }
 
 .group-card-count {
-  @include metrics-card-group-count-text;
+  @include common.metrics-card-group-count-text;
 }
 
 .empty-message {
-  @include metrics-empty-message;
+  @include common.metrics-empty-message;
 }
 
 .new-card-pinned {
   animation: pinned-view-fade-out 3s linear;
-  background: matm2.get-color-from-palette(matm2var.$red-palette, 500);
+  background: mat.m2-get-color-from-palette(mat.$m2-red-palette, 500);
   border-radius: 5px;
   color: #fff;
   display: inline-block;
