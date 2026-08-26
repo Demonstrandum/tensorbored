@@ -37,9 +37,7 @@ class BasicTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         src_dir = os.environ["TEST_SRCDIR"]
-        workspace = os.environ.get(
-            "TEST_WORKSPACE", "org_tensorbored"
-        )
+        workspace = os.environ.get("TEST_WORKSPACE", "org_tensorbored")
         binary = os.path.join(src_dir, workspace, "tensorbored/tensorbored")
         cls.logdir = tempfile.mkdtemp(
             prefix="core_test_%s_logdir_" % cls.__name__

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 @use '@angular/material' as mat;
-@use 'tensorboard/webapp/theme/tb_theme';
+@use 'tensorbored/webapp/theme/tb_theme';
 
 @mixin debugger-op-type {
   background-color: mat.m2-get-color-from-palette(

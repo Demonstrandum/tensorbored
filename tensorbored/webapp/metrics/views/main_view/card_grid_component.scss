@@ -96,7 +96,7 @@ $_background: map.get(tb_theme.$tb-theme, background);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   transition: none;
 
-  @include tb-dark-theme {
+  @include tb_theme.tb-dark-theme {
     box-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
   }
 }
