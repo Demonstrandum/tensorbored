@@ -1,10 +1,10 @@
 # Description:
 # TensorBoard plugin for histograms
 
-load("//tensorbored/defs:protos.bzl", "tb_proto_library")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
+load("//tensorbored/defs:protos.bzl", "tb_proto_library")
 
 package(default_visibility = ["//tensorbored:internal"])
 
@@ -14,7 +14,6 @@ licenses(["notice"])
 py_library(
     name = "histograms_plugin",
     srcs = ["histograms_plugin.py"],
-    srcs_version = "PY3",
     deps = [
         ":metadata",
         "//tensorbored:errors",
@@ -22,7 +21,7 @@ py_library(
         "//tensorbored/backend:http_util",
         "//tensorbored/data:provider",
         "//tensorbored/plugins:base_plugin",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -31,7 +30,6 @@ py_test(
     size = "medium",
     srcs = ["histograms_plugin_test.py"],
     main = "histograms_plugin_test.py",
-    srcs_version = "PY3",
     deps = [
         ":histograms_plugin",
         ":summary",
@@ -44,7 +42,7 @@ py_test(
         "//tensorbored/data:provider",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -54,7 +52,6 @@ py_test(
     size = "small",
     srcs = ["histograms_plugin_test.py"],
     main = "histograms_plugin_test.py",
-    srcs_version = "PY3",
     deps = [
         ":histograms_plugin",
         ":summary",
@@ -68,14 +65,13 @@ py_test(
         "//tensorbored/data:provider",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
 py_library(
     name = "metadata",
     srcs = ["metadata.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tensorbored:internal",
     ],
@@ -88,7 +84,6 @@ py_library(
 py_library(
     name = "summary",
     srcs = ["summary.py"],
-    srcs_version = "PY3",
     deps = [
         ":metadata",
         ":summary_v2",
@@ -99,7 +94,6 @@ py_library(
 py_library(
     name = "summary_v2",
     srcs = ["summary_v2.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tensorbored:internal",
     ],
@@ -107,6 +101,7 @@ py_library(
         ":metadata",
         "//tensorbored:expect_numpy_installed",
         "//tensorbored/compat",
+        "//tensorbored/compat:tensorflow",
         "//tensorbored/compat/proto:protos_all_py_pb2",
         "//tensorbored/util:lazy_tensor_creator",
         "//tensorbored/util:tensor_util",
@@ -119,7 +114,6 @@ py_test(
     size = "small",
     srcs = ["summary_test.py"],
     main = "summary_test.py",
-    srcs_version = "PY3",
     deps = [
         ":summary",
         "//tensorbored:expect_tensorflow_installed",
@@ -138,7 +132,6 @@ py_test(
         "test_with_large_counts",
     ],
     main = "summary_test.py",
-    srcs_version = "PY3",
     deps = [
         ":summary",
         "//tensorbored:expect_tensorflow_installed",
@@ -150,7 +143,6 @@ py_test(
 py_binary(
     name = "histograms_demo",
     srcs = ["histograms_demo.py"],
-    srcs_version = "PY3",
     deps = [
         ":summary",
         "//tensorbored:expect_tensorflow_installed",

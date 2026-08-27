@@ -12,7 +12,6 @@ licenses(["notice"])
 py_library(
     name = "graphs_plugin",
     srcs = ["graphs_plugin.py"],
-    srcs_version = "PY3",
     deps = [
         ":graph_util",
         ":keras_util",
@@ -24,7 +23,7 @@ py_library(
         "//tensorbored/backend:process_graph",
         "//tensorbored/data:provider",
         "//tensorbored/plugins:base_plugin",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -32,7 +31,6 @@ py_test(
     name = "graphs_plugin_test",
     size = "small",
     srcs = ["graphs_plugin_test.py"],
-    srcs_version = "PY3",
     deps = [
         ":graphs_plugin_test_lib",
         "//tensorbored:expect_protobuf_installed",
@@ -43,7 +41,6 @@ py_library(
     name = "graphs_plugin_test_lib",
     testonly = True,
     srcs = ["graphs_plugin_test.py"],
-    srcs_version = "PY3",
     deps = [
         ":graphs_plugin",
         "//tensorbored:context",
@@ -54,7 +51,7 @@ py_library(
         "//tensorbored/compat/proto:protos_all_py_pb2",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -63,7 +60,6 @@ py_test(
     size = "small",
     srcs = ["graphs_plugin_v2_test.py"],
     main = "graphs_plugin_v2_test.py",
-    srcs_version = "PY3",
     deps = [
         ":graphs_plugin",
         ":graphs_plugin_test_lib",
@@ -81,7 +77,6 @@ py_test(
     size = "small",
     srcs = ["graphs_plugin_test.py"],
     main = "graphs_plugin_test.py",
-    srcs_version = "PY3",
     deps = [
         ":graphs_plugin",
         "//tensorbored:expect_protobuf_installed",
@@ -92,14 +87,13 @@ py_test(
         "//tensorbored/compat/proto:protos_all_py_pb2",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
 py_binary(
     name = "graphs_demo",
     srcs = ["graphs_demo.py"],
-    srcs_version = "PY3",
     deps = [
         "//tensorbored:expect_numpy_installed",
         "//tensorbored:expect_tensorflow_installed",
@@ -109,7 +103,6 @@ py_binary(
 py_library(
     name = "keras_util",
     srcs = ["keras_util.py"],
-    srcs_version = "PY3",
     visibility = ["//visibility:private"],
     deps = [
         "//tensorbored/compat/proto:protos_all_py_pb2",
@@ -123,7 +116,6 @@ py_test(
     size = "small",
     srcs = ["keras_util_test.py"],
     main = "keras_util_test.py",
-    srcs_version = "PY3",
     deps = [
         ":keras_util",
         "//tensorbored:expect_protobuf_installed",
@@ -135,7 +127,6 @@ py_test(
 py_library(
     name = "graph_util",
     srcs = ["graph_util.py"],
-    srcs_version = "PY3",
     visibility = ["//visibility:private"],
     deps = [
         "//tensorbored/compat/proto:protos_all_py_pb2",
@@ -147,7 +138,6 @@ py_test(
     size = "small",
     srcs = ["graph_util_test.py"],
     main = "graph_util_test.py",
-    srcs_version = "PY3",
     deps = [
         ":graph_util",
         "//tensorbored:expect_protobuf_installed",
@@ -159,7 +149,6 @@ py_test(
 py_library(
     name = "metadata",
     srcs = ["metadata.py"],
-    srcs_version = "PY3",
 )
 
 # This test suite is disabled as lodash does not seem to get properly bundled

@@ -22,7 +22,14 @@ set -eu
 # Usage is like `awk(1)`: provide standard input or pass file paths as
 # arguments, and expect results to stdout.
 
-favicon_file="$0.runfiles/org_tensorbored/tensorbored/logo/favicon.png"
+runfiles_dir="${RUNFILES_DIR:-$0.runfiles}"
+if [ -f "${runfiles_dir}/_main/tensorbored/logo/favicon.png" ]; then
+  workspace_runfiles="${runfiles_dir}/_main"
+else
+  # Compatibility with the legacy WORKSPACE runfiles layout.
+  workspace_runfiles="${runfiles_dir}/org_tensorbored"
+fi
+favicon_file="${workspace_runfiles}/tensorbored/logo/favicon.png"
 stat -- "${favicon_file}" >/dev/null  # ensure exists, with nice error text
 
 mime_type=image/png

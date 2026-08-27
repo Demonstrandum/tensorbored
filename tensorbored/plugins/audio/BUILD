@@ -17,7 +17,6 @@ filegroup(
 py_library(
     name = "audio_plugin",
     srcs = ["audio_plugin.py"],
-    srcs_version = "PY3",
     deps = [
         ":metadata",
         "//tensorbored:errors",
@@ -25,7 +24,7 @@ py_library(
         "//tensorbored/backend:http_util",
         "//tensorbored/data:provider",
         "//tensorbored/plugins:base_plugin",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -33,7 +32,6 @@ py_test(
     name = "audio_plugin_test",
     size = "small",
     srcs = ["audio_plugin_test.py"],
-    srcs_version = "PY3",
     deps = [
         ":audio_plugin",
         ":summary",
@@ -44,7 +42,7 @@ py_test(
         "//tensorbored/backend/event_processing:event_multiplexer",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -54,7 +52,6 @@ py_test(
     size = "small",
     srcs = ["audio_plugin_test.py"],
     main = "audio_plugin_test.py",
-    srcs_version = "PY3",
     deps = [
         ":audio_plugin",
         ":summary",
@@ -66,14 +63,13 @@ py_test(
         "//tensorbored/compat:no_tensorflow",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
 py_library(
     name = "summary",
     srcs = ["summary.py"],
-    srcs_version = "PY3",
     deps = [
         ":metadata",
         ":summary_v2",
@@ -85,13 +81,13 @@ py_library(
 py_library(
     name = "summary_v2",
     srcs = ["summary_v2.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tensorbored:internal",
     ],
     deps = [
         ":metadata",
         "//tensorbored/compat",
+        "//tensorbored/compat:tensorflow",
         "//tensorbored/util:lazy_tensor_creator",
     ],
 )
@@ -100,7 +96,6 @@ py_test(
     name = "summary_test",
     size = "medium",
     srcs = ["summary_test.py"],
-    srcs_version = "PY3",
     deps = [
         ":metadata",
         ":summary",
@@ -114,7 +109,6 @@ py_test(
 py_binary(
     name = "audio_demo",
     srcs = ["audio_demo.py"],
-    srcs_version = "PY3",
     deps = [
         ":summary",
         "//tensorbored:expect_tensorflow_installed",
@@ -124,7 +118,6 @@ py_binary(
 py_library(
     name = "metadata",
     srcs = ["metadata.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tensorbored:internal",
     ],

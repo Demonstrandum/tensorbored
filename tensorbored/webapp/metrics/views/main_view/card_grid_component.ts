@@ -59,6 +59,7 @@ export class CardGridComponent {
   @Input() showPaginationControls!: boolean;
   @Input() cardStateMap!: CardStateMap;
   @Input() allowPinnedReorder: boolean = false;
+  @Input() groupName: string | null = null;
 
   @Output() pageIndexChanged = new EventEmitter<number>();
   @Output() cardOrderChanged = new EventEmitter<{

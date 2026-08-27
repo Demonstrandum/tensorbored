@@ -24,12 +24,14 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cp -LR "${TEST_SRCDIR}/org_tensorbored/tensorbored/examples/plugins/example_basic/" \
+workspace_runfiles="${TEST_SRCDIR}/${TEST_WORKSPACE:-org_tensorbored}"
+
+cp -LR "${workspace_runfiles}/tensorbored/examples/plugins/example_basic/" \
     ./example-plugin/
 
 mkdir tensorboard-wheels
 tar xzvf \
-    "${TEST_SRCDIR}/org_tensorbored/tensorbored/pip_package/pip_packages.tar.gz" \
+    "${workspace_runfiles}/tensorbored/pip_package/pip_packages.tar.gz" \
     -C ./tensorboard-wheels/
 
 virtualenv venv

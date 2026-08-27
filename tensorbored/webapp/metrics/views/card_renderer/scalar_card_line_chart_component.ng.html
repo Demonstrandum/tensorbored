@@ -28,7 +28,6 @@ limitations under the License.
   [useDarkMode]="useDarkMode"
   [userViewBox]="userViewBox"
   [disableTooltip]="disableTooltip"
-  (onViewBoxOverridden)="isViewBoxOverridden = $event"
   (viewBoxChanged)="onLineChartZoom.emit($event)"
   [customVisTemplate]="lineChartCustomVis"
   [customChartOverlayTemplate]="lineChartCustomXAxisVis"
@@ -65,7 +64,7 @@ limitations under the License.
         xScale.forward(
           viewExtent.x,
           [0, domDim.width],
-          stepOrLinkedTimeSelection.end?.step
+          stepOrLinkedTimeSelection.end!.step
         ) + 'px'
       "
     ></div>

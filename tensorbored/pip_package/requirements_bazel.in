@@ -1,0 +1,8 @@
+# Python dependencies imported by Bazel-built TensorBoard targets.
+#
+# Keep the TensorFlow version aligned with the release compatibility baseline.
+# The pip-package smoke test separately validates the CI-selected TensorFlow
+# package (currently tf-nightly).
+-r requirements.txt
+-r requirements_dev.txt
+tensorflow==2.21.0

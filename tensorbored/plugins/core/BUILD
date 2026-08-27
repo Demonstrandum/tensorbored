@@ -10,7 +10,6 @@ licenses(["notice"])
 py_library(
     name = "core_plugin",
     srcs = ["core_plugin.py"],
-    srcs_version = "PY3",
     deps = [
         "//tensorbored:plugin_util",
         "//tensorbored:version",
@@ -18,7 +17,7 @@ py_library(
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:grpc_util",
         "//tensorbored/util:tb_logging",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -40,7 +39,6 @@ py_test(
     name = "core_plugin_test",
     size = "small",
     srcs = ["core_plugin_test.py"],
-    srcs_version = "PY3",
     deps = [
         ":core_plugin",
         "//tensorbored:expect_tensorflow_installed",
@@ -50,7 +48,7 @@ py_test(
         "//tensorbored/data:provider",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 

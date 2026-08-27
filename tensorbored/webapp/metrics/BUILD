@@ -111,7 +111,7 @@ tf_ts_library(
         "//tensorbored/webapp:app_state",
         "//tensorbored/webapp/angular:expect_angular_core_testing",
         "//tensorbored/webapp/angular:expect_angular_platform_browser_animations",
-        "//tensorbored/webapp/angular:expect_angular_platform_browser_dynamic_testing",
+        "//tensorbored/webapp/angular:expect_angular_platform_browser_testing",
         "//tensorbored/webapp/feature_flag",
         "//tensorbored/webapp/metrics/store:metrics_initial_state_provider",
         "//tensorbored/webapp/metrics/store:types",

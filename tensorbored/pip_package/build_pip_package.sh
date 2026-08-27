@@ -27,6 +27,41 @@ Arguments:
 EOF
 }
 
+# Resolve an apparent repository path through Bazel's Bzlmod runfiles mapping.
+# See https://bazel.build/external/overview#concepts for the distinction between
+# apparent and canonical repository names.
+# WORKSPACE runfiles use the apparent name as their directory, while module
+# extension repositories use a canonical name such as
+# `_main~tensorboard_python_dependencies~org_mozilla_bleach`.
+runfile_path() {
+  apparent_path="$1"
+  apparent_repo="${apparent_path%%/*}"
+  repo_relative_path="${apparent_path#*/}"
+
+  if [ -f "${RUNFILES}/_repo_mapping" ]; then
+    canonical_repo="$(
+      awk -F, -v apparent_repo="${apparent_repo}" \
+        '($1 == "" || $1 == "_main") && $2 == apparent_repo { print $3; exit }' \
+        "${RUNFILES}/_repo_mapping"
+    )"
+    if [ -n "${canonical_repo}" ] &&
+        [ -e "${RUNFILES}/${canonical_repo}/${repo_relative_path}" ]; then
+      printf '%s\n' "${RUNFILES}/${canonical_repo}/${repo_relative_path}"
+      return 0
+    fi
+  fi
+
+  # Compatibility with legacy WORKSPACE runfiles and runfiles trees without a
+  # repository mapping file.
+  if [ -e "${RUNFILES}/${apparent_path}" ]; then
+    printf '%s\n' "${RUNFILES}/${apparent_path}"
+    return 0
+  fi
+
+  printf >&2 'fatal: runfile not found: %s\n' "${apparent_path}"
+  return 1
+}
+
 main() {
   if [ $# -ne 1 ]; then
     usage 2>&1
@@ -36,6 +71,12 @@ main() {
 
   if [ -z "${RUNFILES+set}" ]; then
     RUNFILES="$(CDPATH="" cd -- "$0.runfiles" && pwd)"
+  fi
+  if [ -d "${RUNFILES}/_main/tensorbored" ]; then
+    TENSORBOARD_RUNFILES="${RUNFILES}/_main"
+  else
+    # Compatibility with the legacy WORKSPACE runfiles layout.
+    TENSORBOARD_RUNFILES="${RUNFILES}/org_tensorbored"
   fi
 
   if [ "$(uname)" = "Darwin" ]; then
@@ -71,7 +112,7 @@ build() (
   command -v virtualenv >/dev/null
   [ -d "${RUNFILES}" ]
 
-  cp -LR "${RUNFILES}/org_tensorbored/tensorbored" .
+  cp -LR "${TENSORBOARD_RUNFILES}/tensorbored" .
   mv -f "tensorbored/pip_package/LICENSE" .
   mv -f "tensorbored/pip_package/MANIFEST.in" .
   mv -f "tensorbored/pip_package/README.rst" .
@@ -86,8 +127,9 @@ build() (
 
   mkdir -p tensorbored/_vendor
   >tensorbored/_vendor/__init__.py
-  cp -LR "${RUNFILES}/org_mozilla_bleach/bleach" tensorbored/_vendor
-  cp -LR "${RUNFILES}/org_pythonhosted_webencodings/webencodings" tensorbored/_vendor
+  cp -LR "$(runfile_path org_mozilla_bleach/bleach)" tensorbored/_vendor
+  cp -LR "$(runfile_path org_pythonhosted_webencodings/webencodings)" \
+    tensorbored/_vendor
 
   chmod -R u+w,go+r .
 
@@ -119,7 +161,7 @@ build() (
   case "${output}" in
     *.tar.gz)
       mkdir -p "$(dirname "${output}")"
-      "${RUNFILES}/org_tensorbored/tensorbored/pip_package/deterministic_tar_gz" \
+      "${TENSORBOARD_RUNFILES}/tensorbored/pip_package/deterministic_tar_gz" \
           "${output}" "${workdir}"/dist/*.whl
       ;;
     *)

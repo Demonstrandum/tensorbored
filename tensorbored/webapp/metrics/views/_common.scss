@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+@use 'tensorbored/webapp/theme/tb_theme';
+
 $metrics-preferred-gap: 16px;
 
 // TODO(psybuzz): This is likely not metrics-specific. Consider moving to OSS in
@@ -23,8 +25,12 @@ $metrics-min-card-height: 320px;
 
 @mixin metrics-sub-view {
   .group-toolbar {
-    @include tb-theme-background-prop(background-color, background);
-    @include tb-theme-foreground-prop(border-bottom, border, 1px solid);
+    @include tb_theme.tb-theme-background-prop(background-color, background);
+    @include tb_theme.tb-theme-foreground-prop(
+      border-bottom,
+      border,
+      1px solid
+    );
 
     align-items: center;
     background-color: #fff;
@@ -41,7 +47,7 @@ $metrics-min-card-height: 320px;
     z-index: 1;
 
     box-shadow: 0px 2px 4px 0px rgba(#000, 15%);
-    @include tb-dark-theme {
+    @include tb_theme.tb-dark-theme {
       box-shadow: 0px 2px 4px 0px rgba(#fff, 15%);
     }
   }
@@ -55,16 +61,16 @@ $metrics-min-card-height: 320px;
 @mixin metrics-card-group-count-text {
   font-size: 12px;
   font-weight: 400;
-  @include tb-theme-foreground-prop(color, secondary-text);
+  @include tb_theme.tb-theme-foreground-prop(color, secondary-text);
 }
 
 @mixin metrics-card-controls {
-  @include tb-theme-foreground-prop(color, secondary-text);
+  @include tb_theme.tb-theme-foreground-prop(color, secondary-text);
   white-space: nowrap;
 }
 
 @mixin metrics-empty-message {
-  @include tb-theme-foreground-prop(color, secondary-text);
+  @include tb_theme.tb-theme-foreground-prop(color, secondary-text);
   font-size: 13px;
   font-style: italic;
   padding: 16px;
@@ -90,25 +96,25 @@ $metrics-min-card-height: 320px;
   line-height: 1.4;
   pointer-events: auto;
 
-  @include tb-theme-background-prop(background-color, card);
-  @include tb-theme-foreground-prop(border-color, border);
+  @include tb_theme.tb-theme-background-prop(background-color, card);
+  @include tb_theme.tb-theme-foreground-prop(border-color, border);
 
   .popover-tag-name {
     font-weight: 400;
     margin-bottom: 4px;
     word-break: break-all;
-    @include tb-theme-foreground-prop(color, secondary-text);
+    @include tb_theme.tb-theme-foreground-prop(color, secondary-text);
   }
 
   .popover-description {
     font-weight: 500;
     margin-bottom: 6px;
-    @include tb-theme-foreground-prop(color, text);
+    @include tb_theme.tb-theme-foreground-prop(color, text);
   }
 
   .popover-run-descriptions {
     padding-top: 6px;
-    @include tb-theme-foreground-prop(border-top, border, 1px solid);
+    @include tb_theme.tb-theme-foreground-prop(border-top, border, 1px solid);
   }
 
   .popover-run-tabs {
@@ -120,7 +126,7 @@ $metrics-min-card-height: 320px;
     .run-tab {
       background: none;
       border: 1px solid;
-      @include tb-theme-foreground-prop(border-color, border);
+      @include tb_theme.tb-theme-foreground-prop(border-color, border);
       border-radius: 3px;
       padding: 2px 6px;
       font-size: 11px;

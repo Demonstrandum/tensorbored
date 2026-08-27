@@ -19,8 +19,9 @@ permissions:
   actions: read # Needed by deploy-demo.yml for artifact downloads
 
 env:
-  BAZEL_VERSION: '6.5.0'
-  BAZEL_SHA256SUM: 'a40ac69263440761199fcb8da47ad4e3f328cbe79ffbf4ecc14e5ba252857307'
+  # Keep in sync with .bazelversion, MODULE.bazel, and ci.yml.
+  BAZEL_VERSION: '7.7.0'
+  BAZEL_SHA256SUM: 'fe7e799cbc9140f986b063e06800a3d4c790525075c877d00a7112669824acbf'
 
 jobs:
   ci:
@@ -30,11 +31,11 @@ jobs:
     runs-on: ubuntu-22.04
     needs: ci
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # v4.3.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: '3.9'
+          python-version: '3.10'
           architecture: 'x64'
 
       - name: 'Set up Bazel'
@@ -50,10 +51,10 @@ jobs:
           path: |
             ~/.cache/bazel
             ~/.cache/bazel-disk-cache
-          key: bazel-rc-wheel-3.9-${{ hashFiles('WORKSPACE', '.bazelversion', 'third_party/**') }}
+          key: bazel-rc-wheel-3.10-${{ hashFiles('WORKSPACE', 'MODULE.bazel', '.bazelversion', 'third_party/**') }}
           restore-keys: |
-            bazel-rc-wheel-3.9-
-            bazel-tf-3.9-
+            bazel-rc-wheel-3.10-
+            bazel-tf-3.10-
             bazel-tf-
             bazel-
 
@@ -68,7 +69,10 @@ jobs:
       - name: 'Bazel: fetch and build'
         run: |
           bazel fetch //tensorbored/...
-          bazel build //tensorbored/... 2>&1 | grep -v 'external/com_google_protobuf/python: warning: directory' | grep -v 'INFO: From ProtoCompile ' || true
+          ( set -o pipefail;
+            bazel build //tensorbored/... |&\
+            grep -v 'external/com_google_protobuf/python: warning: directory' |&\
+            grep -v 'INFO: From ProtoCompile ' )
 
       - name: 'Set RC version'
         run: ./tensorbored/tools/set_rc_version.sh
@@ -88,7 +92,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build-rc-wheel
     steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Download RC pip package artifacts
         uses: actions/download-artifact@v4

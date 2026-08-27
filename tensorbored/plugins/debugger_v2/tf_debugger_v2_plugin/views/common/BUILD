@@ -7,5 +7,8 @@ licenses(["notice"])
 sass_library(
     name = "style_lib",
     srcs = ["_lib.scss"],
-    deps = ["//tensorbored/webapp/angular_components:material_sass"],
+    deps = [
+        "//tensorbored/webapp/angular_components:material_sass",
+        "//tensorbored/webapp/theme",
+    ],
 )

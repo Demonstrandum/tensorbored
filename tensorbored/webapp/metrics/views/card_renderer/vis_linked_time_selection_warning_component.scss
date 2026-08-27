@@ -13,22 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 @use '@angular/material' as mat;
-@use '@angular/material' as matm2;
-@use '@angular/material' as matm2var;
-@import 'tensorbored/webapp/theme/tb_theme';
+@use 'sass:map';
+@use 'tensorbored/webapp/theme/tb_theme';
 
 :host {
-  color: matm2.get-color-from-palette(
-    map-get(matm2.get-color-config($tb-theme), warn),
+  color: mat.m2-get-color-from-palette(
+    map.get(mat.m2-get-color-config(tb_theme.$tb-theme), warn),
     700
   );
   height: 1em;
   line-height: 0;
   display: inline-flex;
 
-  @include tb-dark-theme {
-    color: matm2.get-color-from-palette(
-      map-get(matm2.get-color-config($tb-dark-theme), warn),
+  @include tb_theme.tb-dark-theme {
+    color: mat.m2-get-color-from-palette(
+      map.get(mat.m2-get-color-config(tb_theme.$tb-dark-theme), warn),
       700
     );
   }

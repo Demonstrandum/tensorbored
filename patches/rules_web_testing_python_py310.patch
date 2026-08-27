@@ -1,0 +1,24 @@
+diff --git a/MODULE.bazel b/MODULE.bazel
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -28,9 +28,9 @@
+ python.toolchain(
+     is_default = True,
+-    python_version = "3.11",
++    python_version = "3.10",
+ )
+ 
+-use_repo(python, "python_3_11", "python_versions")
++use_repo(python, "python_3_10", "python_versions")
+ 
+ pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+ 
+@@ -36,7 +36,7 @@
+ 
+ pip.parse(
+     hub_name = "rules_webtesting_py_deps",
+-    python_version = "3.11",
++    python_version = "3.10",
+     requirements_lock = "//:requirements_lock.txt",
+     requirements_windows = "requirements_lock_windows.txt",
+ )

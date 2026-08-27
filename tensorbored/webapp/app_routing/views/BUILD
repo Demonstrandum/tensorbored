@@ -40,7 +40,7 @@ tf_ts_library(
         "//tensorbored/webapp:app_state",
         "//tensorbored/webapp/angular:expect_angular_core_testing",
         "//tensorbored/webapp/angular:expect_angular_platform_browser_animations",
-        "//tensorbored/webapp/angular:expect_angular_platform_browser_dynamic_testing",
+        "//tensorbored/webapp/angular:expect_angular_platform_browser_testing",
         "//tensorbored/webapp/angular:expect_ngrx_store_testing",
         "//tensorbored/webapp/app_routing:app_root",
         "//tensorbored/webapp/app_routing:location",

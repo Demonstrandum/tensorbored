@@ -27,20 +27,20 @@ limitations under the License.
   <button
     *ngIf="contextMenuHeader?.sortable &&
     sortingInfo.order === SortingOrder.ASCENDING &&
-    sortingInfo.name === contextMenuHeader?.name"
+    sortingInfo.name === contextMenuHeader!.name"
     class="context-menu-button sort-button"
     mat-button
-    (click)="sortByHeader.emit(contextMenuHeader?.name)"
+    (click)="sortByHeader.emit(contextMenuHeader!.name)"
   >
     <mat-icon svgIcon="arrow_downward_24px"></mat-icon>Sort Descending
   </button>
   <button
     *ngIf="contextMenuHeader?.sortable &&
     (sortingInfo.order !== SortingOrder.ASCENDING ||
-    sortingInfo.name !== contextMenuHeader?.name)"
+    sortingInfo.name !== contextMenuHeader!.name)"
     class="context-menu-button sort-button"
     mat-button
-    (click)="sortByHeader.emit(contextMenuHeader?.name)"
+    (click)="sortByHeader.emit(contextMenuHeader!.name)"
   >
     <mat-icon svgIcon="arrow_upward_24px"></mat-icon>Sort Ascending
   </button>
@@ -56,7 +56,7 @@ limitations under the License.
     mat-button
     *ngIf="canContextMenuInsert()"
     class="context-menu-button"
-    (click)="openColumnSelector.emit({event: $event, insertTo: Side.LEFT, isSubMenu: true})"
+    (click)="openColumnSelector.emit({event: $event, insertTo: Side.LEFT, isSubmenu: true})"
   >
     <mat-icon svgIcon="add_24px"></mat-icon>Insert Column Left
   </button>
@@ -64,7 +64,7 @@ limitations under the License.
     mat-button
     *ngIf="canContextMenuInsert()"
     class="context-menu-button"
-    (click)="openColumnSelector.emit({event: $event, insertTo: Side.RIGHT, isSubMenu: true})"
+    (click)="openColumnSelector.emit({event: $event, insertTo: Side.RIGHT, isSubmenu: true})"
   >
     <mat-icon svgIcon="add_24px"></mat-icon>Insert Column Right
   </button>

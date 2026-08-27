@@ -58,6 +58,8 @@ export function buildMetricsSettingsState(
     symlogLinearThreshold: 1,
     hideEmptyCards: true,
     scalarPartitionNonMonotonicX: false,
+    isTooltipRowsLimitEnabled: false,
+    tooltipRowsLimit: 4,
     imageBrightnessInMilli: 123,
     imageContrastInMilli: 123,
     imageShowActualSize: true,

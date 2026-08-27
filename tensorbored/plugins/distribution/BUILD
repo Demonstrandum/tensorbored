@@ -11,7 +11,6 @@ licenses(["notice"])
 py_library(
     name = "distributions_plugin",
     srcs = ["distributions_plugin.py"],
-    srcs_version = "PY3",
     deps = [
         ":compressor",
         ":metadata",
@@ -19,7 +18,7 @@ py_library(
         "//tensorbored/backend:http_util",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/plugins/histogram:histograms_plugin",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -28,7 +27,6 @@ py_test(
     size = "small",
     srcs = ["distributions_plugin_test.py"],
     main = "distributions_plugin_test.py",
-    srcs_version = "PY3",
     deps = [
         ":compressor",
         ":distributions_plugin",
@@ -41,7 +39,7 @@ py_test(
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/plugins/histogram:summary",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -51,7 +49,6 @@ py_test(
     size = "small",
     srcs = ["distributions_plugin_test.py"],
     main = "distributions_plugin_test.py",
-    srcs_version = "PY3",
     deps = [
         ":compressor",
         ":distributions_plugin",
@@ -65,14 +62,13 @@ py_test(
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/plugins/histogram:summary",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
 py_library(
     name = "compressor",
     srcs = ["compressor.py"],
-    srcs_version = "PY3",
     deps = ["//tensorbored:expect_numpy_installed"],
 )
 
@@ -80,7 +76,6 @@ py_test(
     name = "compressor_test",
     size = "small",
     srcs = ["compressor_test.py"],
-    srcs_version = "PY3",
     deps = [
         ":compressor",
         "//tensorbored:expect_tensorflow_installed",
@@ -90,5 +85,4 @@ py_test(
 py_library(
     name = "metadata",
     srcs = ["metadata.py"],
-    srcs_version = "PY3",
 )

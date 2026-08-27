@@ -27,7 +27,8 @@ die () {
 # Run binary with various actions and make sure they succeed.
 # We currently don't test the actual event file output.
 LOGDIR="${TEST_TMPDIR}"/logdir
-BINARY="${TEST_SRCDIR}"/org_tensorbored/tensorbored/plugins/hparams/hparams_util
+workspace_runfiles="${TEST_SRCDIR}/${TEST_WORKSPACE:-org_tensorbored}"
+BINARY="${workspace_runfiles}"/tensorbored/plugins/hparams/hparams_util
 
 # Test --action=create_experiment
 "${BINARY}" \
@@ -82,4 +83,3 @@ metric_infos: {
 --logdir="${LOGDIR}" \
 --action=end_session \
 --status=STATUS_SUCCESS  || die "Failed in action 'end_session'."
-

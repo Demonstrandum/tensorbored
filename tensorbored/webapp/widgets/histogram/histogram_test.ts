@@ -888,6 +888,7 @@ describe('histogram test', () => {
         fixture.componentInstance.mode = HistogramMode.OVERLAY;
         fixture.componentInstance.timeProperty = TimeProperty.STEP;
         fixture.detectChanges();
+        mockContentRect(fixture);
         intersectionObserver.simulateVisibilityChange(fixture, true);
 
         const tooltipData = simulateMouseMove(fixture, 1, 5, 10);
@@ -1349,23 +1350,28 @@ describe('histogram test', () => {
           }
         );
         fixture.detectChanges();
+        mockContentRect(fixture);
         intersectionObserver.simulateVisibilityChange(fixture, true);
-        const testController = fixture.debugElement.query(
+        const cardFobDebugEl = fixture.debugElement.query(
           By.directive(CardFobControllerComponent)
-        ).componentInstance;
-        const fobStartPosition = testController.root.nativeElement
-          .querySelector('.time-fob-wrapper')
-          .getBoundingClientRect().top;
-
-        // Simulate dragging fob to step 10.
+        );
+        const testController = cardFobDebugEl.componentInstance;
+        /*
+         * Drag the fob from step 0 to step 10.
+         * `controllerRootTop` is the top of the card fob controller host in viewport coords, the same point the component uses internally in getMousePositionFromEvent.
+         * `clientY` param is in viewport coords with 0 at the top. With mockContentRect using height 50, step 5 sits at pixel 23.75 and step 10 at 27.5 on this axis, anything above 23.75 and up to 27.5 snaps to step 10.
+         */
+        const controllerRootTop = Number(
+          cardFobDebugEl.nativeElement.getBoundingClientRect().top
+        );
         testController.startDrag(
           Fob.START,
           TimeSelectionAffordance.FOB,
           new MouseEvent('mouseDown')
         );
         const fakeEvent = new MouseEvent('mousemove', {
-          clientY: 5 + fobStartPosition, // Add the difference between step 5 and 10, which is equal to 5.
-          movementY: 1,
+          clientY: controllerRootTop + 25,
+          movementY: 1, // positive value means moving down, required for isMovingHigher to pick a higher step
         });
         testController.mouseMove(fakeEvent);
         fixture.detectChanges();

@@ -221,15 +221,9 @@ describe('scalar column editor', () => {
 
     expect(checkboxes.length).toEqual(2);
     expect(checkboxes[0].nativeElement.innerText).toEqual('Smoothed');
-    expect(
-      checkboxes[0].nativeElement.attributes.getNamedItem('ng-reflect-checked')
-        .value
-    ).toEqual('true');
+    expect(checkboxes[0].componentInstance.checked).toBe(true);
     expect(checkboxes[1].nativeElement.innerText).toEqual('Value');
-    expect(
-      checkboxes[1].nativeElement.attributes.getNamedItem('ng-reflect-checked')
-        .value
-    ).toEqual('false');
+    expect(checkboxes[1].componentInstance.checked).toBe(false);
   }));
 
   describe('toggling', () => {

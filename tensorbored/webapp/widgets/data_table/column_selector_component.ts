@@ -138,13 +138,13 @@ export class ColumnSelectorComponent implements OnInit, AfterViewInit {
     this.isActive = false;
   }
 
-  @HostListener('document:keydown.arrowup', ['$event'])
+  @HostListener('document:keydown.arrowup')
   onUpArrow() {
     if (!this.isActive) return;
     this.selectedIndex$.next(Math.max(this.selectedIndex$.getValue() - 1, 0));
   }
 
-  @HostListener('document:keydown.arrowdown', ['$event'])
+  @HostListener('document:keydown.arrowdown')
   onDownArrow() {
     if (!this.isActive) return;
     this.selectedIndex$.next(
@@ -155,7 +155,7 @@ export class ColumnSelectorComponent implements OnInit, AfterViewInit {
     );
   }
 
-  @HostListener('document:keydown.enter', ['$event'])
+  @HostListener('document:keydown.enter')
   onEnterPressed() {
     if (!this.isActive) return;
     this.selectColumn(

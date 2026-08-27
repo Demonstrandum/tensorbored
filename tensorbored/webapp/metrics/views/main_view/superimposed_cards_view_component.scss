@@ -12,20 +12,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-@import 'tensorbored/webapp/theme/tb_theme';
-@import '../common';
+@use 'tensorbored/webapp/theme/tb_theme';
+@use '../common';
 
 :host {
   display: block;
 }
 
 .group-toolbar {
-  @include tb-theme-background-prop(background-color, background);
-  @include tb-theme-foreground-prop(color, text);
+  @include tb_theme.tb-theme-background-prop(background-color, background);
+  @include tb_theme.tb-theme-foreground-prop(color, text);
   align-items: center;
   background-color: #fff;
   border: 0;
-  @include tb-theme-foreground-prop(border-bottom, border, 1px solid);
+  @include tb_theme.tb-theme-foreground-prop(border-bottom, border, 1px solid);
   cursor: pointer;
   display: flex;
   flex: none;
@@ -38,7 +38,7 @@ limitations under the License.
   width: 100%;
   z-index: 1;
   box-shadow: 0px 2px 4px 0px rgba(#000, 15%);
-  @include tb-dark-theme {
+  @include tb_theme.tb-dark-theme {
     box-shadow: 0px 2px 4px 0px rgba(#fff, 15%);
   }
 
@@ -78,23 +78,23 @@ limitations under the License.
 }
 
 .expand-group-icon {
-  @include tb-theme-foreground-prop(color, secondary-text);
+  @include tb_theme.tb-theme-foreground-prop(color, secondary-text);
 }
 
 .superimposed-cards-grid {
   display: grid;
   grid-template-columns: repeat(
     auto-fill,
-    minmax($metrics-min-card-width, 1fr)
+    minmax(common.$metrics-min-card-width, 1fr)
   );
-  gap: $metrics-preferred-gap;
-  padding: $metrics-preferred-gap;
+  gap: common.$metrics-preferred-gap;
+  padding: common.$metrics-preferred-gap;
 
   .card-wrapper {
-    @include tb-theme-foreground-prop(border, border, 1px solid);
+    @include tb_theme.tb-theme-foreground-prop(border, border, 1px solid);
     border-radius: 4px;
     box-sizing: border-box;
-    min-height: $metrics-min-card-height;
+    min-height: common.$metrics-min-card-height;
     position: relative;
 
     &.full-width {
@@ -103,7 +103,7 @@ limitations under the License.
     }
 
     &.full-height {
-      min-height: $metrics-min-card-height * 1.5;
+      min-height: common.$metrics-min-card-height * 1.5;
     }
 
     &.edge-resizing-width {

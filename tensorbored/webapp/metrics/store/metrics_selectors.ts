@@ -376,6 +376,16 @@ export const getMetricsSymlogLinearThreshold = createSelector(
   (settings): number => settings.symlogLinearThreshold
 );
 
+export const getMetricsIsTooltipRowsLimitEnabled = createSelector(
+  selectSettings,
+  (settings): boolean => settings.isTooltipRowsLimitEnabled
+);
+
+export const getMetricsTooltipRowsLimit = createSelector(
+  selectSettings,
+  (settings): number => settings.tooltipRowsLimit
+);
+
 export const getMetricsImageBrightnessInMilli = createSelector(
   selectSettings,
   (settings): number => settings.imageBrightnessInMilli

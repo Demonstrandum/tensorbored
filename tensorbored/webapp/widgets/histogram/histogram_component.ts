@@ -214,7 +214,7 @@ export class HistogramComponent implements AfterViewInit, OnChanges, OnDestroy {
     return pathBuilder.join('');
   }
 
-  trackByWallTime(datum: HistogramDatum): number {
+  trackByWallTime(index: number, datum: HistogramDatum): number {
     return datum.wallTime;
   }
 

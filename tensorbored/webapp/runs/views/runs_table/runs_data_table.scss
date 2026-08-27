@@ -13,9 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 @use '@angular/material' as mat;
-@use '@angular/material' as matm2;
-@use '@angular/material' as matm2var;
-@import 'tensorbored/webapp/theme/tb_theme';
+@use 'sass:map';
+@use 'tensorbored/webapp/theme/tb_theme';
 $_circle-size: 20px;
 
 :host {
@@ -30,7 +29,8 @@ $_circle-size: 20px;
 
 .run-color-swatch {
   border-radius: 100%;
-  border: 1px solid matm2.get-color-from-palette($tb-foreground, border);
+  border: 1px solid
+    mat.m2-get-color-from-palette(tb_theme.$tb-foreground, border);
   height: $_circle-size;
   width: $_circle-size;
   outline: none;
@@ -52,7 +52,7 @@ tb-data-table-content-cell,
 tb-data-table-header-cell {
   padding: 0 4px;
   vertical-align: middle;
-  @include tb-theme-foreground-prop(border-bottom, border, 1px solid);
+  @include tb_theme.tb-theme-foreground-prop(border-bottom, border, 1px solid);
 }
 
 .table-column-selected {
@@ -67,10 +67,13 @@ $_color-fade-width: 24px;
   position: sticky;
   right: 0;
   z-index: 1;
-  background: matm2.get-color-from-palette($tb-background, background);
+  background: mat.m2-get-color-from-palette(
+    tb_theme.$tb-background,
+    background
+  );
 
-  @include tb-dark-theme {
-    background: map-get($tb-dark-background, background);
+  @include tb_theme.tb-dark-theme {
+    background: map.get(tb_theme.$tb-dark-background, background);
   }
 
   &::before {
@@ -84,14 +87,14 @@ $_color-fade-width: 24px;
     background: linear-gradient(
       to right,
       transparent,
-      matm2.get-color-from-palette($tb-background, background)
+      mat.m2-get-color-from-palette(tb_theme.$tb-background, background)
     );
 
-    @include tb-dark-theme {
+    @include tb_theme.tb-dark-theme {
       background: linear-gradient(
         to right,
         transparent,
-        map-get($tb-dark-background, background)
+        map.get(tb_theme.$tb-dark-background, background)
       );
     }
   }
@@ -106,7 +109,7 @@ tb-data-table-header-cell.table-column-color {
 .start-time {
   font-size: 12px;
   white-space: nowrap;
-  @include tb-theme-foreground-prop(color, secondary-text);
+  @include tb_theme.tb-theme-foreground-prop(color, secondary-text);
 }
 
 .filter-row {

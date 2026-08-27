@@ -42,7 +42,7 @@ export class ExecutionDataComponent {
 
   /** Debug tensor values under non-FULL_TENSOR debug modes. */
   @Input()
-  debugTensorValues: number[][] | null = null;
+  debugTensorValues: Array<number[] | null> | null = null;
 
   /**
    * Dtypes of the tensors.

@@ -160,10 +160,9 @@ describe('line_chart_v2/lib/formatter test', () => {
 
     describe('formatLong', () => {
       it('formats using localization', () => {
-        // jasmine + Angular seems to mock out the timezone by default (to UTC).
         expect(
           wallTimeFormatter.formatLong(new Date('2020-1-5 13:23').getTime())
-        ).toBe('January 5, 2020, 13:23:00.000 UTC');
+        ).toBe('January 5, 2020 at 13:23:00.000 UTC');
       });
     });
   });

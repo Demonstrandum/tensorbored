@@ -465,6 +465,15 @@ describe('line_chart_v2/lib/integration test', () => {
   describe('webgl', () => {
     it('invokes onContextLost after losing webgl context', async () => {
       const canvas = document.createElement('canvas');
+
+      // webgl context creation fails on macos arm64 headless so we probe first
+      // and call pending to skip gracefully instead of crashing the whole suite
+      const probe = document.createElement('canvas');
+      if (!probe.getContext('webgl') && !probe.getContext('webgl2')) {
+        pending('WebGL not available in this environment');
+        return;
+      }
+
       chart = new ChartImpl({
         type: RendererType.WEBGL,
         container: canvas,

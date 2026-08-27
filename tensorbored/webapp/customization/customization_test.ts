@@ -15,8 +15,10 @@ limitations under the License.
 import {
   ChangeDetectionStrategy,
   Component,
+  Inject,
   NgModule,
   Optional,
+  Type,
 } from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {CustomizationModule} from './customization_module';
@@ -43,7 +45,9 @@ export class CustomizableComponentType {}
 })
 export class ParentComponent {
   constructor(
-    @Optional() readonly customizableComponent: CustomizableComponentType
+    @Inject(CustomizableComponentType)
+    @Optional()
+    readonly customizableComponent: Type<unknown>
   ) {}
 }
 

@@ -348,12 +348,12 @@ tf_ts_library(
     deps = ["@npm//@angular/platform-browser"],
 )
 
-# This is a dummy rule used as a @angular/platform-browser-dynamic/testing dependency.
-# This is not a replacement for @angular/platform-browser-dynamic dependency.
+# This is a dummy rule used as a @angular/platform-browser/testing dependency.
+# This is not a replacement for @angular/platform-browser dependency.
 tf_ts_library(
-    name = "expect_angular_platform_browser_dynamic_testing",
+    name = "expect_angular_platform_browser_testing",
     srcs = [],
-    deps = ["@npm//@angular/platform-browser-dynamic"],
+    deps = ["@npm//@angular/platform-browser"],
 )
 
 # This is a dummy rule used as a @angular/cdk/drag_drop dependency.

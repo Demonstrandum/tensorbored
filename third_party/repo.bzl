@@ -1,0 +1,88 @@
+# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Repository helpers for TensorBoard external dependencies."""
+
+def tb_mirror_urls(url):
+    """Returns TensorFlow mirror plus origin URLs for an HTTPS source."""
+    if not url.startswith("https://"):
+        return [url]
+    return [
+        "https://storage.googleapis.com/mirror.tensorflow.org/%s" % url[8:],
+        url,
+    ]
+
+def _tb_http_archive_impl(ctx):
+    """Repository-rule implementation with optional patching."""
+    patch_files = ctx.attr.patch_file
+    # Resolve patch labels up front so Bazel reports missing patch inputs before
+    # download/extract work has completed.
+    for patch_file in patch_files:
+        if patch_file:
+            ctx.path(Label(patch_file))
+
+    ctx.download_and_extract(
+        url = ctx.attr.urls,
+        sha256 = ctx.attr.sha256,
+        type = ctx.attr.type,
+        stripPrefix = ctx.attr.strip_prefix,
+    )
+
+    for patch_file in patch_files:
+        patch_file = ctx.path(Label(patch_file)) if patch_file else None
+        if patch_file:
+            ctx.patch(patch_file, strip = 1)
+
+_tb_http_archive = repository_rule(
+    implementation = _tb_http_archive_impl,
+    attrs = {
+        "sha256": attr.string(mandatory = True),
+        "urls": attr.string_list(mandatory = True),
+        "strip_prefix": attr.string(),
+        "type": attr.string(),
+        "patch_file": attr.string_list(),
+    },
+)
+
+def tb_http_archive(name, sha256, urls, **kwargs):
+    """Downloads a mirrored archive for TensorBoard-specific repo wiring.
+
+    Args:
+      name: The name of the repository.
+      sha256: The expected SHA-256 hash of the downloaded file.
+      urls: A list of URLs where the file can be downloaded.
+      **kwargs: Additional arguments passed to the underlying rule.
+    """
+    if len(urls) < 2:
+        fail("tb_http_archive(urls) must have redundant URLs.")
+
+    if not any([mirror in urls[0] for mirror in (
+        "mirror.tensorflow.org",
+        "mirror.bazel.build",
+        "storage.googleapis.com",
+    )]):
+        fail("The first entry of tb_http_archive(urls) must be a mirror URL.")
+
+    if native.existing_rule(name):
+        # buildifier: disable=print
+        print("\n\033[1;33mWarning:\033[0m skipping import of repository '" +
+              name + "' because it already exists.\n")
+        return
+
+    _tb_http_archive(
+        name = name,
+        sha256 = sha256,
+        urls = urls,
+        **kwargs
+    )

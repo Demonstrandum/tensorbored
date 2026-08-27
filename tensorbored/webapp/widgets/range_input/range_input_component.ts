@@ -143,7 +143,7 @@ export class RangeInputComponent {
     }
   }
 
-  handleInputChange(event: InputEvent, position: Position) {
+  handleInputChange(event: Event, position: Position) {
     const input = event.target! as HTMLInputElement;
     const numValue = this.getClippedValue(Number(input.value));
     if (isNaN(numValue)) {

@@ -134,11 +134,9 @@ py_binary(
     name = "rustboard_core_doc_server",
     srcs = ["rustboard_core_doc_server.py"],
     data = [":rustboard_core_doc.zip"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = ["manual"],  # https://github.com/bazelbuild/rules_rust/issues/689
     deps = [
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -158,18 +156,18 @@ genrule(
         "//tensorbored/data/proto:proto_srcs",
         "//tensorbored/plugins/audio:proto_srcs",
         "//tensorbored/plugins/image:proto_srcs",
-        "@com_google_protobuf//:well_known_protos",
+        "@com_google_protobuf//:well_known_type_protos",
     ],
     outs = _genproto_files + [_generated_file_descriptor_set],
     cmd = """
         die() { printf >&2 'fatal: %s\\n' "$$@"; exit 1; }
         export PROTOC=$(execpath @com_google_protobuf//:protoc)
-        # The `:well_known_protos` fileset has source files in the `src/`
+        # The `:well_known_type_protos` fileset has source files in the `src/`
         # directory under the genfiles tree for its workspace. Bazel variable
         # expansion doesn't provide a way to get that directly (it's not a
         # target), but we can extract it from the files themselves.
         f=
-        for f in $(locations @com_google_protobuf//:well_known_protos); do
+        for f in $(locations @com_google_protobuf//:well_known_type_protos); do
             break  # just take one arbitrarily
         done
         [ -n "$${f}" ] || die 'no well-known protos in fileset'
@@ -202,8 +200,6 @@ py_binary(
     srcs = ["update_protos.py"],
     args = ["--update"] + _proto_packages + ["descriptor.bin"],
     data = _genproto_files + [_generated_file_descriptor_set],
-    python_version = "PY3",
-    srcs_version = "PY3",
 )
 
 py_test(
@@ -215,9 +211,5 @@ py_test(
         _checked_in_file_descriptor_set,
     ],
     main = "update_protos.py",
-    python_version = "PY3",
-    srcs_version = "PY3",
-    # TODO: Re-enable after regenerating protos with Bazel following the
-    # tensorboard -> tensorbored package rename.
     tags = ["manual"],
 )

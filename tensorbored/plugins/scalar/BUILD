@@ -1,10 +1,10 @@
 # Description:
 # TensorBoard plugin for scalars
 
-load("//tensorbored/defs:protos.bzl", "tb_proto_library")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
+load("//tensorbored/defs:protos.bzl", "tb_proto_library")
 
 package(default_visibility = ["//tensorbored:internal"])
 
@@ -14,7 +14,6 @@ licenses(["notice"])
 py_library(
     name = "scalars_plugin",
     srcs = ["scalars_plugin.py"],
-    srcs_version = "PY3",
     deps = [
         ":metadata",
         "//tensorbored:errors",
@@ -22,7 +21,7 @@ py_library(
         "//tensorbored/backend:http_util",
         "//tensorbored/data:provider",
         "//tensorbored/plugins:base_plugin",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -31,7 +30,6 @@ py_test(
     size = "medium",
     srcs = ["scalars_plugin_test.py"],
     main = "scalars_plugin_test.py",
-    srcs_version = "PY3",
     deps = [
         ":scalars_plugin",
         ":summary",
@@ -43,7 +41,7 @@ py_test(
         "//tensorbored/compat/proto:protos_all_py_pb2",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
@@ -53,7 +51,6 @@ py_test(
     size = "small",
     srcs = ["scalars_plugin_test.py"],
     main = "scalars_plugin_test.py",
-    srcs_version = "PY3",
     deps = [
         ":scalars_plugin",
         ":summary",
@@ -66,14 +63,13 @@ py_test(
         "//tensorbored/compat/proto:protos_all_py_pb2",
         "//tensorbored/plugins:base_plugin",
         "//tensorbored/util:test_util",
-        "@org_pocoo_werkzeug",
+        "@tensorboard_pip_deps//werkzeug",
     ],
 )
 
 py_binary(
     name = "scalars_demo",
     srcs = ["scalars_demo.py"],
-    srcs_version = "PY3",
     deps = [
         ":summary",
         "//tensorbored:expect_tensorflow_installed",
@@ -83,7 +79,6 @@ py_binary(
 py_binary(
     name = "scalars_demo_eager",
     srcs = ["scalars_demo_eager.py"],
-    srcs_version = "PY3",
     deps = [
         ":summary",
         "//tensorbored:expect_tensorflow_installed",
@@ -93,7 +88,6 @@ py_binary(
 py_library(
     name = "summary",
     srcs = ["summary.py"],
-    srcs_version = "PY3",
     deps = [
         ":metadata",
         ":summary_v2",
@@ -104,13 +98,13 @@ py_library(
 py_library(
     name = "summary_v2",
     srcs = ["summary_v2.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tensorbored:internal",
     ],
     deps = [
         ":metadata",
         "//tensorbored/compat",
+        "//tensorbored/compat:tensorflow",
         "//tensorbored/compat/proto:protos_all_py_pb2",
         "//tensorbored/util:tensor_util",
     ],
@@ -120,7 +114,6 @@ py_test(
     name = "summary_test",
     size = "small",
     srcs = ["summary_test.py"],
-    srcs_version = "PY3",
     deps = [
         ":metadata",
         ":summary",
@@ -134,7 +127,6 @@ py_test(
 py_library(
     name = "metadata",
     srcs = ["metadata.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tensorbored:internal",
     ],

@@ -18,7 +18,10 @@ import {
   Input,
   ViewChild,
 } from '@angular/core';
-import {MatAutocompleteTrigger} from '@angular/material/autocomplete';
+import {
+  MatAutocomplete,
+  MatAutocompleteTrigger,
+} from '@angular/material/autocomplete';
 
 /**
  * A text input field intended for filtering items.
@@ -36,7 +39,7 @@ import {MatAutocompleteTrigger} from '@angular/material/autocomplete';
       type="text"
       autocomplete="off"
       [placeholder]="placeholder"
-      [matAutocomplete]="matAutocomplete"
+      [matAutocomplete]="matAutocomplete!"
       [matAutocompleteDisabled]="!matAutocomplete"
       [value]="value"
       (keyup)="onInputKeyUp($event)"
@@ -46,7 +49,7 @@ import {MatAutocompleteTrigger} from '@angular/material/autocomplete';
 })
 export class FilterInputComponent {
   @Input() value: string = '';
-  @Input() matAutocomplete?: string;
+  @Input() matAutocomplete?: MatAutocomplete;
   @Input() placeholder: string = '';
 
   @ViewChild(MatAutocompleteTrigger)

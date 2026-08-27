@@ -14,7 +14,8 @@ tf_ts_library(
     ],
     deps = [
         "//tensorbored/webapp/angular:expect_angular_core_testing",
-        "//tensorbored/webapp/angular:expect_angular_platform_browser_dynamic_testing",
+        "//tensorbored/webapp/angular:expect_angular_platform_browser_testing",
+        "@npm//@angular/core",
         "@npm//@angular/localize",
     ],
 )
@@ -107,7 +108,6 @@ tf_ng_module(
         "//tensorbored/webapp:reducer_config",
         "//tensorbored/webapp/angular:expect_angular_core_testing",
         "//tensorbored/webapp/angular:expect_angular_platform_browser_animations",
-        "//tensorbored/webapp/angular:expect_angular_platform_browser_dynamic_testing",
         "//tensorbored/webapp/app_routing",
         "//tensorbored/webapp/app_routing:route_config",
         "//tensorbored/webapp/app_routing:route_registry",
