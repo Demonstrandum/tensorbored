@@ -22,6 +22,7 @@ import {
 import {ProfileMetadata} from '../types';
 
 @Component({
+  standalone: false,
   selector: 'tb-profile-menu-component',
   template: `
     <button

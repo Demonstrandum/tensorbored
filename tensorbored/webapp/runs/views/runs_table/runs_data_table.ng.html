@@ -114,8 +114,8 @@ limitations under the License.
                 <span
                   *ngSwitchCase="'startTime'"
                   class="start-time"
-                  [title]="formatStartTimeFull(dataRow['startTime'])"
-                  >{{ formatStartTime(dataRow['startTime']) }}</span
+                  [title]="formatStartTimeFull($any(dataRow['startTime']))"
+                  >{{ formatStartTime($any(dataRow['startTime'])) }}</span
                 >
               </ng-container>
             </tb-data-table-content-cell>

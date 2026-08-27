@@ -52,6 +52,7 @@ import {
 import {
   MinMaxStep,
   ScalarCardDataSeries,
+  ScalarCardPoint,
   ScalarCardSeriesMetadata,
   ScalarCardSeriesMetadataMap,
 } from './scalar_card_types';
@@ -61,7 +62,8 @@ import {RunToHparamMap} from '../../../runs/types';
 type ScalarTooltipDatum = TooltipDatum<
   ScalarCardSeriesMetadata & {
     closest: boolean;
-  }
+  },
+  ScalarCardPoint
 >;
 
 const MAX_TOOLTIP_ITEMS = 5;
@@ -137,7 +139,6 @@ export class SuperimposedCardComponent {
 
   constructor(private readonly ref: ElementRef) {}
 
-  isViewBoxOverridden = false;
   additionalItemsCount = 0;
   tableExpanded = false;
   sortingInfo: SortingInfo = {
@@ -251,7 +252,7 @@ export class SuperimposedCardComponent {
   }
 
   getCursorAwareTooltipData(
-    tooltipData: TooltipDatum<ScalarCardSeriesMetadata>[],
+    tooltipData: TooltipDatum<ScalarCardSeriesMetadata, ScalarCardPoint>[],
     cursorLocationInDataCoord: {x: number; y: number},
     cursorLocation: {x: number; y: number}
   ): ScalarTooltipDatum[] {

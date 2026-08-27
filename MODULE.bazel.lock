@@ -290,7 +290,7 @@
     "//third_party:extensions.bzl%tensorboard_python_dependencies": {
       "general": {
         "bzlTransitiveDigest": "pDXi8WDRvNf6ClUDpUaTfHF1xdMpQVE3NpSDFoLNvMI=",
-        "usagesDigest": "JLNx4BjyWyo5I/7jv2p6cVuD8hlVoTbF8/E8zzKfYYk=",
+        "usagesDigest": "86DYwj08P1d+5b3/WViTF5YGJ9jTGHW0m/DWZdf0KBk=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -2115,10 +2115,10 @@
     "@@rules_python~//python/extensions:pip.bzl%pip": {
       "general": {
         "bzlTransitiveDigest": "NfIsUnUWYqOFvZ3z/YBdXdtzJjY1LXV6PCh1d9VnSSU=",
-        "usagesDigest": "yIeaBu/NaRYZjvlhOMO/vBeufGXKMKiWzTqOQEDWz+I=",
+        "usagesDigest": "IkWb9QSBrICuW9AWz6UgV2jxppGH+Gj+RSJvpLoUl6o=",
         "recordedFileInputs": {
-          "@@rules_python~//tools/publish/requirements_linux.txt": "8175b4c8df50ae2f22d1706961884beeb54e7da27bd2447018314a175981997d",
           "@@//tensorbored/pip_package/requirements_bazel_lock.txt": "421dca8538232d84a4762d9481064c65854dba9420bd799ca0e3c8e649625ac5",
+          "@@rules_python~//tools/publish/requirements_linux.txt": "8175b4c8df50ae2f22d1706961884beeb54e7da27bd2447018314a175981997d",
           "@@rules_web_testing_python~//requirements_lock_windows.txt": "5b6f26205ce88f6ec2d52908abafe2c8efca78689b4cd88f9b7a7618a372b1a0",
           "@@protoc-gen-validate~//python/requirements.txt": "6a540bc029bbf3a5f78f9f9282bd30e2965c98eeb150f2cfc5facccbd8a98297",
           "@@rules_web_testing_python~//requirements_lock.txt": "5b6f26205ce88f6ec2d52908abafe2c8efca78689b4cd88f9b7a7618a372b1a0",

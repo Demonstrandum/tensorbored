@@ -22,6 +22,7 @@ import * as profileSelectors from '../store/profile_selectors';
 import * as profileActions from '../actions/profile_actions';
 
 @Component({
+  standalone: false,
   selector: 'tb-profile-menu',
   template: `
     <tb-profile-menu-component

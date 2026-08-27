@@ -40,8 +40,11 @@ export interface CardMetadata {
   /**
    * For superimposed cards, multiple tags can be displayed on the same plot.
    * When tags has multiple entries, this is a superimposed card.
+   *
+   * Readonly so that `DeepReadonly<CardMetadata>` stays assignable to
+   * `CardMetadata`, which the card views rely on.
    */
-  tags?: string[];
+  tags?: readonly string[];
   /**
    * Title for the card. Used mainly for superimposed cards.
    */
