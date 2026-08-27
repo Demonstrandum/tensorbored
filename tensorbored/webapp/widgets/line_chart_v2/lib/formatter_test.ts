@@ -162,7 +162,7 @@ describe('line_chart_v2/lib/formatter test', () => {
       it('formats using localization', () => {
         expect(
           wallTimeFormatter.formatLong(new Date('2020-1-5 13:23').getTime())
-        ).toBe('January 5, 2020 at 1:23:00.000 PM UTC');
+        ).toBe('January 5, 2020 at 13:23:00.000 UTC');
       });
     });
   });
